@@ -1,5 +1,5 @@
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-
+const authPath = ["/login", "/signup", "/reset-password"];
 class ApiClient {
   constructor(baseURL) {
     this.baseURL = baseURL;
@@ -20,6 +20,15 @@ class ApiClient {
     const response = await fetch(url, config);
     const result = await response.json();
 
+    if (
+      !response.ok &&
+      response.status === 401 &&
+      !authPath.some((path) => window.location.pathname.startsWith(path))
+    ) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("isAuthenticated");
+      setTimeout(() => (window.location.href = "/login"), 0);
+    }
     if (!response.ok) {
       throw new Error(result.message || "Something went wrong");
     }

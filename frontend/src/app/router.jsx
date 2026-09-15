@@ -1,0 +1,111 @@
+import { lazy, Suspense } from "react";
+import { Route, Routes } from "react-router-dom";
+import AppLayout from "@/layouts/AppLayout";
+import LearningLayout from "@/layouts/LearningLayout";
+import RedirectIfAuthenticated from "@/app/guards/RedirectIfAuthenticated";
+import RequireAuth from "@/app/guards/RequireAuth";
+import RedirectToFirstLesson from "@/app/guards/RedirectToFirstLesson";
+import SpinnerLoader from "@/components/ui/SpinnerLoader";
+
+const Home = lazy(() => import("@/features/catalog/pages/Home"));
+const CoursePage = lazy(() => import("@/features/catalog/pages/CourseScreen"));
+const CourseDetailScreen = lazy(
+  () => import("@/features/catalog/pages/CourseDetailScreen"),
+);
+const Login = lazy(() => import("@/features/auth/pages/Login"));
+const Signup = lazy(() => import("@/features/auth/pages/Signup"));
+const ResetPasswordFlow = lazy(
+  () => import("@/features/auth/pages/ResetPasswordFlow"),
+);
+const LearningDashboard = lazy(
+  () => import("@/features/dashboard/pages/LearningDashboard"),
+);
+const HomeDashboard = lazy(
+  () => import("@/features/dashboard/pages/HomeDashboard"),
+);
+const RecentViewDashboard = lazy(
+  () => import("@/features/dashboard/pages/RecentViewDashboard"),
+);
+const InprogressDashboard = lazy(
+  () => import("@/features/dashboard/pages/InprogressDashboard"),
+);
+const CompletedCourseDashboard = lazy(
+  () => import("@/features/dashboard/pages/CompletedCourseDashboard"),
+);
+const CourseLearningScreen = lazy(
+  () => import("@/features/learning/pages/CourseLearningScreen"),
+);
+const LessonContent = lazy(
+  () => import("@/features/learning/components/courseLearning/LessonContent"),
+);
+const Quiz = lazy(
+  () => import("@/features/learning/components/courseLearning/quiz/Quiz"),
+);
+const CertificateView = lazy(
+  () => import("@/features/learning/pages/CertificateView"),
+);
+const PricingScreen = lazy(
+  () => import("@/features/subscriptions/pages/PricingScreen"),
+);
+const PaymentSuccess = lazy(
+  () => import("@/features/subscriptions/components/PaymentSuccess"),
+);
+const PaymentCancel = lazy(
+  () => import("@/features/subscriptions/components/PaymentCancel"),
+);
+const UserSetting = lazy(() => import("@/features/settings/pages/UserSetting"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
+
+function AppRouter() {
+  return (
+    <Suspense fallback={<SpinnerLoader />}>
+      <Routes>
+        {/* App Layout */}
+        <Route path="/" element={<AppLayout />}>
+          {/* Login and Signup */}
+          <Route element={<RedirectIfAuthenticated />}>
+            <Route index element={<Home />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/reset-password" element={<ResetPasswordFlow />} />
+          </Route>
+          {/* Learning Dashboard */}
+          <Route element={<RequireAuth />}>
+            <Route path="/learning-dashboard" element={<LearningDashboard />}>
+              <Route index element={<HomeDashboard />} />
+              <Route path="recent-viewed" element={<RecentViewDashboard />} />
+              <Route path="in-progress" element={<InprogressDashboard />} />
+              <Route path="completed" element={<CompletedCourseDashboard />} />
+            </Route>
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-cancel" element={<PaymentCancel />} />
+            <Route path="/user-setting" element={<UserSetting />} />
+          </Route>
+          {/* Courses */}
+          <Route path="/courses" element={<CoursePage />} />
+          <Route path="/courses/:courseId" element={<CourseDetailScreen />} />
+          <Route path="/pricing" element={<PricingScreen />} />
+          <Route element={<RequireAuth />}>
+            <Route path="/certificates/:id" element={<CertificateView />} />
+          </Route>
+        </Route>
+        {/* Learning Layout */}
+        <Route element={<RequireAuth />}>
+          <Route path="/courses/:courseId/lessons" element={<LearningLayout />}>
+            <Route element={<CourseLearningScreen />}>
+              <Route index element={<RedirectToFirstLesson />} />
+              <Route path=":lessonId">
+                <Route index element={<LessonContent />} />
+                <Route path="quiz" element={<Quiz />} />
+              </Route>
+            </Route>
+          </Route>
+        </Route>
+        {/* Not Found Page */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
+  );
+}
+
+export default AppRouter;

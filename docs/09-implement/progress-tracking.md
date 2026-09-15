@@ -30,9 +30,10 @@ Counts are a rollup of the task files — update them when a task's status chang
 | Endpoint naming refactor | 39 | 39 | 0 | 0 | 0 |
 | Backend naming & OOP refactor | 19 | 19 | 0 | 0 | 0 |
 | Security hardening | 32 | 32 | 0 | 0 | 0 |
+| Frontend refactor (learner app) | 20 | 20 | 0 | 0 | 0 |
 
-> Deferred (task files removed): phase 0–4, performance baseline, frontend,
-> documentation. The removed "security verification" file is superseded by
+> Deferred (task files removed): phase 0–4, performance baseline, documentation.
+> The removed "security verification" file is superseded by
 > [`tasks/security-hardening.md`](./tasks/security-hardening.md).
 ## Task Files
 
@@ -44,6 +45,7 @@ Counts are a rollup of the task files — update them when a task's status chang
 | Endpoint naming refactor | [`tasks/endpoint-refactor.md`](./tasks/endpoint-refactor.md) |
 | Backend naming & OOP refactor | [`tasks/naming-oop-refactor.md`](./tasks/naming-oop-refactor.md) |
 | Security hardening | [`tasks/security-hardening.md`](./tasks/security-hardening.md) |
+| Frontend refactor (learner app) | [`tasks/frontend-refactor.md`](./tasks/frontend-refactor.md) |
 
 ---
 
@@ -92,3 +94,5 @@ Counts are a rollup of the task files — update them when a task's status chang
 | 2026-09-15 | Security hardening — SH-5 | ⬜ → ✅ | Per-account login lockout. Migration `0012_login_lockout.sql` adds `users.failed_login_attempts` + `users.locked_until` (idempotent, rollback comment); `schema.sql`/`db/README.md` synced. `users/repository.recordFailedLogin` (atomic increment + lock at 5) / `resetFailedLogin`; `auth/service.authenticate` checks lock, records failures, resets on success, keeps generic `Invalid credentials`; IP `loginLimiter` retained. Verified: 9/9 unit checks; backend `npx eslint .` 0 errors; app import OK. **Apply `npm run db:migrate` (0012) to the live DB.** |
 | 2026-09-15 | Security hardening — SH-6 | ⬜ → ✅ | Medium hardening. (6.1) `resolveTrustProxy` + optional `TRUST_PROXY` env. (6.2) Generic registration: `registerUser` returns `{created}`, controller returns generic 201 without auto-login, `Signup.jsx` routes to `/login` (D-16). (6.3) Progress verifies lesson∈course. (6.4) Enroll requires PUBLISHED. (6.5) Untracked `backend/uploads/profile.jpg`, gitignored, removed static serve, try/finally unlink. (6.6) `logger.audit` + auth/role/payment events. (6.7) Static 404. Verified: 10/10 unit checks; backend `npx eslint .` 0 errors; app import OK; frontend build passes. |
 | 2026-09-15 | Security hardening — SH-7 + SH-8 | ⬜ → ✅ | Low hardening + verification. (7.1) `booleanValidator` customSanitizer + strict `isBoolean`. (7.2) Admin invite: random password + `sendResetCode` (D-09). (7.3) 24h idle session timeout middleware. (7.4) Certificate lookup `requireAuth` + owner/admin. (8) Final verification: 16/16 SH-7 checks; backend `npx eslint .` 0 errors; frontend + admin builds pass; middleware order confirmed (webhook before `express.json()`). **Security hardening complete 32/32.** Operational step remaining: apply migration `0012` to the live DB. |
+| 2026-09-15 | Frontend refactor plan + tasks created | ⬜ → 🟡 | Wrote [`../08-refactoring/frontend/01-architecture.md`](../08-refactoring/frontend/01-architecture.md) (target structure, responsibilities, feature shape, data flow, rules, current→target mapping), [`../08-refactoring/frontend/02-migration-plan.md`](../08-refactoring/frontend/02-migration-plan.md) (incremental order, per-unit checklist, risk/rollback), and [`tasks/frontend-refactor.md`](./tasks/frontend-refactor.md) (FE-1…FE-20). Decisions D-17…D-21 recorded. Learner app only; admin out of scope. No code changed. |
+| 2026-09-15 | Frontend refactor — FE-1…FE-20 | 🟡 → ✅ | Migrated `frontend/src` to feature architecture. Added `@`→`src` alias (`vite.config.js` + `jsconfig.json`); converted all relative imports to alias (152 files). Created `lib/` (`api-client.js`, `query-client.js` with defaults), `app/` (`App.jsx`, `router.jsx`, `providers.jsx`, `guards/`), `layouts/`, `components/{ui,common}`, and 7 features (auth, catalog, learning, reviews, subscriptions, dashboard, settings) each with `components/hooks/services`. Split mixed hooks/services by feature; deleted the `hooks/{course,auth,user,subscription}` shim tree and dead files (`DashboardLayout`, `AsyncBoundary`, `ErrorBoundary`, `FullScreenSkeletonLoader`, `OpenCloseMediaQuery`, `useMobile`, `useClickOuteSideTwo`). Added route-level `React.lazy`/`Suspense`; auth now single-source via `["me"]` + `QueryClient` defaults; fixed `useMyReview`/`useSubscriptionDetails`/`useCertificateById` keys, `useCreateReview` invalidation, and the `PaymentSuccess` crash/param mismatch. Removed Font Awesome CDN (→ lucide), `date-fns` (→ `Intl.RelativeTimeFormat`), `@react-oauth/google`, dead `profile.jpg`; moved devtools to devDependencies; renamed `Siderbar`→`Sidebar`; removed debug `console.*`. Verified: `npm run build` passes (main chunk 945 kB → 351 kB, per-route chunks); `npm run lint` 16 errors/5 warnings → 8 errors/0 warnings (all residual `react-hooks/set-state-in-effect`). Admin untouched. |

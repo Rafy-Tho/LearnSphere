@@ -14,12 +14,14 @@ All implementation tasks, grouped by area. **Status lives in the task files**; t
 | Endpoint naming refactor | [`endpoint-refactor.md`](./endpoint-refactor.md) | ER-1…ER-12 |
 | Backend naming & OOP refactor | [`naming-oop-refactor.md`](./naming-oop-refactor.md) | NO-1…NO-5 |
 | Security hardening | [`security-hardening.md`](./security-hardening.md) | SH-1…SH-8 |
+| Frontend refactor (learner app) | [`frontend-refactor.md`](./frontend-refactor.md) | FE-1…FE-20 |
 
 Decisions that block tasks: [`../decisions.md`](../decisions.md).
 
-> The phase 0–4, performance baseline, frontend, and documentation task files were
+> The phase 0–4, performance baseline, and documentation task files were
 > removed — that work is deferred. Backend module migration, database migrations, the
-> API refactor, and security hardening are the active areas.
+> API refactor, security hardening, and the learner frontend refactor are the active areas.
+> Admin is out of scope for the frontend refactor.
 
 ## Plan References
 
@@ -34,6 +36,8 @@ Decisions that block tasks: [`../decisions.md`](../decisions.md).
 - [`../../08-refactoring/performance-plan.md`](../../08-refactoring/performance-plan.md) — performance
 - [`../../08-refactoring/security-plan.md`](../../08-refactoring/security-plan.md) — security
 - [`../../08-refactoring/backend/06-security.md`](../../08-refactoring/backend/06-security.md) — backend security hardening (supersedes backend sections of the above)
+- [`../../08-refactoring/frontend/01-architecture.md`](../../08-refactoring/frontend/01-architecture.md) — frontend target structure
+- [`../../08-refactoring/frontend/02-migration-plan.md`](../../08-refactoring/frontend/02-migration-plan.md) — frontend migration plan
 
 ## How To Update
 
@@ -43,5 +47,5 @@ Decisions that block tasks: [`../decisions.md`](../decisions.md).
 4. Record decisions in [`../decisions.md`](../decisions.md) before dependent work.
 5. Link the commit/PR when a task is ✅.
 
-> Scope note: backend module migration, database migrations, the API refactor, and
-> security hardening are the active areas; all other phases are deferred.
+> Scope note: backend module migration, database migrations, the API refactor, security
+> hardening, and the learner frontend refactor are the active areas; all other phases are deferred.

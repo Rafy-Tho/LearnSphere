@@ -1,6 +1,6 @@
-import FaceBook from "../socialSvg/FaceBook";
-import GitHub from "../socialSvg/GitHub";
-import Google from "../socialSvg/Google";
+import FaceBook from "@/components/common/socialSvg/FaceBook";
+import GitHub from "@/components/common/socialSvg/GitHub";
+import Google from "@/components/common/socialSvg/Google";
 
 export const socialLogins = [
   {

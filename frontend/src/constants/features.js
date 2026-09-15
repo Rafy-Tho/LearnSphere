@@ -1,11 +1,4 @@
-import {
-  BookOpen,
-  CheckCircle,
-  Clock,
-  ShieldCheck,
-  TvMinimalPlay,
-  Users,
-} from "lucide-react";
+import { BookOpen, CheckCircle, Clock, ShieldCheck, TvMinimalPlay, Users } from "lucide-react";
 
 const features = [
   {

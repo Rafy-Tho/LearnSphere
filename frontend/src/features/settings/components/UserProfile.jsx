@@ -1,0 +1,115 @@
+import { useEffect, useState } from "react";
+import PersonalInfoSection from "@/features/settings/components/PersonalInfoSection";
+import ProfileHeader from "@/features/settings/components/ProfileHeader";
+import { useUserProfile as useGetUserProfile } from "@/features/settings/hooks/useUsers";
+import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import ErrorMessage from "@/components/ui/ErrorMessage";
+import { useUpdateUserProfile } from "@/features/settings/hooks/useUserMutations";
+import { toast } from "react-toastify";
+import useAuth from "@/features/auth/hooks/useAuth";
+
+const defaultUser = {
+  name: "",
+  email: "",
+  phone: "",
+  location: "",
+  bio: "",
+  joinDate: "",
+  image: "",
+  dateBirth: "",
+  gender: "",
+};
+const mapUser = (u) => ({
+  name: u?.name ?? "",
+  email: u?.email ?? "",
+  phone: u?.phone ?? "",
+  location: u?.location ?? "",
+  bio: u?.bio ?? "",
+  joinDate: u?.created_at ?? "",
+  image: u?.image_url ?? "",
+  dateBirth: u?.date_birth ?? "",
+  gender: u?.gender ?? "",
+});
+function UserProfile() {
+  const [editMode, setEditMode] = useState(false);
+  const [user, setUser] = useState(defaultUser);
+  const [draft, setDraft] = useState(defaultUser);
+  const { saveAuth } = useAuth();
+  const { data, isPending, error } = useGetUserProfile();
+  const { mutateAsync: updateProfile, isPending: isUpdatePending } =
+    useUpdateUserProfile();
+  const [errors, setErrors] = useState({});
+  // ✅ Load data from API
+  useEffect(() => {
+    if (!data) return;
+    const mapped = mapUser(data);
+    setUser(mapped);
+    setDraft(mapped);
+  }, [data]);
+
+  const field = (key) => (editMode ? draft[key] : user[key]);
+  const update = (key) =>
+    editMode ? (v) => setDraft((prev) => ({ ...prev, [key]: v })) : () => {};
+
+  const handleSaveProfile = async () => {
+    setErrors({});
+    const errors = {};
+    const required = ["name", "email"];
+    for (const key of required) {
+      if (!draft[key] || draft[key] === "") {
+        errors[key] = "This field is required";
+      }
+    }
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return;
+    }
+    const formData = new FormData();
+    Object.entries(draft).forEach(([key, value]) => {
+      formData.append(key, value ?? "");
+    });
+
+    try {
+      const updatedUser = await updateProfile(formData);
+      saveAuth(updatedUser);
+      toast.success("Profile updated successfully");
+      setUser(draft);
+      setEditMode(false);
+    } catch (error) {
+      toast.error(error.message || "Failed to update profile");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setDraft(user);
+    setEditMode(false);
+  };
+  const handleOpenEdit = () => {
+    setDraft(user);
+    setEditMode(true);
+  };
+  if (isPending) return <SpinnerLoader />;
+  if (error) return <ErrorMessage message={error.message} />;
+  return (
+    <>
+      <ProfileHeader
+        editMode={editMode}
+        field={field}
+        update={update}
+        handleSaveProfile={handleSaveProfile}
+        handleCancelEdit={handleCancelEdit}
+        handleOpenEdit={handleOpenEdit}
+        isUpdatePending={isUpdatePending}
+        errors={errors}
+      />
+      <PersonalInfoSection
+        field={field}
+        update={update}
+        editMode={editMode}
+        errors={errors}
+      />
+    </>
+  );
+}
+
+export default UserProfile;

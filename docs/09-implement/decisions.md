@@ -22,6 +22,11 @@ Decisions that block or shape dependent work. Record a decision here **before** 
 | D-14 | Endpoint rename migration strategy | In-place vs `/api/v2` vs legacy aliases | ✅ | In-place + update consumers | 2026-09-15 | No known external clients except Stripe webhook; update frontend/admin/Stripe in the same change. Blocks ER-1…ER-12 |
 | D-15 | Quiz answer-key protection | Client-side scoring vs server-side grading endpoint | ✅ | Server-side grading endpoint | 2026-09-15 | Supersedes D-11. Learner payload drops `is_correct`/`explanation`; `POST /lessons/:lessonId/quiz-submissions` grades. Blocks SH-1 |
 | D-16 | Registration account enumeration | Generic success (no auto-login) vs generic message vs defer | ✅ | Generic success, no auto-login | 2026-09-15 | New and existing emails return the same `201`; frontend routes to `/login`. Closes enumeration without email verification. Blocks SH-6.2 |
+| D-17 | Frontend feature taxonomy | Pasted template (`auth/notes/users`) vs real domains vs coarser set | ✅ | Real domains | 2026-09-15 | `auth, catalog, learning, reviews, subscriptions, dashboard, settings`; matches architecture-plan §4 and the actual code. Blocks FE-1/FE-7…FE-13 |
+| D-18 | Frontend import alias | Relative imports vs `@`→`src` | ✅ | `@`→`src` | 2026-09-15 | Added in `vite.config.js` + `jsconfig.json`; no new dependency. Blocks FE-1 |
+| D-19 | Frontend service layer | Feature `services/` + `lib/api-client` vs keep `api/` | ✅ | Feature `services/` + `lib/api-client` | 2026-09-15 | Client owns transport/401/unwrapping; services own endpoints. Blocks FE-2/FE-7…FE-13 |
+| D-20 | Frontend refactor scope | Structure-only vs structure + targeted fixes vs full remediation | ✅ | Structure + targeted fixes | 2026-09-15 | Behavior-preserving moves, plus audit fixes FE-14–FE-19. Blocks FE-20 |
+| D-21 | Admin app scope | Include vs exclude | ✅ | Exclude | 2026-09-15 | This refactor covers `frontend/` only. |
 
 ## Related
 

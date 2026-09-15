@@ -1,0 +1,10 @@
+import { api } from "@/lib/api-client";
+
+export const lessonsApi = {
+  getContent: (id) => api.get(`/lessons/${id}/contents`),
+  getQuizzes: (id) => api.get(`/lessons/${id}/questions`),
+  submitQuiz: (id, answers) =>
+    api.post(`/lessons/${id}/quiz-submissions`, { answers }),
+  completeLesson: (id) => api.post(`/lessons/${id}/completions`),
+  getCompletedLesson: (id) => api.get(`/lessons/${id}/completions`),
+};

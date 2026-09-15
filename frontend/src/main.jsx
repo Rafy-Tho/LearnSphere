@@ -1,22 +1,15 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createRoot } from "react-dom/client";
-import App from "./App";
-import AuthProvider from "./contexts/AuthContext";
-import ThemeProvider from "./contexts/ThemeContext";
-import "./index.css";
 import { StrictMode } from "react";
-
-const queryClient = new QueryClient();
+import App from "@/app/App";
+import { queryClient } from "@/lib/query-client";
+import "@/index.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </ThemeProvider>
+      <App />
       {/* Optional: DevTools (only visible in development) */}
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

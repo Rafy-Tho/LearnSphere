@@ -7,16 +7,16 @@ import Mobile from "@/components/common/navbar/Mobile";
 import LoginSignupButton from "@/components/common/LoginSignupButton";
 
 const Navigation = ({ user, onLogout }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAvatarOpen, setIsAvatarOpen] = useState(false);
   const navRef = useRef(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (navRef.current && !navRef.current.contains(event.target)) {
-        setAvatarOpen(false);
-        setMobileMenuOpen(false);
+        setIsAvatarOpen(false);
+        setIsMobileMenuOpen(false);
       }
     };
 
@@ -25,20 +25,20 @@ const Navigation = ({ user, onLogout }) => {
   }, []);
 
   const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-    if (!mobileMenuOpen) {
-      setAvatarOpen(false);
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+    if (!isMobileMenuOpen) {
+      setIsAvatarOpen(false);
     }
   };
 
   const toggleAvatar = (e) => {
     e.stopPropagation();
-    setAvatarOpen(!avatarOpen);
+    setIsAvatarOpen(!isAvatarOpen);
   };
 
   const closeAll = () => {
-    setMobileMenuOpen(false);
-    setAvatarOpen(false);
+    setIsMobileMenuOpen(false);
+    setIsAvatarOpen(false);
   };
 
   return (
@@ -59,7 +59,7 @@ const Navigation = ({ user, onLogout }) => {
               <Avatar
                 user={user}
                 onLogout={onLogout}
-                avatarOpen={avatarOpen}
+                isAvatarOpen={isAvatarOpen}
                 toggleAvatar={toggleAvatar}
                 closeAll={closeAll}
               />
@@ -67,7 +67,7 @@ const Navigation = ({ user, onLogout }) => {
             {!user && <LoginSignupButton />}
             {/* Mobile menu button */}
             <Menu
-              mobileMenuOpen={mobileMenuOpen}
+              isMobileMenuOpen={isMobileMenuOpen}
               toggleMobileMenu={toggleMobileMenu}
             />
           </div>
@@ -76,9 +76,9 @@ const Navigation = ({ user, onLogout }) => {
         <Mobile
           user={user}
           onLogout={onLogout}
-          mobileMenuOpen={mobileMenuOpen}
+          isMobileMenuOpen={isMobileMenuOpen}
           closeAll={closeAll}
-          avatarOpen={avatarOpen}
+          isAvatarOpen={isAvatarOpen}
           toggleAvatar={toggleAvatar}
         />
       </div>

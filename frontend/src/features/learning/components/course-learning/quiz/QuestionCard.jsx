@@ -1,13 +1,13 @@
 // components/QuestionCard.jsx
-import OptionButton from "@/features/learning/components/courseLearning/quiz/OptionButton";
-import Explanation from "@/features/learning/components/courseLearning/quiz/Explanation";
+import OptionButton from "@/features/learning/components/course-learning/quiz/OptionButton";
+import Explanation from "@/features/learning/components/course-learning/quiz/Explanation";
 
 const QuestionCard = ({
   question,
   selectedOptionId,
   isAnswered,
   isSubmitting,
-  result,
+  answerResult,
   onAnswerSelect,
 }) => {
   return (
@@ -19,8 +19,8 @@ const QuestionCard = ({
       <div className="space-y-3 mb-6">
         {question.options.map((option, idx) => {
           const isSelected = selectedOptionId === option.id;
-          const isCorrect = isAnswered && result.correctOptionId === option.id;
-          const isWrong = isAnswered && isSelected && !result.isCorrect;
+          const isCorrect = isAnswered && answerResult.correctOptionId === option.id;
+          const isWrong = isAnswered && isSelected && !answerResult.isCorrect;
 
           return (
             <OptionButton
@@ -40,8 +40,8 @@ const QuestionCard = ({
 
       {isAnswered && (
         <Explanation
-          isCorrect={result.isCorrect}
-          explanation={result.explanation}
+          isCorrect={answerResult.isCorrect}
+          explanation={answerResult.explanation}
         />
       )}
     </div>

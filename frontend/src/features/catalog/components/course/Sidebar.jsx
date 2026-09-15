@@ -32,7 +32,7 @@ function getInitialSelected(searchParams) {
 // ---------------- COMPONENT ----------------
 export function Sidebar({ setShowMobileFilter }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selected, setSelected] = useState(() =>
+  const [selectedFilters, setSelectedFilters] = useState(() =>
     getInitialSelected(searchParams),
   );
   const [selectedSkill, setSelectedSkill] = useState(
@@ -45,14 +45,14 @@ export function Sidebar({ setShowMobileFilter }) {
     const { name, value } = e.target;
     setSearchParams((prev) => {
       const params = new URLSearchParams(prev);
-      if (selected[name] === value) {
+      if (selectedFilters[name] === value) {
         if (isRange.includes(name)) {
           params.delete(`${name}[gte]`);
           params.delete(`${name}[lt]`);
         } else {
           params.delete(name);
         }
-        setSelected((p) => ({ ...p, [name]: "" }));
+        setSelectedFilters((p) => ({ ...p, [name]: "" }));
       } else {
         if (isRange.includes(name)) {
           const range = rangeConfig[name]?.(value);
@@ -64,7 +64,7 @@ export function Sidebar({ setShowMobileFilter }) {
         } else {
           params.set(name, value);
         }
-        setSelected((p) => ({ ...p, [name]: value }));
+        setSelectedFilters((p) => ({ ...p, [name]: value }));
       }
       params.delete("page");
       params.delete("limit");
@@ -104,7 +104,7 @@ export function Sidebar({ setShowMobileFilter }) {
       }
     });
     setSearchParams(params);
-    setSelected({ isFree: "", level: "", rating: "", duration: "" });
+    setSelectedFilters({ isFree: "", level: "", rating: "", duration: "" });
     setSelectedSkill([]);
   };
   // ---------------- UI ----------------
@@ -135,9 +135,9 @@ export function Sidebar({ setShowMobileFilter }) {
           <Radio
             key={o.value}
             option={o}
-            selected={selected}
+            selected={selectedFilters}
             onChange={handleSelectOne}
-            checked={selected[o.name] === o.value}
+            checked={selectedFilters[o.name] === o.value}
           />
         ))}
       </Section>
@@ -147,9 +147,9 @@ export function Sidebar({ setShowMobileFilter }) {
           <Radio
             key={o.value}
             option={o}
-            selected={selected}
+            selected={selectedFilters}
             onChange={handleSelectOne}
-            checked={selected[o.name] === o.value}
+            checked={selectedFilters[o.name] === o.value}
           />
         ))}
       </Section>
@@ -159,9 +159,9 @@ export function Sidebar({ setShowMobileFilter }) {
           <Radio
             key={o.value}
             option={o}
-            selected={selected}
+            selected={selectedFilters}
             onChange={handleSelectOne}
-            checked={selected[o.name] === o.value}
+            checked={selectedFilters[o.name] === o.value}
           />
         ))}
       </Section>
@@ -171,9 +171,9 @@ export function Sidebar({ setShowMobileFilter }) {
           <Radio
             key={o.value}
             option={o}
-            selected={selected}
+            selected={selectedFilters}
             onChange={handleSelectOne}
-            checked={selected[o.name] === o.value}
+            checked={selectedFilters[o.name] === o.value}
           />
         ))}
       </Section>

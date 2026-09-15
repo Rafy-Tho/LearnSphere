@@ -1,8 +1,8 @@
 import { useId } from "react";
 import useMenuState from "@/hooks/useMenuState";
 import { MoreVertical, StarOff } from "lucide-react";
-import DesktopMoreMenuContent from "@/features/learning/components/learningNavbar/DesktopMoreMenuContent";
-import UnlockAccessButton from "@/features/learning/components/learningNavbar/UnlockAccessButton";
+import DesktopMoreMenuContent from "@/features/learning/components/learning-navbar/DesktopMoreMenuContent";
+import UnlockAccessButton from "@/features/learning/components/learning-navbar/UnlockAccessButton";
 import { useMyReview as useGetReview } from "@/features/reviews/hooks/useReviews";
 import RatingStars from "@/components/common/RatingStars";
 
@@ -10,7 +10,7 @@ import RatingStars from "@/components/common/RatingStars";
  * Desktop menu component (visible on md and above)
  * Uses its own state management
  */
-function DesktopMenu({ setRatingOpen }) {
+function DesktopMenu({ setIsRatingOpen }) {
   const {
     isOpen: moreMenuOpen,
     setIsOpen: setMoreMenuOpen,
@@ -37,7 +37,7 @@ function DesktopMenu({ setRatingOpen }) {
       {/* Leave Review Button */}
       {!reviews && (
         <button
-          onClick={() => setRatingOpen(true)}
+          onClick={() => setIsRatingOpen(true)}
           type="button"
           className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:shadow-md active:scale-95 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/80 cursor-pointer"
         >

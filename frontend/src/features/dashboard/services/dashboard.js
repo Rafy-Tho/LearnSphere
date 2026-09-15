@@ -1,4 +1,4 @@
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/apiClient";
 
 export const dashboardApi = {
   getRecentlyViewed: () => api.get("/users/me/courses/recently-viewed"),

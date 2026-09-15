@@ -5,15 +5,15 @@ import { avatarMenuItems } from "@/constants/avatarMenuItems";
 import ThemeSelector from "@/components/common/ThemeSelector";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
-function Avatar({ user, onLogout, avatarOpen, toggleAvatar, closeAll }) {
-  const [showConfirm, setShowConfirm] = useState(false);
+function Avatar({ user, onLogout, isAvatarOpen, toggleAvatar, closeAll }) {
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   if (!user) return null;
   return (
     <div className="relative">
       <button
         onClick={toggleAvatar}
         className="flex items-center focus:outline-none"
-        aria-expanded={avatarOpen}
+        aria-expanded={isAvatarOpen}
         aria-haspopup="true"
       >
         <img
@@ -24,7 +24,7 @@ function Avatar({ user, onLogout, avatarOpen, toggleAvatar, closeAll }) {
       </button>
 
       {/* Avatar Dropdown - Desktop */}
-      {avatarOpen && (
+      {isAvatarOpen && (
         <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 py-2 z-50 hidden lg:block">
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
             <p className="font-medium text-gray-900 dark:text-white">
@@ -60,7 +60,7 @@ function Avatar({ user, onLogout, avatarOpen, toggleAvatar, closeAll }) {
             <button
               onClick={() => {
                 closeAll();
-                setShowConfirm(true);
+                setIsConfirmOpen(true);
               }}
               className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors  text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20`}
             >
@@ -71,10 +71,10 @@ function Avatar({ user, onLogout, avatarOpen, toggleAvatar, closeAll }) {
         </div>
       )}
       <ConfirmDialog
-        open={showConfirm}
-        onCancel={() => setShowConfirm(false)}
+        open={isConfirmOpen}
+        onCancel={() => setIsConfirmOpen(false)}
         onConfirm={() => {
-          setShowConfirm(false);
+          setIsConfirmOpen(false);
           onLogout();
         }}
         title="Logout"

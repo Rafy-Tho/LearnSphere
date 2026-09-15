@@ -34,7 +34,7 @@ export function useUpdateCourseProgress() {
   const { courseId } = useParams();
   return useMutation({
     mutationKey: ["update-course-progress", courseId],
-    mutationFn: (data) => learningApi.updateCourseProgress(courseId, data),
+    mutationFn: (payload) => learningApi.updateCourseProgress(courseId, payload),
     onError: (error) => {
       toast.error(error.message || "Failed to update course progress");
     },

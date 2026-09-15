@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { useOutletContext, useParams } from "react-router-dom";
-import StarRating from "@/features/learning/components/courseLearning/StarRating";
+import StarRating from "@/features/learning/components/course-learning/StarRating";
 import { useCreateReview } from "@/features/reviews/hooks/useReviewMutations";
 import { toast } from "react-toastify";
 import Modal from "@/components/ui/Modal";
@@ -9,7 +9,7 @@ import Button from "@/components/ui/Button";
 
 export default function CourseRating() {
   const { courseId } = useParams();
-  const { ratingOpen, setRatingOpen } = useOutletContext();
+  const { isRatingOpen, setIsRatingOpen } = useOutletContext();
   const [rating, setRating] = useState(0);
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
@@ -24,7 +24,7 @@ export default function CourseRating() {
       { courseId, rating, description },
       {
         onSuccess: () => {
-          setRatingOpen(false);
+          setIsRatingOpen(false);
         },
         onError: (error) => {
           toast.error(error.message || "Rating failed");
@@ -34,8 +34,8 @@ export default function CourseRating() {
   };
   return (
     <Modal
-      open={ratingOpen}
-      onClose={() => setRatingOpen(false)}
+      open={isRatingOpen}
+      onClose={() => setIsRatingOpen(false)}
       title="Rate this course"
       size="sm"
     >

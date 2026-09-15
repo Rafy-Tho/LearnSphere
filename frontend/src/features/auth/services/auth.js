@@ -1,12 +1,12 @@
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/apiClient";
 
 export const authApi = {
-  login: (data) => api.post("/auth/login", data),
-  register: (data) => api.post("/auth/register", data),
+  login: (payload) => api.post("/auth/login", payload),
+  register: (payload) => api.post("/auth/register", payload),
   logout: () => api.post("/auth/logout"),
   getMe: () => api.get("/users/me"),
-  sendResetPasswordCode: (data) => api.post("/auth/password-resets", data),
-  verifyPasswordResetCode: (data) =>
-    api.post("/auth/password-resets/verify", data),
-  resetPassword: (data) => api.patch("/auth/password", data),
+  sendResetPasswordCode: (payload) => api.post("/auth/password-resets", payload),
+  verifyPasswordResetCode: (payload) =>
+    api.post("/auth/password-resets/verify", payload),
+  resetPassword: (payload) => api.patch("/auth/password", payload),
 };

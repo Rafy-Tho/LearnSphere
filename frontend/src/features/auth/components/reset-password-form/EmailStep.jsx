@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
 import { Mail } from "lucide-react";
-import { resetResendTimer } from "@/features/auth/ResendTimer";
+import { resetResendTimer } from "@/features/auth/utils/resendTimer";
 import { useSendResetPasswordCode } from "@/features/auth/hooks/useAuthMutations";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import Input from "@/components/ui/Input";

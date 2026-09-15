@@ -1,11 +1,11 @@
 import { useRef } from "react";
 import { Outlet, useLocation, useOutletContext } from "react-router-dom";
-import { CourseSidebar } from "@/features/learning/components/courseLearning/CourseSidebar";
-import NextPrevious from "@/features/learning/components/courseLearning/NextPrevious";
-import CourseRating from "@/features/learning/components/courseLearning/CourseRating";
+import { CourseSidebar } from "@/features/learning/components/course-learning/CourseSidebar";
+import NextPrevious from "@/features/learning/components/course-learning/NextPrevious";
+import CourseRating from "@/features/learning/components/course-learning/CourseRating";
 
 const CourseLearningScreen = () => {
-  const { sidebarOpen, setSidebarOpen } = useOutletContext();
+  const { isSidebarOpen, setIsSidebarOpen } = useOutletContext();
   const sectionRef = useRef(null);
   const location = useLocation();
 
@@ -14,20 +14,20 @@ const CourseLearningScreen = () => {
       {/* rating modal */}
       <CourseRating />
       {/* Mobile overlay */}
-      {sidebarOpen && (
+      {isSidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-slate-900/20 dark:bg-slate-950/20 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={() => setIsSidebarOpen(false)}
         />
       )}
       {/* Mobile sidebar (overlay) */}
       <div
         className={`fixed top-0 left-0 h-full z-40 w-[320px] lg:hidden
       transition-transform duration-200 ease-out pt-15
-      ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+      ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
     `}
       >
-        <CourseSidebar onClose={() => setSidebarOpen(false)} />
+        <CourseSidebar onClose={() => setIsSidebarOpen(false)} />
       </div>
 
       {/* Desktop layout with collapsible sidebar */}
@@ -36,11 +36,11 @@ const CourseLearningScreen = () => {
         <div
           className={`
         shrink-0 transition-all duration-200 ease-out overflow-hidden
-        ${sidebarOpen ? "w-[320px]" : "w-0"}
+        ${isSidebarOpen ? "w-[320px]" : "w-0"}
       `}
         >
           <div className="w-[320px] h-full">
-            <CourseSidebar onClose={() => setSidebarOpen(false)} />
+            <CourseSidebar onClose={() => setIsSidebarOpen(false)} />
           </div>
         </div>
 

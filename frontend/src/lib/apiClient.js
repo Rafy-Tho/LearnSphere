@@ -1,4 +1,4 @@
-import { queryClient } from "@/lib/query-client";
+import { queryClient } from "@/lib/queryClient";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const authPath = ["/login", "/signup", "/reset-password"];
@@ -24,7 +24,7 @@ class ApiClient {
     }
 
     const response = await fetch(url, config);
-    const result = await response.json();
+    const responseData = await response.json();
 
     if (
       !response.ok &&
@@ -35,37 +35,37 @@ class ApiClient {
       setTimeout(() => (window.location.href = "/login"), 0);
     }
     if (!response.ok) {
-      throw new Error(result.message || "Something went wrong");
+      throw new Error(responseData.message || "Something went wrong");
     }
 
-    if (result.pagination) {
-      return { data: result.data, pagination: result.pagination };
+    if (responseData.pagination) {
+      return { data: responseData.data, pagination: responseData.pagination };
     }
-    return result.data;
+    return responseData.data;
   }
 
   get(endpoint) {
     return this.request(endpoint);
   }
 
-  post(endpoint, data) {
+  post(endpoint, payload) {
     return this.request(endpoint, {
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   }
 
-  patch(endpoint, data) {
+  patch(endpoint, payload) {
     return this.request(endpoint, {
       method: "PATCH",
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   }
 
-  put(endpoint, data) {
+  put(endpoint, payload) {
     return this.request(endpoint, {
       method: "PUT",
-      body: JSON.stringify(data),
+      body: JSON.stringify(payload),
     });
   }
 

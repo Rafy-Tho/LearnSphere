@@ -73,7 +73,8 @@ export function useMyCertificates() {
   return useQuery({
     queryKey: ["my-certificates"],
     queryFn: () => learningApi.getMyCertificates(),
-    select: (result) => (Array.isArray(result) ? result : result?.data ?? []),
+    select: (response) =>
+      Array.isArray(response) ? response : response?.data ?? [],
   });
 }
 

@@ -1,4 +1,4 @@
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/apiClient";
 
 export const learningApi = {
   getLearningData: (id) => api.get(`/courses/${id}/curriculum`),
@@ -8,8 +8,8 @@ export const learningApi = {
   createCourseProgress: (courseId) =>
     api.post(`/courses/${courseId}/progress`),
   getCourseProgress: (courseId) => api.get(`/courses/${courseId}/progress`),
-  updateCourseProgress: (courseId, data) =>
-    api.patch(`/courses/${courseId}/progress`, data),
+  updateCourseProgress: (courseId, payload) =>
+    api.patch(`/courses/${courseId}/progress`, payload),
   getCourseLessonCompletions: (courseId) =>
     api.get(`/courses/${courseId}/completions`),
   claimCertificate: (courseId) =>

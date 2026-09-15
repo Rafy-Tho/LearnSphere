@@ -1,8 +1,8 @@
-import Facebook from "@/components/common/socialSvg/Facebook";
-import Instagram from "@/components/common/socialSvg/Instagram";
-import LinkedIn from "@/components/common/socialSvg/LinkedIn";
-import Twitter from "@/components/common/socialSvg/Twitter";
-import YouTube from "@/components/common/socialSvg/YouTube";
+import Facebook from "@/components/common/social-svg/Facebook";
+import Instagram from "@/components/common/social-svg/Instagram";
+import LinkedIn from "@/components/common/social-svg/LinkedIn";
+import Twitter from "@/components/common/social-svg/Twitter";
+import YouTube from "@/components/common/social-svg/YouTube";
 
 export const socialLinks = [
   {

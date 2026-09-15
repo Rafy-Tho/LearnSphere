@@ -1,5 +1,5 @@
 function parseQueryToObject(params) {
-  const result = {};
+  const parsedQuery = {};
 
   for (const [key, value] of params.entries()) {
     const parsedValue = isNaN(value) ? value : Number(value);
@@ -9,24 +9,24 @@ function parseQueryToObject(params) {
       const field = key.split("[")[0];
       const operator = key.match(/\[(.*)\]/)[1];
 
-      if (!result[field]) result[field] = {};
-      result[field][operator] = parsedValue;
+      if (!parsedQuery[field]) parsedQuery[field] = {};
+      parsedQuery[field][operator] = parsedValue;
     } else {
       // Handle normal + array values
-      if (result[key]) {
+      if (parsedQuery[key]) {
         // If already exists → convert to array
-        if (Array.isArray(result[key])) {
-          result[key].push(parsedValue);
+        if (Array.isArray(parsedQuery[key])) {
+          parsedQuery[key].push(parsedValue);
         } else {
-          result[key] = [result[key], parsedValue];
+          parsedQuery[key] = [parsedQuery[key], parsedValue];
         }
       } else {
-        result[key] = parsedValue;
+        parsedQuery[key] = parsedValue;
       }
     }
   }
 
-  return result;
+  return parsedQuery;
 }
 
 export default parseQueryToObject;

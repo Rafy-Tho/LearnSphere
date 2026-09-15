@@ -1,4 +1,4 @@
-import { api } from "@/lib/api-client";
+import { api } from "@/lib/apiClient";
 
 export const subscriptionsApi = {
   getById: (id) => api.get(`/plans/${id}`),

@@ -1,5 +1,5 @@
 import { Award, Shield, StarOff, TrendingUp } from "lucide-react";
-import UnlockAccessButton from "@/features/learning/components/learningNavbar/UnlockAccessButton";
+import UnlockAccessButton from "@/features/learning/components/learning-navbar/UnlockAccessButton";
 import ThemeSelector from "@/components/common/ThemeSelector";
 import { useMyReview as useGetReview } from "@/features/reviews/hooks/useReviews";
 import RatingStars from "@/components/common/RatingStars";
@@ -7,9 +7,9 @@ import RatingStars from "@/components/common/RatingStars";
 /**
  * Mobile menu content
  */
-function MobileMenuContent({ menuId, setMenuOpen, setRatingOpen }) {
+function MobileMenuContent({ menuId, setMenuOpen, setIsRatingOpen }) {
   const handleLeaveReview = () => {
-    setRatingOpen(true);
+    setIsRatingOpen(true);
     setMenuOpen(false);
   };
   const { data } = useGetReview();

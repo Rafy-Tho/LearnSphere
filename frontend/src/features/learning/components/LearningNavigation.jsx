@@ -1,24 +1,24 @@
 import { useParams } from "react-router-dom";
 import useScrollEffect from "@/hooks/useScrollEffect";
-import DesktopMenu from "@/features/learning/components/learningNavbar/DesktopMenu";
-import LeftCluster from "@/features/learning/components/learningNavbar/LeftCluster";
-import MobileMenu from "@/features/learning/components/learningNavbar/MobileMenu";
+import DesktopMenu from "@/features/learning/components/learning-navbar/DesktopMenu";
+import LeftCluster from "@/features/learning/components/learning-navbar/LeftCluster";
+import MobileMenu from "@/features/learning/components/learning-navbar/MobileMenu";
 
 /**
  * Enhanced navigation bar with better styling and responsive design
  */
 export function LearningNavigation({
-  sidebarOpen,
-  setSidebarOpen,
-  setRatingOpen,
+  isSidebarOpen,
+  setIsSidebarOpen,
+  setIsRatingOpen,
 }) {
   const { courseId } = useParams();
-  const scrolled = useScrollEffect();
+  const isScrolled = useScrollEffect();
 
   return (
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled
+        isScrolled
           ? "border-b border-slate-200 bg-white/95 shadow-lg backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/95"
           : "border-b border-slate-200/50 bg-white/80 backdrop-blur-sm dark:border-slate-700/50 dark:bg-slate-900/80"
       }`}
@@ -27,15 +27,15 @@ export function LearningNavigation({
         {/* Left cluster - shared across all devices */}
         <LeftCluster
           courseId={courseId}
-          sidebarOpen={sidebarOpen}
-          setSidebarOpen={setSidebarOpen}
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
         />
 
         {/* Desktop menu - visible on md and above */}
-        <DesktopMenu setRatingOpen={setRatingOpen} />
+        <DesktopMenu setIsRatingOpen={setIsRatingOpen} />
 
         {/* Mobile menu - visible below md breakpoint */}
-        <MobileMenu setRatingOpen={setRatingOpen} />
+        <MobileMenu setIsRatingOpen={setIsRatingOpen} />
       </div>
     </header>
   );

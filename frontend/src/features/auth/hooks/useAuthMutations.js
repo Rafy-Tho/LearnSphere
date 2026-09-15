@@ -6,7 +6,7 @@ import useAuth from "@/features/auth/hooks/useAuth";
 export function useLogin() {
   const { mutateAsync: login, isPending, error } = useMutation({
     mutationKey: ["login"],
-    mutationFn: (data) => authApi.login(data),
+    mutationFn: (payload) => authApi.login(payload),
   });
   return { login, isPending, error };
 }
@@ -14,7 +14,7 @@ export function useLogin() {
 export function useRegister() {
   const { mutateAsync: registerUser, isPending, error } = useMutation({
     mutationKey: ["register"],
-    mutationFn: (data) => authApi.register(data),
+    mutationFn: (payload) => authApi.register(payload),
   });
   return { registerUser, isPending, error };
 }
@@ -22,7 +22,7 @@ export function useRegister() {
 export function useSendResetPasswordCode() {
   const { mutate: sendResetPasswordCode, isPending, error } = useMutation({
     mutationKey: ["sendResetPasswordCode"],
-    mutationFn: (data) => authApi.sendResetPasswordCode(data),
+    mutationFn: (payload) => authApi.sendResetPasswordCode(payload),
   });
   return { sendResetPasswordCode, isPending, error };
 }
@@ -30,7 +30,7 @@ export function useSendResetPasswordCode() {
 export function useVerifyResetPasswordCode() {
   const { mutate: verifyResetPasswordCode, isPending, error } = useMutation({
     mutationKey: ["verifyResetPasswordCode"],
-    mutationFn: (data) => authApi.verifyPasswordResetCode(data),
+    mutationFn: (payload) => authApi.verifyPasswordResetCode(payload),
   });
   return { verifyResetPasswordCode, isPending, error };
 }
@@ -38,7 +38,7 @@ export function useVerifyResetPasswordCode() {
 export function useResetPassword() {
   const { mutate: resetPassword, isPending, error } = useMutation({
     mutationKey: ["resetPassword"],
-    mutationFn: (data) => authApi.resetPassword(data),
+    mutationFn: (payload) => authApi.resetPassword(payload),
   });
   return { resetPassword, isPending, error };
 }

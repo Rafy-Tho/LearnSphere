@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import EmailStep from "@/features/auth/components/resetPasswordForm/EmailStep";
-import OtpStep from "@/features/auth/components/resetPasswordForm/OtpStep";
-import ProgressStep from "@/features/auth/components/resetPasswordForm/ProgressStep";
-import PasswordStep from "@/features/auth/components/resetPasswordForm/PasswordStep";
-import { getResetPasswordFlow } from "@/features/auth/ResetFlow";
+import EmailStep from "@/features/auth/components/reset-password-form/EmailStep";
+import OtpStep from "@/features/auth/components/reset-password-form/OtpStep";
+import ProgressStep from "@/features/auth/components/reset-password-form/ProgressStep";
+import PasswordStep from "@/features/auth/components/reset-password-form/PasswordStep";
+import { getResetPasswordFlow } from "@/features/auth/utils/resetPasswordFlow";
 
 const ResetPasswordFlow = () => {
   const [step, setStep] = useState(1);

@@ -4,8 +4,8 @@ const ErrorMessage = ({
   message = "Something went wrong. Please try again.",
   className = ""
 }) => {
-  const [close, setClose] = useState(false);
-  if (close) return null;
+  const [isClosed, setIsClosed] = useState(false);
+  if (isClosed) return null;
   return (
     <div
       className={`bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 ${className}`}
@@ -35,7 +35,7 @@ const ErrorMessage = ({
 
         <button
           onClick={() => {
-            setClose(true);
+            setIsClosed(true);
           }}
           className="flex-shrink-0 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 transition-colors cursor-pointer"
         >

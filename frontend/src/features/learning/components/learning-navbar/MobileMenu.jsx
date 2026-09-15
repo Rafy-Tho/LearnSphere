@@ -1,13 +1,13 @@
 import { useId } from "react";
 import useMenuState from "@/hooks/useMenuState";
 import { MoreVertical } from "lucide-react";
-import MobileMenuContent from "@/features/learning/components/learningNavbar/MobileMenuContent";
+import MobileMenuContent from "@/features/learning/components/learning-navbar/MobileMenuContent";
 
 /**
  * Mobile menu component (visible below md breakpoint)
  * Uses its own state management
  */
-function MobileMenu({ setRatingOpen }) {
+function MobileMenu({ setIsRatingOpen }) {
   const { isOpen: menuOpen, setIsOpen: setMenuOpen, menuRef } = useMenuState();
   const menuId = useId();
 
@@ -31,7 +31,7 @@ function MobileMenu({ setRatingOpen }) {
         <MobileMenuContent
           menuId={menuId}
           setMenuOpen={setMenuOpen}
-          setRatingOpen={setRatingOpen}
+          setIsRatingOpen={setIsRatingOpen}
         />
       )}
     </div>

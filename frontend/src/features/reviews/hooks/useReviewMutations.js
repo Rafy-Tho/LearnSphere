@@ -5,8 +5,8 @@ export function useCreateReview() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["createReview"],
-    mutationFn: (data) => reviewsApi.createReview(data),
-    onSuccess: (_result, variables) => {
+    mutationFn: (payload) => reviewsApi.createReview(payload),
+    onSuccess: (_response, variables) => {
       const courseId = variables?.courseId;
       queryClient.invalidateQueries({ queryKey: ["review-me", courseId] });
       queryClient.invalidateQueries({ queryKey: ["reviews", courseId] });

@@ -9,17 +9,17 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 function Mobile({
   user,
   onLogout,
-  mobileMenuOpen,
+  isMobileMenuOpen,
   closeAll,
 
-  avatarOpen,
+  isAvatarOpen,
   toggleAvatar,
 }) {
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   return (
     <>
-      {mobileMenuOpen && (
+      {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 top-16 bg-white dark:bg-gray-800 z-40 overflow-y-auto">
           <nav className="p-4 space-y-4">
             {/* Mobile Navigation Links */}
@@ -67,11 +67,11 @@ function Mobile({
                       </p>
                     </div>
                   </div>
-                  {avatarOpen ? <ChevronDown /> : <ChevronUp />}
+                  {isAvatarOpen ? <ChevronDown /> : <ChevronUp />}
                 </button>
 
                 {/* Mobile Avatar Dropdown Items */}
-                {avatarOpen && (
+                {isAvatarOpen && (
                   <div className="mt-2 ml-4 space-y-1">
                     <div className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
                       <ThemeSelector />
@@ -96,7 +96,7 @@ function Mobile({
                     <button
                       onClick={() => {
                         closeAll();
-                        setShowConfirm(true);
+                        setIsConfirmOpen(true);
                       }}
                       className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
@@ -111,10 +111,10 @@ function Mobile({
         </div>
       )}
       <ConfirmDialog
-        open={showConfirm}
-        onCancel={() => setShowConfirm(false)}
+        open={isConfirmOpen}
+        onCancel={() => setIsConfirmOpen(false)}
         onConfirm={() => {
-          setShowConfirm(false);
+          setIsConfirmOpen(false);
           onLogout();
         }}
         title="Logout"

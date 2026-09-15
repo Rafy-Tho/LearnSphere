@@ -1,5 +1,5 @@
 import Feature from "@/features/catalog/components/home/Feature";
-import FreAskQuestion from "@/features/catalog/components/home/FreAskQuestion";
+import FaqSection from "@/features/catalog/components/home/FaqSection";
 import Guide from "@/features/catalog/components/home/Guide";
 import Hero from "@/features/catalog/components/home/Hero";
 import StartLearning from "@/features/catalog/components/home/StartLearning";
@@ -23,7 +23,7 @@ const Home = () => {
       {/* ========== CTA ========== */}
       <StartLearning />
       {/* ========== FAQ (accordion) ========== */}
-      <FreAskQuestion />
+      <FaqSection />
     </div>
   );
 };

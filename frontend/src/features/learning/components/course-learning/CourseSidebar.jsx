@@ -1,6 +1,6 @@
 import { Search, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import ModuleGroup from "@/features/learning/components/courseLearning/ModuleGroup";
+import ModuleGroup from "@/features/learning/components/course-learning/ModuleGroup";
 import { useCourseLearningData as useGetCourseLearningData } from "@/features/learning/hooks/useLearning";
 import { useCourseLessonCompletions as useGetCourseLessonCompletions } from "@/features/learning/hooks/useLearning";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
@@ -8,9 +8,9 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 import { useParams } from "react-router-dom";
 
 export function CourseSidebar({ onClose }) {
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("ALL");
-  const [expanded, setExpanded] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeFilter, setActiveFilter] = useState("ALL");
+  const [expandedModuleIds, setExpandedModuleIds] = useState([]);
   const { data, isPending, error } = useGetCourseLearningData();
   const { data: completionsData } = useGetCourseLessonCompletions();
   const completedIds = useMemo(
@@ -19,11 +19,11 @@ export function CourseSidebar({ onClose }) {
   );
   const course = data || {};
   const modules = useMemo(() => course.modules || [], [course.modules]);
-  const normalizedSearch = search.toLowerCase();
+  const normalizedSearch = searchQuery.toLowerCase();
   const { lessonId } = useParams();
   const hasInitialized = useRef(false);
   const toggle = (id) =>
-    setExpanded((prev) =>
+    setExpandedModuleIds((prev) =>
       prev.includes(id)
         ? prev.filter((moduleId) => moduleId !== id)
         : [...prev, id],
@@ -34,7 +34,7 @@ export function CourseSidebar({ onClose }) {
         const lessons = (m.lessons || []).filter((l) => {
           const matchSearch = l?.name?.toLowerCase().includes(normalizedSearch);
 
-          const matchFilter = filter === "ALL" || l?.access_type === "FREE";
+          const matchFilter = activeFilter === "ALL" || l?.access_type === "FREE";
 
           return matchSearch && matchFilter;
         });
@@ -46,7 +46,7 @@ export function CourseSidebar({ onClose }) {
 
         return matchModule || m.lessons.length > 0;
       });
-  }, [modules, normalizedSearch, filter]);
+  }, [modules, normalizedSearch, activeFilter]);
 
   const freeCount = useMemo(
     () =>
@@ -76,25 +76,25 @@ export function CourseSidebar({ onClose }) {
       }))
       .filter((m) => m.lessons.length > 0);
 
-    setExpanded(freeModules.map((m) => m.id));
-    setFilter("FREE");
+    setExpandedModuleIds(freeModules.map((m) => m.id));
+    setActiveFilter("FREE");
   };
   // Search content
   useEffect(() => {
-    if (!search) return;
+    if (!searchQuery) return;
 
-    setExpanded((prev) => {
+    setExpandedModuleIds((prev) => {
       const ids = filteredModules.map((m) => m.id);
       return [...new Set([...prev, ...ids])];
     });
-  }, [search, filteredModules]);
+  }, [searchQuery, filteredModules]);
   // Expand the lesson lessonId on first render
   useEffect(() => {
     if (hasInitialized.current) return;
     if (!lessonId || lessonToModuleMap.size === 0) return;
     const moduleId = lessonToModuleMap.get(lessonId);
     if (!moduleId) return;
-    setExpanded((prev) =>
+    setExpandedModuleIds((prev) =>
       prev.includes(moduleId) ? prev : [...prev, moduleId],
     );
     hasInitialized.current = true; // ✅ lock it
@@ -122,16 +122,16 @@ export function CourseSidebar({ onClose }) {
           <input
             type="text"
             placeholder="Search Content"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-2 pl-9 pr-3 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => setFilter("ALL")}
+            onClick={() => setActiveFilter("ALL")}
             className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
-              filter === "ALL"
+              activeFilter === "ALL"
                 ? "border-blue-600 bg-blue-50 text-blue-700 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-300"
                 : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
@@ -141,7 +141,7 @@ export function CourseSidebar({ onClose }) {
           <button
             onClick={handleFree}
             className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
-              filter === "FREE"
+              activeFilter === "FREE"
                 ? "border-blue-600 bg-blue-50 text-blue-700 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-300"
                 : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
@@ -156,7 +156,7 @@ export function CourseSidebar({ onClose }) {
           <ModuleGroup
             key={module.id}
             module={module}
-            isOpen={expanded.includes(module.id)}
+            isOpen={expandedModuleIds.includes(module.id)}
             onToggle={() => toggle(module.id)}
             index={index}
             completedIds={completedIds}

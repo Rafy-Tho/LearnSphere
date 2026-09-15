@@ -1,7 +1,7 @@
 import { useRef } from "react";
-import HeroSection from "@/features/catalog/components/courseDetail/HeroSection";
-import LearningObjective from "@/features/catalog/components/courseDetail/LearningObjective";
-import LearningRoadmap from "@/features/catalog/components/courseDetail/LearningRoadmap";
+import HeroSection from "@/features/catalog/components/course-detail/HeroSection";
+import LearningObjective from "@/features/catalog/components/course-detail/LearningObjective";
+import LearningRoadmap from "@/features/catalog/components/course-detail/LearningRoadmap";
 import ReviewContainer from "@/features/reviews/components/ReviewContainer";
 
 function CourseDetailScreen() {

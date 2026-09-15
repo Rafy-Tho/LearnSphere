@@ -4,42 +4,45 @@ import { useQuizzes as useGetQuizzes } from "@/features/learning/hooks/useLesson
 import { useSubmitQuiz } from "@/features/learning/hooks/useLearningMutations";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
-import NavigationButtons from "@/features/learning/components/courseLearning/quiz/NavigationButtons";
-import ProgressBar from "@/features/learning/components/courseLearning/quiz/ProgressBar";
-import QuestionCard from "@/features/learning/components/courseLearning/quiz/QuestionCard";
-import ResultsScreen from "@/features/learning/components/courseLearning/quiz/ResultsScreen";
-import StartScreen from "@/features/learning/components/courseLearning/quiz/StartScreen";
+import NavigationButtons from "@/features/learning/components/course-learning/quiz/NavigationButtons";
+import ProgressBar from "@/features/learning/components/course-learning/quiz/ProgressBar";
+import QuestionCard from "@/features/learning/components/course-learning/quiz/QuestionCard";
+import ResultsScreen from "@/features/learning/components/course-learning/quiz/ResultsScreen";
+import StartScreen from "@/features/learning/components/course-learning/quiz/StartScreen";
 
 const Quiz = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [results, setResults] = useState({});
-  const [showResults, setShowResults] = useState(false);
-  const [quizStarted, setQuizStarted] = useState(false);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [answerResults, setAnswerResults] = useState({});
+  const [isShowingResults, setIsShowingResults] = useState(false);
+  const [isQuizStarted, setIsQuizStarted] = useState(false);
   const { data, isPending, error } = useGetQuizzes();
   const submitQuiz = useSubmitQuiz();
   const questions = data || [];
   const currentQuestion = questions[currentIndex];
-  const selectedOptionId = answers[currentIndex];
-  const currentResult = results[currentIndex];
+  const selectedOptionId = selectedAnswers[currentIndex];
+  const currentResult = answerResults[currentIndex];
   const isAnswered = currentResult !== undefined;
   const isSubmitting = submitQuiz.isPending;
 
   const handleAnswer = async (optionId) => {
     if (isAnswered || isSubmitting) return;
 
-    setAnswers((previous) => ({ ...previous, [currentIndex]: optionId }));
+    setSelectedAnswers((previous) => ({
+      ...previous,
+      [currentIndex]: optionId,
+    }));
 
     try {
       const submission = await submitQuiz.mutateAsync([
         { questionId: currentQuestion.id, optionId },
       ]);
-      setResults((previous) => ({
+      setAnswerResults((previous) => ({
         ...previous,
         [currentIndex]: submission.results[0],
       }));
     } catch {
-      setAnswers((previous) => {
+      setSelectedAnswers((previous) => {
         const next = { ...previous };
         delete next[currentIndex];
         return next;
@@ -60,32 +63,32 @@ const Quiz = () => {
   };
 
   const calculateScore = () => {
-    const correct = Object.values(results).filter(
-      (result) => result.isCorrect,
+    const correct = Object.values(answerResults).filter(
+      (answerResult) => answerResult.isCorrect,
     ).length;
     return { correct, total: questions.length };
   };
 
   const restart = () => {
     setCurrentIndex(0);
-    setAnswers({});
-    setResults({});
-    setShowResults(false);
-    setQuizStarted(false);
+    setSelectedAnswers({});
+    setAnswerResults({});
+    setIsShowingResults(false);
+    setIsQuizStarted(false);
   };
 
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
-  if (!quizStarted) {
+  if (!isQuizStarted) {
     return (
       <StartScreen
-        onStart={() => setQuizStarted(true)}
+        onStart={() => setIsQuizStarted(true)}
         totalQuestions={questions.length}
       />
     );
   }
 
-  if (showResults) {
+  if (isShowingResults) {
     const score = calculateScore();
     return <ResultsScreen score={score} onRestart={restart} />;
   }
@@ -96,7 +99,7 @@ const Quiz = () => {
         <ProgressBar
           currentIndex={currentIndex}
           totalQuestions={questions.length}
-          answersCount={Object.keys(results).length}
+          answersCount={Object.keys(answerResults).length}
         />
 
         <QuestionCard
@@ -104,7 +107,7 @@ const Quiz = () => {
           selectedOptionId={selectedOptionId}
           isAnswered={isAnswered}
           isSubmitting={isSubmitting}
-          result={currentResult}
+          answerResult={currentResult}
           onAnswerSelect={handleAnswer}
         />
 
@@ -114,7 +117,7 @@ const Quiz = () => {
           isAnswered={isAnswered}
           onPrevious={handlePrevious}
           onNext={handleNext}
-          onFinish={() => setShowResults(true)}
+          onFinish={() => setIsShowingResults(true)}
         />
       </div>
     </div>

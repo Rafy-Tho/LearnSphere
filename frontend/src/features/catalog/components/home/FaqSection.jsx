@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { freAskQuestions } from "@/constants/freAskQuestions";
+import { faqQuestions } from "@/constants/faqQuestions";
 import { Minus, Plus } from "lucide-react";
 
-function FreAskQuestion() {
+function FaqSection() {
   const [openFaq, setOpenFaq] = useState(null);
 
   return (
@@ -17,7 +17,7 @@ function FreAskQuestion() {
           </h2>
         </div>
         <div className="divide-y divide-gray-300 dark:divide-gray-700">
-          {freAskQuestions.map((item, idx) => (
+          {faqQuestions.map((item, idx) => (
             <div key={idx} className="accordion py-2">
               <button
                 onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
@@ -41,4 +41,4 @@ function FreAskQuestion() {
   );
 }
 
-export default FreAskQuestion;
+export default FaqSection;

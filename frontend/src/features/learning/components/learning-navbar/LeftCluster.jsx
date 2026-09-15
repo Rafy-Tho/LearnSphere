@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 /**
  * Left side navigation cluster (shared across devices)
  */
-function LeftCluster({ courseId, sidebarOpen, setSidebarOpen }) {
+function LeftCluster({ courseId, isSidebarOpen, setIsSidebarOpen }) {
   return (
     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 sm:gap-2 md:gap-3">
       <Link
@@ -30,11 +30,11 @@ function LeftCluster({ courseId, sidebarOpen, setSidebarOpen }) {
       />
 
       <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         type="button"
         className="group flex min-w-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-left text-sm font-medium text-slate-700 transition-all duration-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-slate-100"
       >
-        {sidebarOpen ? (
+        {isSidebarOpen ? (
           <PanelLeftClose className="h-4 w-4 shrink-0 text-slate-500 transition-all duration-200 group-hover:-translate-x-0.5 group-hover:text-blue-600 dark:text-slate-400 dark:group-hover:text-blue-400" />
         ) : (
           <PanelLeft className="h-4 w-4 shrink-0 text-slate-500 transition-all duration-200 group-hover:-translate-x-0.5 group-hover:text-blue-600 dark:text-slate-400 dark:group-hover:text-blue-400" />

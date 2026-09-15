@@ -3,7 +3,7 @@ import { Heart } from "lucide-react";
 import { footerLinks } from "@/constants/footerLinks";
 import { socialLinks } from "@/constants/socialLinks";
 import Logo from "@/components/common/navbar/Logo";
-import { CURRENT_YEAR } from "@/constants/constants";
+import { CURRENT_YEAR } from "@/constants/appConstants";
 
 const Footer = () => {
   return (

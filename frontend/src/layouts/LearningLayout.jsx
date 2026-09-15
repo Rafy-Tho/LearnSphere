@@ -7,16 +7,16 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import LearningNavigation from "@/features/learning/components/LearningNavigation";
 function LearningLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [ratingOpen, setRatingOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isRatingOpen, setIsRatingOpen] = useState(false);
   const { error, isLoading } = useAuth();
   useEffect(() => {
     // Close sidebar on mobile by default
     const checkScreenSize = () => {
       if (window.innerWidth < 1024) {
-        setSidebarOpen(false);
+        setIsSidebarOpen(false);
       } else {
-        setSidebarOpen(true);
+        setIsSidebarOpen(true);
       }
     };
     checkScreenSize();
@@ -42,13 +42,13 @@ function LearningLayout() {
   return (
     <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-white">
       <LearningNavigation
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        ratingOpen={ratingOpen}
-        setRatingOpen={setRatingOpen}
+        isSidebarOpen={isSidebarOpen}
+        setIsSidebarOpen={setIsSidebarOpen}
+        isRatingOpen={isRatingOpen}
+        setIsRatingOpen={setIsRatingOpen}
       />
       <Outlet
-        context={{ sidebarOpen, setSidebarOpen, ratingOpen, setRatingOpen }}
+        context={{ isSidebarOpen, setIsSidebarOpen, isRatingOpen, setIsRatingOpen }}
       />
       <ToastContainer
         position="top-right"

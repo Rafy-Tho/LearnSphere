@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useResetPassword } from "@/features/auth/hooks/useAuthMutations";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { removeResetPasswordFlow } from "@/features/auth/ResetFlow";
+import { removeResetPasswordFlow } from "@/features/auth/utils/resetPasswordFlow";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import Input from "@/components/ui/Input";
 

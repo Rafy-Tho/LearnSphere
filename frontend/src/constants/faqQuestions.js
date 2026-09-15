@@ -1,4 +1,4 @@
-export const freAskQuestions = [
+export const faqQuestions = [
   {
     q: "Can I access courses on mobile?",
     a: "Yes, our platform is fully responsive and available via iOS/Android apps.",

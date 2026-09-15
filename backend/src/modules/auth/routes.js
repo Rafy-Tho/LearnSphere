@@ -3,6 +3,7 @@ import requireAuth from "../../common/middleware/requireAuth.js";
 import { validateResult } from "../../common/middleware/validateResult.js";
 import {
   codeAttemptsLimiter,
+  loginLimiter,
   passwordResetLimiter,
 } from "../../common/middleware/rateLimitMiddlewares.js";
 import * as controller from "./controller.js";
@@ -12,7 +13,13 @@ const authRoute = express.Router();
 
 // Public
 authRoute.post("/register", validation.validateRegister, validateResult, controller.register);
-authRoute.post("/login", validation.validateLogin, validateResult, controller.login);
+authRoute.post(
+  "/login",
+  loginLimiter,
+  validation.validateLogin,
+  validateResult,
+  controller.login,
+);
 authRoute.get("/me", controller.getMe);
 authRoute.post(
   "/password-reset-code",

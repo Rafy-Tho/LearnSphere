@@ -38,8 +38,8 @@ class PasswordResetCodeRepository {
     return result.rows[0]?.attempts;
   }
 
-  async delete(userId) {
-    const result = await pgPool.query(
+  async delete(userId, client = pgPool) {
+    const result = await client.query(
       `DELETE FROM password_reset_codes
        WHERE user_id = $1
        RETURNING *

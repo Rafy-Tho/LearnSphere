@@ -362,9 +362,16 @@ export async function deleteQuestion(questionId, user) {
 
 // --- Answers (options) ---
 
-export async function createAnswer({ questionId, data }) {
+export async function createAnswer({ questionId, data, user }) {
   const question = await Question.findById(questionId);
   if (!question) throw new ApiError(StatusCode.NOT_FOUND, "Question not found");
+
+  const instructor = await Question.getInstructor(questionId);
+  assertOwnership({
+    ownerId: instructor?.instructor_id,
+    user,
+    message: OWNER_MESSAGE,
+  });
 
   return Answer.createAnswer({
     questionId,
@@ -374,9 +381,16 @@ export async function createAnswer({ questionId, data }) {
   });
 }
 
-export async function updateAnswer(answerId, data) {
+export async function updateAnswer(answerId, data, user) {
   const answer = await Answer.findById(answerId);
   if (!answer) throw new ApiError(StatusCode.NOT_FOUND, "Answer not found");
+
+  const instructor = await Question.getInstructor(answer.quiz_id);
+  assertOwnership({
+    ownerId: instructor?.instructor_id,
+    user,
+    message: OWNER_MESSAGE,
+  });
 
   return Answer.updateAnswer({
     answerId,
@@ -386,9 +400,16 @@ export async function updateAnswer(answerId, data) {
   });
 }
 
-export async function deleteAnswer(answerId) {
+export async function deleteAnswer(answerId, user) {
   const answer = await Answer.findById(answerId);
   if (!answer) throw new ApiError(StatusCode.NOT_FOUND, "Answer not found");
+
+  const instructor = await Question.getInstructor(answer.quiz_id);
+  assertOwnership({
+    ownerId: instructor?.instructor_id,
+    user,
+    message: OWNER_MESSAGE,
+  });
 
   return Answer.deleteAnswer(answerId);
 }

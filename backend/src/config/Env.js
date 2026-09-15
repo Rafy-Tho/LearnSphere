@@ -25,4 +25,19 @@ const ENV = {
   CLOUDINARY_SECRET_KEY: process.env.CLOUDINARY_SECRET_KEY,
 };
 
+// Fail fast on missing configuration instead of failing later at request time.
+const REQUIRED_KEYS = Object.keys(ENV);
+const missing = REQUIRED_KEYS.filter((key) => !ENV[key]);
+if (missing.length > 0) {
+  throw new Error(
+    `Missing required environment variables: ${missing.join(", ")}. See .env.example.`,
+  );
+}
+
+if (ENV.NODE_ENV === "production" && ENV.SESSION_SECRET.length < 32) {
+  throw new Error(
+    "SESSION_SECRET must be at least 32 characters in production",
+  );
+}
+
 export default ENV;

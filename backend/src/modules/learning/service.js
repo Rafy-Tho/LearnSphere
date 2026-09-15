@@ -1,6 +1,8 @@
 import ApiError from "../../common/errors/ApiError.js";
 import StatusCode from "../../common/constants/StatusCode.js";
+import { withTransaction } from "../../config/database.js";
 import Course from "../courses/repository.js";
+import Subscription from "../subscriptions/repository.js";
 import Lesson from "../content/lesson.repository.js";
 import Enrollment from "./repository.js";
 import LearningProgress from "./progress.repository.js";
@@ -13,6 +15,16 @@ import LessonCompletion from "./completion.repository.js";
 export async function enrollCourse({ courseId, userId }) {
   const course = await Course.findById(courseId);
   if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
+
+  if (course.access_type === "SUBSCRIPTION") {
+    const active = await Subscription.getActivePaidSubscription(userId);
+    if (!active) {
+      throw new ApiError(
+        StatusCode.FORBIDDEN,
+        "A paid subscription is required to enroll in this course",
+      );
+    }
+  }
 
   const firstLesson = await Lesson.getFirstLesson(courseId);
   if (!firstLesson) {
@@ -27,19 +39,19 @@ export async function enrollCourse({ courseId, userId }) {
     );
   }
 
-  const enrollment = await Enrollment.enroll({
-    courseId,
-    userId,
-    accessType: course.access_type,
-  });
+  return withTransaction(async (client) => {
+    const enrollment = await Enrollment.enroll(
+      { courseId, userId, accessType: course.access_type },
+      client,
+    );
 
-  await LearningProgress.create({
-    courseId,
-    userId,
-    lessonId: firstLesson.id,
-  });
+    await LearningProgress.create(
+      { courseId, userId, lessonId: firstLesson.id },
+      client,
+    );
 
-  return enrollment;
+    return enrollment;
+  });
 }
 
 export async function getEnrollment({ courseId, userId }) {
@@ -111,6 +123,14 @@ export async function createCompletion({ lessonId, userId }) {
 
   const lesson = await Lesson.findById(lessonId);
   if (!lesson) throw new ApiError(StatusCode.NOT_FOUND, "Lesson not found");
+
+  const enrollment = await Enrollment.findOne({ courseId, userId });
+  if (!enrollment) {
+    throw new ApiError(
+      StatusCode.FORBIDDEN,
+      "You must be enrolled in this course",
+    );
+  }
 
   return LessonCompletion.create({
     lessonId,

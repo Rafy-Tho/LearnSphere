@@ -1,8 +1,8 @@
 import pgPool from "../../config/database.js";
 
 class EnrollmentRepository {
-  async enroll({ courseId, userId, accessType }) {
-    const result = await pgPool.query(
+  async enroll({ courseId, userId, accessType }, client = pgPool) {
+    const result = await client.query(
       `INSERT INTO enrollments 
       (course_id, user_id, access_type) 
       VALUES ($1, $2, $3)

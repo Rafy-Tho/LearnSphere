@@ -1,6 +1,7 @@
 import ApiError from "../../common/errors/ApiError.js";
 import StatusCode from "../../common/constants/StatusCode.js";
 import hashService from "../../common/services/HashService.js";
+import { withTransaction } from "../../config/database.js";
 import User from "../users/repository.js";
 
 // TODO(security): replace the hardcoded temporary password with an invite flow (audit P0-9).
@@ -34,27 +35,30 @@ export async function createUser({ name, email, role, status }) {
 
   const hashedPassword = await hashService.hash(TEMP_PASSWORD);
 
-  const user = await User.create({
-    name,
-    email,
-    password: hashedPassword,
-    imageUrl: DEFAULT_AVATAR,
+  return withTransaction(async (client) => {
+    const user = await User.create(
+      { name, email, password: hashedPassword, imageUrl: DEFAULT_AVATAR },
+      client,
+    );
+
+    // create defaults to LEARNER/ACTIVE; override if provided
+    if (role || status) {
+      await User.updateById(
+        {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: role || user.role,
+          status: status || user.status,
+        },
+        client,
+      );
+    }
+
+    await User.createProfile(user.id, client);
+
+    return user;
   });
-
-  // create defaults to LEARNER/ACTIVE; override if provided
-  if (role || status) {
-    await User.updateById({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: role || user.role,
-      status: status || user.status,
-    });
-  }
-
-  await User.createProfile(user.id);
-
-  return user;
 }
 
 export async function updateUser(userId, body) {

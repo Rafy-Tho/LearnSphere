@@ -1,8 +1,8 @@
 import pgPool from "../../config/database.js";
 
 class LearningProgressRepository {
-  async create({ courseId, userId, lessonId }) {
-    const result = await pgPool.query(
+  async create({ courseId, userId, lessonId }, client = pgPool) {
+    const result = await client.query(
       `INSERT INTO learn_progress 
       (course_id, user_id, lesson_id) 
       VALUES ($1, $2, $3)

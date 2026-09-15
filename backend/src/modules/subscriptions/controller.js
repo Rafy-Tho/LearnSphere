@@ -24,7 +24,6 @@ export const createStripeSession = asyncHandler(async (req, res) => {
   const data = await subscriptionsService.createStripeSession({
     subscriptionId: req.params.subscriptionId,
     userId: req.session.user.id,
-    origin: req.headers.origin,
   });
 
   return sendSuccess(res, data, {

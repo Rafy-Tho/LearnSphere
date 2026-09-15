@@ -86,10 +86,29 @@ export const codeValidator = (fieldName) => ({
   },
 });
 
-export const uuidValidator = (fieldName) => ({
+export const uuidValidator = (fieldName, option = false) => ({
   in: ["body"],
   trim: true,
   escape: true,
+  ...(option && {
+    optional: {
+      options: { nullable: true, checkFalsy: true },
+    },
+  }),
+  ...(!option && {
+    notEmpty: {
+      errorMessage: `${fieldName} is required`,
+      bail: true,
+    },
+  }),
+  isUUID: {
+    errorMessage: `${fieldName} must be a valid UUID`,
+  },
+});
+
+export const uuidParamValidator = (fieldName) => ({
+  in: ["params"],
+  trim: true,
   notEmpty: {
     errorMessage: `${fieldName} is required`,
     bail: true,
@@ -121,15 +140,22 @@ export const numberValidator = (fieldName, option = false) => ({
   },
 });
 
-export const floatValidator = (fieldName) => ({
+export const floatValidator = (fieldName, option = false) => ({
   in: ["body"],
   trim: true,
   escape: true,
   toFloat: true,
-  notEmpty: {
-    errorMessage: `${fieldName} is required`,
-    bail: true,
-  },
+  ...(option && {
+    optional: {
+      options: { nullable: true, checkFalsy: true },
+    },
+  }),
+  ...(!option && {
+    notEmpty: {
+      errorMessage: `${fieldName} is required`,
+      bail: true,
+    },
+  }),
   isFloat: {
     options: { min: 0, max: 1_000_000_000 },
     errorMessage: `${fieldName} must be between 0 and 1000,000,000`,

@@ -1,6 +1,7 @@
 import ApiError from "../../common/errors/ApiError.js";
 import StatusCode from "../../common/constants/StatusCode.js";
 import Course from "../courses/repository.js";
+import Enrollment from "../learning/repository.js";
 import User from "../users/repository.js";
 import Review from "./repository.js";
 
@@ -23,6 +24,14 @@ export async function getReviewDetail(courseId) {
 export async function createReview({ userId, courseId, rating, description }) {
   const course = await Course.findById(courseId);
   if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
+
+  const enrollment = await Enrollment.findOne({ courseId, userId });
+  if (!enrollment) {
+    throw new ApiError(
+      StatusCode.FORBIDDEN,
+      "You must be enrolled in this course to review it",
+    );
+  }
 
   const review =
     description || "The user did not leave a review description";

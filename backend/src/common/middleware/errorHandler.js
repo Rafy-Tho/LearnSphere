@@ -1,5 +1,6 @@
 import ENV from '../../config/Env.js';
 import StatusCode from '../constants/StatusCode.js';
+import logger from '../logger.js';
 function getUniqueMessage(err) {
   const field = err.detail?.match(/\((.*?)\)/)?.[1];
 
@@ -58,6 +59,18 @@ function errorHandler(err, req, res, next) {
     }
   }
   const show = ENV.NODE_ENV === 'development';
+
+  // Log server errors (5xx) with request context; expected 4xx are not logged.
+  if (statusCode >= StatusCode.INTERNAL_SERVER_ERROR) {
+    logger.error('Unhandled server error', {
+      statusCode,
+      message,
+      method: req.method,
+      path: req.originalUrl,
+      stack: err.stack,
+    });
+  }
+
   res.status(statusCode).json({
     success: false,
     statusCode,

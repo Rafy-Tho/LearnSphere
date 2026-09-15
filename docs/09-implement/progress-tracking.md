@@ -23,8 +23,8 @@ Single source of truth for the status of every refactor task. Update this file a
 | Area | Total | ✅ | 🟡 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | Foundation — shared infra migration | 6 | 6 | 0 | 0 | 0 |
-| Phase 0 — Safety net & decisions | 6 | 0 | 0 | 6 | 0 |
-| Phase 1 — P0 security & data integrity | 15 | 0 | 0 | 15 | 0 |
+| Phase 0 — Safety net & decisions | 6 | 2 | 1 | 3 | 0 |
+| Phase 1 — P0 security & data integrity | 15 | 8 | 2 | 5 | 0 |
 | Phase 2 — P1 performance & architecture | 12 | 0 | 0 | 12 | 0 |
 | Phase 3 — P2 maintainability | 12 | 0 | 0 | 12 | 0 |
 | Phase 4 — P3 cleanup | 8 | 0 | 0 | 8 | 0 |
@@ -76,9 +76,9 @@ Record decisions before implementing dependent work.
 | ID | Task | Plan ref | Status | Notes |
 |---|---|---|---|---|
 | PH0-01 | Resolve decisions D-01…D-09 | §1 | ⬜ | |
-| PH0-02 | Add `.env.example` and document variables | P0-14 | ⬜ | |
-| PH0-03 | Add structured logger + request-id middleware | P2-8 | ⬜ | |
-| PH0-04 | Log 5xx in `errorHandler` | P2-8 | ⬜ | |
+| PH0-02 | Add `.env.example` and document variables | P0-14 | ✅ | `backend/.env.example` |
+| PH0-03 | Add structured logger + request-id middleware | P2-8 | 🟡 | logger added; request-id middleware pending |
+| PH0-04 | Log 5xx in `errorHandler` | P2-8 | ✅ | logs status/method/path/stack |
 | PH0-05 | Establish performance baseline with seed data | perf §2 | ⬜ | |
 | PH0-06 | Back up database before any schema change | db §8 | ⬜ | |
 
@@ -88,21 +88,21 @@ Record decisions before implementing dependent work.
 
 | ID | Task | Plan ref | Status | Notes |
 |---|---|---|---|---|
-| P0-1 | Strip `is_correct`/explanations from learner quiz responses | security §4 | ⬜ | Critical |
-| P0-2 | Fix password reset (secure random, salted/HMAC, column width) | security §2 | ⬜ | Broken today |
-| P0-3 | Stop returning password hashes (dashboard, admin update) | security §4 | ⬜ | |
-| P0-4 | Add `authorize` + ownership to quiz options POST/PATCH/DELETE | security §3 | ⬜ | |
-| P0-5 | Webhook: idempotency + transaction + amount/payment_status fix | security §6 | ⬜ | Highest risk |
-| P0-6 | Enforce subscription/enrollment on enroll, completion, review | security §3 | ⬜ | |
-| P0-7 | Session invalidation on password change/reset; status check | security §2 | ⬜ | |
-| P0-8 | Add `withTransaction`; wrap multi-step writes | backend §5 | ⬜ | Enables several fixes |
-| P0-9 | Remove hardcoded admin temp password | security §6 | ⬜ | |
-| P0-10 | Add validators to all unvalidated write endpoints | security §4 | ⬜ | |
-| P0-11 | Fix account enumeration + login timing | security §2 | ⬜ | |
-| P0-12 | Wire `loginLimiter`; add per-account throttling | security §5 | ⬜ | |
-| P0-13 | CSRF strategy + security headers (`helmet`) | security §5 | ⬜ | Coordinate with frontends |
-| P0-14 | Env validation; remove `Origin`-based Stripe redirects | security §6 | ⬜ | |
-| P0-15 | Resolve schema drift (D1–D4) | db §6 | ⬜ | Blocks features |
+| P0-1 | Strip `is_correct`/explanations from learner quiz responses | security §4 | ⬜ | Needs server-side grading (frontend uses `is_correct`) |
+| P0-2 | Fix password reset (secure random, salted/HMAC, column width) | security §2 | ⬜ | Depends D-03 (schema) |
+| P0-3 | Stop returning password hashes (dashboard, admin update) | security §4 | ✅ | `getInstructors`/`updateById` now select explicit columns |
+| P0-4 | Add `authorize` + ownership to quiz options POST/PATCH/DELETE | security §3 | ✅ | `authorize` + `assertOwnership` via question instructor |
+| P0-5 | Webhook: idempotency + transaction + amount/payment_status fix | security §6 | ✅ | idempotent by payment intent; transactional; email amount fixed |
+| P0-6 | Enforce subscription/enrollment on enroll, completion, review | security §3 | ✅ | subscription check on enroll; enrollment check on completion/review |
+| P0-7 | Session invalidation on password change/reset; status check | security §2 | 🟡 | status check done; session invalidation pending |
+| P0-8 | Add `withTransaction`; wrap multi-step writes | backend §5 | ✅ | register, enroll, admin create user, reset |
+| P0-9 | Remove hardcoded admin temp password | security §6 | ⬜ | Needs invite flow (frontend) |
+| P0-10 | Add validators to all unvalidated write endpoints | security §4 | ✅ | options, enroll, progress, completions, payment, admin routes |
+| P0-11 | Fix account enumeration + login timing | security §2 | ✅ | generic reset responses; dummy bcrypt; register 409 |
+| P0-12 | Wire `loginLimiter`; add per-account throttling | security §5 | 🟡 | `loginLimiter` wired; per-account throttling pending |
+| P0-13 | CSRF strategy + security headers (`helmet`) | security §5 | ⬜ | `helmet` = new dependency; CSRF needs D-06 |
+| P0-14 | Env validation; remove `Origin`-based Stripe redirects | security §6 | ✅ | env fail-fast; redirects use `CLIENT_URL_1` |
+| P0-15 | Resolve schema drift (D1–D4) | db §6 | ⬜ | Needs schema migration (D-02/03/04) |
 
 ---
 
@@ -302,6 +302,7 @@ Not in scope yet. Tracked here so nothing is lost.
 | 2026-09-15 | Module migration — `subscriptions` | ⬜ → ✅ | Created `modules/subscriptions/` (repository.js, service.js, controller.js, admin.controller.js, routes.js, payment.routes.js, admin.routes.js, webhook.routes.js) and `config/stripe.js`. Moved `SubscriptionRepository`, user + admin subscription controllers/routes, Stripe webhook, and `createStripeSession` (from userControllers); deleted 6 legacy files and the `routes/admin/` folder (restored `adminUserRoute.js` which is pending the admin module). Added `findUserSubscriptionById`/`findPaymentById` to replace load-all-then-find (audit P1-6). Import smoke test OK; 22 routers; `npx eslint .` 0 errors (warnings 16→8). Transitional: service imports users repository. |
 | 2026-09-15 | Module migration — `admin` + final cleanup | ⬜ → ✅ | Created `modules/admin/` (service.js, users.service.js, controller.js, users.controller.js, routes.js, users.routes.js) for dashboard stats + admin user management; deleted the last legacy files (`adminControllers`, `adminUserControllers`, `userRoute`, `adminUserRoute`). Removed the now-empty `controllers/`, `routes/`, `repositories/`, `validators/`, and stray `src/uploads/` folders. Moved `validators/common.validator.js` → `common/validation.js` and updated all module validation imports. Used `HashService` in admin user creation. Rewrote `app/routes.js` for the final module layout. Import smoke test OK; 22 routers; `npx eslint .` 0 errors (warnings 8→7). **All 10 modules migrated; backend `src/` is fully module-based.** |
 | 2026-09-15 | Fix: multer upload path after move | — | `common/middleware/multer.js` computed `../../uploads` (→ `src/uploads`) after moving from `src/middlewares`; corrected to `../../../uploads` (→ `backend/uploads`) to match the static-serve path in `app/middleware.js`. Removed the stray `src/uploads`. |
+| 2026-09-15 | Phase 1 — P0 security fixes (batch 1) | ⬜ → 🟡 | Implemented: login rate limiting (P0-12); login status check + constant-time dummy bcrypt + generic reset responses + register 409 (P0-7 partial, P0-11); stop password-hash leaks (P0-3); env fail-fast validation + remove `Origin`-based Stripe redirects (P0-14); quiz-option authorize+ownership (P0-4); validators for options/enroll/progress/completions/payment/admin routes (P0-10); `withTransaction` for register/enroll/admin-create-user/reset (P0-8); webhook idempotency + transaction + payment_status + email amount fix (P0-5); subscription check on enroll and enrollment checks on completion/review (P0-6); `.env.example` (PH0-02); 5xx logging (PH0-04). Verified: app import OK; `npx eslint .` 0 errors. Remaining P0: quiz answer key, reset hashing, temp password, CSRF/helmet, schema drift, session invalidation, per-account throttling. |
 
 ---
 

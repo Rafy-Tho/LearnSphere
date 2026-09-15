@@ -9,8 +9,11 @@ class SubscriptRepository {
     return result.rows[0];
   }
 
-  async createUserSubscription({ userId, subscriptionPlanId, endDate }) {
-    const result = await pgPool.query(
+  async createUserSubscription(
+    { userId, subscriptionPlanId, endDate },
+    client = pgPool,
+  ) {
+    const result = await client.query(
       `INSERT INTO user_subscriptions (user_id, plan_id, end_date, status)
        VALUES ($1, $2, $3, 'ACTIVE')
        RETURNING *`,
@@ -19,13 +22,24 @@ class SubscriptRepository {
     return result.rows[0];
   }
 
-  async createPayment({ userSubscriptionId, amount, stripePaymentIntentId }) {
-    const result = await pgPool.query(
+  async createPayment(
+    { userSubscriptionId, amount, stripePaymentIntentId },
+    client = pgPool,
+  ) {
+    const result = await client.query(
       `INSERT INTO subscription_payments 
        (user_subscription_id, amount, stripe_payment_intent_id, payment_status)
        VALUES ($1, $2, $3, 'COMPLETED')
        RETURNING *`,
       [userSubscriptionId, amount, stripePaymentIntentId],
+    );
+    return result.rows[0];
+  }
+
+  async findPaymentByIntentId(stripePaymentIntentId) {
+    const result = await pgPool.query(
+      `SELECT * FROM subscription_payments WHERE stripe_payment_intent_id = $1`,
+      [stripePaymentIntentId],
     );
     return result.rows[0];
   }

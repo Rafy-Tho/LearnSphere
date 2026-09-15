@@ -1,14 +1,14 @@
 import pgPool from "../../config/database.js";
 
 class UserRepository {
-  async create({ email, password, name, imageUrl }) {
+  async create({ email, password, name, imageUrl }, client = pgPool) {
     const query = `
       INSERT INTO users (email, password, name, image_url)
       VALUES ($1, $2, $3, $4)
       RETURNING id, email, role, status, name, image_url, created_at, updated_at
     `;
 
-    const result = await pgPool.query(query, [email, password, name, imageUrl]);
+    const result = await client.query(query, [email, password, name, imageUrl]);
 
     return result.rows[0];
   }
@@ -37,13 +37,13 @@ class UserRepository {
     return result.rows[0];
   }
 
-  async createProfile(userId) {
+  async createProfile(userId, client = pgPool) {
     const query = `
       INSERT INTO user_profiles (user_id)
       VALUES ($1)
       RETURNING user_id
     `;
-    const result = await pgPool.query(query, [userId]);
+    const result = await client.query(query, [userId]);
 
     return result.rows[0];
   }
@@ -99,14 +99,14 @@ class UserRepository {
     return result.rows[0];
   }
 
-  async updatePassword({ userId, passwordHash }) {
+  async updatePassword({ userId, passwordHash }, client = pgPool) {
     const query = `
       UPDATE users
       SET password = $1
       WHERE id = $2
     `;
 
-    await pgPool.query(query, [passwordHash, userId]);
+    await client.query(query, [passwordHash, userId]);
   }
 
   async findById(userId) {
@@ -148,7 +148,7 @@ class UserRepository {
 
   async getInstructors() {
     const query = `
-      SELECT *
+      SELECT id, email, name, role, status, last_login, created_at, updated_at
       FROM users
       WHERE role = 'INSTRUCTOR'
     `;
@@ -188,14 +188,14 @@ class UserRepository {
     return parseInt(result.rows[0].total);
   }
 
-  async updateById({ id, name, email, role, status }) {
+  async updateById({ id, name, email, role, status }, client = pgPool) {
     const query = `
       UPDATE users
       SET name = $1, email = $2, role = $3, status = $4
       WHERE id = $5
-      RETURNING *
+      RETURNING id, email, name, role, status, last_login, created_at, updated_at
     `;
-    const result = await pgPool.query(query, [name, email, role, status, id]);
+    const result = await client.query(query, [name, email, role, status, id]);
     return result.rows[0];
   }
 

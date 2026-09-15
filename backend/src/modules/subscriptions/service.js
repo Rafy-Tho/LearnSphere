@@ -3,6 +3,8 @@ import StatusCode from "../../common/constants/StatusCode.js";
 import logger from "../../common/logger.js";
 import emailService from "../../common/services/EmailService.js";
 import stripe from "../../config/stripe.js";
+import ENV from "../../config/Env.js";
+import { withTransaction } from "../../config/database.js";
 import User from "../users/repository.js";
 import Subscription from "./repository.js";
 
@@ -22,7 +24,7 @@ export async function getUserActiveSubscriptions(userId) {
   return Subscription.getActivePaidSubscription(userId);
 }
 
-export async function createStripeSession({ subscriptionId, userId, origin }) {
+export async function createStripeSession({ subscriptionId, userId }) {
   const subscription = await Subscription.findById(subscriptionId);
   if (!subscription) {
     throw new ApiError(StatusCode.NOT_FOUND, "Subscription not found");
@@ -51,8 +53,8 @@ export async function createStripeSession({ subscriptionId, userId, origin }) {
         quantity: 1,
       },
     ],
-    success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}&subscriptionId=${subscriptionId}`,
-    cancel_url: `${origin}/payment-cancel?subscriptionId=${subscriptionId}`,
+    success_url: `${ENV.CLIENT_URL_1}/payment-success?session_id={CHECKOUT_SESSION_ID}&subscriptionId=${subscriptionId}`,
+    cancel_url: `${ENV.CLIENT_URL_1}/payment-cancel?subscriptionId=${subscriptionId}`,
     metadata: { userId, subscriptionId },
   });
 
@@ -64,6 +66,19 @@ export async function createStripeSession({ subscriptionId, userId, origin }) {
 export async function handleCheckoutCompleted(session) {
   const userId = session.metadata.userId;
   const subscriptionId = session.metadata.subscriptionId;
+  const paymentIntentId = session.payment_intent;
+
+  // Only provision on a paid checkout.
+  if (session.payment_status && session.payment_status !== "paid") {
+    return null;
+  }
+
+  // Idempotency: ignore duplicate deliveries of the same checkout.
+  if (paymentIntentId) {
+    const existingPayment =
+      await Subscription.findPaymentByIntentId(paymentIntentId);
+    if (existingPayment) return null;
+  }
 
   const subscription = await Subscription.findById(subscriptionId);
   if (!subscription) throw new Error("Subscription not found");
@@ -72,17 +87,23 @@ export async function handleCheckoutCompleted(session) {
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + Number(subscription.duration_days));
 
-  const userSubscription = await Subscription.createUserSubscription({
-    userId,
-    subscriptionPlanId: subscriptionId,
-    endDate,
-  });
-  if (!userSubscription) throw new Error("Failed to create user subscription");
+  const userSubscription = await withTransaction(async (client) => {
+    const created = await Subscription.createUserSubscription(
+      { userId, subscriptionPlanId: subscriptionId, endDate },
+      client,
+    );
+    if (!created) throw new Error("Failed to create user subscription");
 
-  await Subscription.createPayment({
-    userSubscriptionId: userSubscription.id,
-    amount: subscription.price,
-    stripePaymentIntentId: session.payment_intent,
+    await Subscription.createPayment(
+      {
+        userSubscriptionId: created.id,
+        amount: subscription.price,
+        stripePaymentIntentId: paymentIntentId,
+      },
+      client,
+    );
+
+    return created;
   });
 
   const user = await User.findById(userId);
@@ -98,6 +119,8 @@ export async function handleCheckoutCompleted(session) {
         logger.error("Failed to send payment email", { message: err.message }),
       );
   }
+
+  return userSubscription;
 }
 
 // --- Admin: plans ---

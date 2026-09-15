@@ -10,11 +10,23 @@ const answerRoute = express.Router({ mergeParams: true });
 
 answerRoute
   .route("/")
-  .post(requireAuth, answerValidator, validateResult, controller.createAnswer);
+  .post(
+    requireAuth,
+    authorize(INSTRUCTOR, ADMIN),
+    answerValidator,
+    validateResult,
+    controller.createAnswer,
+  );
 
 answerRoute
   .route("/:id")
-  .patch(requireAuth, authorize(INSTRUCTOR, ADMIN), controller.updateAnswer)
+  .patch(
+    requireAuth,
+    authorize(INSTRUCTOR, ADMIN),
+    answerValidator,
+    validateResult,
+    controller.updateAnswer,
+  )
   .delete(requireAuth, authorize(INSTRUCTOR, ADMIN), controller.deleteAnswer);
 
 export default answerRoute;

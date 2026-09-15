@@ -226,6 +226,7 @@ export const createAnswer = asyncHandler(async (req, res) => {
   const answer = await contentService.createAnswer({
     questionId: req.params.id,
     data: req.body,
+    user: req.session.user,
   });
 
   return sendSuccess(res, answer, {
@@ -235,13 +236,20 @@ export const createAnswer = asyncHandler(async (req, res) => {
 });
 
 export const updateAnswer = asyncHandler(async (req, res) => {
-  const answer = await contentService.updateAnswer(req.params.id, req.body);
+  const answer = await contentService.updateAnswer(
+    req.params.id,
+    req.body,
+    req.session.user,
+  );
 
   return sendSuccess(res, answer, { message: "Answer updated successfully" });
 });
 
 export const deleteAnswer = asyncHandler(async (req, res) => {
-  const answer = await contentService.deleteAnswer(req.params.id);
+  const answer = await contentService.deleteAnswer(
+    req.params.id,
+    req.session.user,
+  );
 
   return sendSuccess(res, answer, { message: "Answer deleted successfully" });
 });

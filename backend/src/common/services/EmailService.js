@@ -39,7 +39,7 @@ class EmailService {
     const formattedAmount = new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
-    }).format(amount / 100);
+    }).format(amount);
 
     const formattedStart = new Date(startDate).toLocaleDateString("en-US", {
       year: "numeric",

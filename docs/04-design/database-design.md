@@ -25,7 +25,7 @@ erDiagram
   courses ||--o{ modules : contains
   modules ||--o{ chapters : contains
   chapters ||--o{ lessons : contains
-  lessons ||--o{ lesson_content : has
+  lessons ||--o{ lesson_contents : has
   lessons ||--o| quizzes : has
   quizzes ||--o{ quiz_options : has
   users ||--o{ enrollments : enrolls
@@ -185,15 +185,14 @@ Unique `(module_id, position)`. Index `idx_chapters_module`.
 | description | TEXT | nullable |
 | type | lesson_type | NOT NULL |
 | status | content_status | DEFAULT `DRAFT`, NOT NULL |
+| access_type | access_course_type | DEFAULT `FREE` |
 | xp_points | INTEGER | DEFAULT 5, CHECK ≥ 0 |
 | duration_minutes | INTEGER | DEFAULT 0, CHECK ≥ 0 |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
 Unique `(chapter_id, position)`. Index `idx_lessons_chapter`.
 
-> **Known issue:** No `access_type` column exists, but repositories/controllers reference `lessons.access_type`. See §9.
-
-#### `lesson_content` (singular)
+#### `lesson_contents`
 
 | Column | Type | Constraints |
 |---|---|---|
@@ -204,24 +203,20 @@ Unique `(chapter_id, position)`. Index `idx_lessons_chapter`.
 | content | TEXT | NOT NULL |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
-Unique `(lesson_id, position)`. Index `idx_lesson_content_lesson`.
-
-> **Known issue:** `LessonContentRepository.js` queries `lesson_contents` (plural). See §9.
+Unique `(lesson_id, position)`. Index `idx_lesson_contents_lesson`.
 
 #### `quizzes`
 
 | Column | Type | Constraints |
 |---|---|---|
 | id | UUID | PK |
-| lesson_id | UUID | **UNIQUE**, NOT NULL, FK → lessons(id) CASCADE |
+| lesson_id | UUID | NOT NULL, FK → lessons(id) CASCADE |
 | question | TEXT | NOT NULL |
 | explanation | TEXT | nullable |
 | position | INTEGER | NOT NULL |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
 Unique `(lesson_id, position)`. Index `idx_quizzes_lesson`.
-
-> **Known issue:** `lesson_id` is `UNIQUE`, limiting to one quiz per lesson while the app treats questions as many-per-lesson. See §9.
 
 #### `quiz_options`
 
@@ -388,9 +383,9 @@ Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `
 
 ## 6. Indexes & Unique Constraints
 
-Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_content_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, plus the partial unique `one_active_subscription_per_user`.
+Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, plus the partial unique `one_active_subscription_per_user`.
 
-Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_content_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_user_course` (enrollments), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`.
+Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_user_course` (enrollments), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`.
 
 ## 7. Cascade & Integrity Rules
 
@@ -414,7 +409,7 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 | `ModuleRepository` | modules, courses |
 | `ChapterRepository` | chapters, modules, courses |
 | `LessonRepository` | lessons, quizzes, quiz_options, chapters, modules, courses |
-| `LessonContentRepository` | **lesson_contents (plural — bug)** |
+| `LessonContentRepository` | lesson_contents |
 | `QuestionRepository` | quizzes, lessons, chapters, modules, courses |
 | `AnswerRepository` | quiz_options, quizzes, lessons, chapters, modules |
 | `EnrollmentRepository` | enrollments |
@@ -424,25 +419,28 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 | `SubscriptionRepository` | subscription_plans, user_subscriptions, subscription_payments, users |
 | `ReviewRepository` | course_reviews, review_helpful_votes, review_reports, users |
 
-## 9. Known Issues (Schema Drift)
+## 9. Schema Drift
 
-These are real discrepancies between `schema.sql` and the code. They are documented for tracking and must be resolved before relying on the affected features.
-
-| # | Issue | Impact |
-|---|---|---|
-| 1 | `LessonContentRepository.js` queries `lesson_contents`, but the table is `lesson_content`. | All lesson-content queries fail with `relation does not exist`. |
-| 2 | Repositories/controllers reference `lessons.access_type`, which does not exist in the schema. | Queries fail with `column does not exist`; subscription gating on lessons is broken. |
-| 3 | `quizzes.lesson_id` is `UNIQUE`, but the app models many questions per lesson. | Inserting a second question for a lesson violates the constraint. |
-| 4 | `password_reset_codes.code` is `VARCHAR(6)`, but a 64-char SHA-256 hash is stored. | Insert fails or truncates, breaking password reset. |
-| 5 | `modules` has no `icon_name`, but `updateModule` destructures it. | `icon_name` is silently dropped (or errors depending on query). |
-| 6 | `course_reviews.helpful_count` is not maintained by any trigger. | The counter can drift from `review_helpful_votes`. |
-| 7 | `getPopular` computes `enroll_count` from `lesson_completion`, not `enrollments`. | Popularity semantics are misleading. |
-| 8 | No indexes on `courses.instructor_id`, `courses.category_id`, or `courses.deleted_at`. | List/dashboard queries may scan more than necessary. |
+| # | Issue | Status | Resolution |
+|---|---|---|---|
+| 1 | `lesson_contents` (code) vs `lesson_content` (schema) | ✅ Resolved | Canonical `lesson_contents`; `schema.sql` + migration `0001` |
+| 2 | `lessons.access_type` referenced but missing | ✅ Resolved | Column added (`access_course_type DEFAULT 'FREE'`) |
+| 3 | `quizzes.lesson_id` `UNIQUE` | ✅ Resolved | Constraint dropped; `(lesson_id, position)` kept |
+| 4 | `password_reset_codes.code` too small for a hash | ✅ Resolved | Widened to `VARCHAR(255)`; HMAC-SHA256 stored |
+| 5 | `modules.icon_name` used by code but not defined | ⬜ Open | Decide add column vs remove code usage |
+| 6 | `course_reviews.helpful_count` not maintained | ⬜ Open | Maintain via trigger/service, or drop |
+| 7 | `getPopular` counts `lesson_completion`, not `enrollments` | ⬜ Open | Use `enrollments` (perf B4) |
+| 8 | No indexes on `courses.instructor_id/category_id/deleted_at` | ⬜ Open | Add indexes (perf B1) |
 
 ## 10. Applying the Schema
 
 ```bash
+# Fresh database
 psql "$DATABASE_URL" -f backend/src/db/schema.sql
+
+# Existing database: apply incremental migrations
+npm run db:migrate      # apply pending
+npm run db:status       # list applied/pending
 ```
 
-The `session` table is created automatically on first backend start. There is no migration or seed tooling.
+The `session` table is created automatically on first backend start. Migrations live in `backend/src/db/migrations/` and are tracked in `schema_migrations`.

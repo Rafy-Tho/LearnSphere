@@ -77,7 +77,7 @@ EXECUTE FUNCTION set_updated_at();
 CREATE TABLE password_reset_codes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  code VARCHAR(6) NOT NULL,
+  code VARCHAR(255) NOT NULL,
   attempts INTEGER DEFAULT 0,
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -201,6 +201,7 @@ CREATE TABLE lessons(
   description TEXT,
   type lesson_type NOT NULL,
   status content_status DEFAULT 'DRAFT' NOT NULL,
+  access_type access_course_type DEFAULT 'FREE',
   xp_points INTEGER DEFAULT 5 CHECK (xp_points >= 0) NOT NULL,
   duration_minutes INTEGER DEFAULT 0 CHECK (duration_minutes >= 0) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -216,7 +217,7 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 -- LESSON LINKS
 -- =========================
 
-CREATE TABLE lesson_content(
+CREATE TABLE lesson_contents(
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   lesson_id UUID NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
   position INTEGER  NOT NULL,
@@ -224,11 +225,11 @@ CREATE TABLE lesson_content(
   content TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT unique_lesson_content_lesson_position UNIQUE(lesson_id, position)
+  CONSTRAINT unique_lesson_contents_lesson_position UNIQUE(lesson_id, position)
 );
-CREATE INDEX idx_lesson_content_lesson ON lesson_content(lesson_id);
-CREATE TRIGGER trg_lesson_content_updated_at
-BEFORE UPDATE ON lesson_content
+CREATE INDEX idx_lesson_contents_lesson ON lesson_contents(lesson_id);
+CREATE TRIGGER trg_lesson_contents_updated_at
+BEFORE UPDATE ON lesson_contents
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- =========================
@@ -237,7 +238,7 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE TABLE quizzes(
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  lesson_id UUID UNIQUE NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  lesson_id UUID NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
   question TEXT NOT NULL,
   explanation TEXT,
   position INTEGER NOT NULL,

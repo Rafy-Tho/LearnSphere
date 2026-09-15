@@ -1,5 +1,8 @@
+import crypto from "crypto";
+
+// Cryptographically secure 6-digit code.
 const createRandomCode = () => {
-  const randomCode = Math.floor(100000 + Math.random() * 900000);
-  return randomCode.toString();
+  return crypto.randomInt(0, 1_000_000).toString().padStart(6, "0");
 };
+
 export default createRandomCode;

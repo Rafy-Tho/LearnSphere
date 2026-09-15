@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "pro": "cross-env NODE_ENV=production node src/server.js"
+    "pro": "cross-env NODE_ENV=production node src/server.js",
+    "db:migrate": "node src/db/migrate.js up",
+    "db:status": "node src/db/migrate.js status"
   },
   "keywords": [],
   "author": "",

@@ -23,8 +23,8 @@ Single source of truth for the status of every refactor task. Update this file a
 | Area | Total | ✅ | 🟡 | ⬜ | ⛔ |
 |---|---|---|---|---|---|
 | Foundation — shared infra migration | 6 | 6 | 0 | 0 | 0 |
-| Phase 0 — Safety net & decisions | 6 | 2 | 1 | 3 | 0 |
-| Phase 1 — P0 security & data integrity | 15 | 8 | 2 | 5 | 0 |
+| Phase 0 — Safety net & decisions | 6 | 2 | 2 | 2 | 0 |
+| Phase 1 — P0 security & data integrity | 15 | 10 | 2 | 3 | 0 |
 | Phase 2 — P1 performance & architecture | 12 | 0 | 0 | 12 | 0 |
 | Phase 3 — P2 maintainability | 12 | 0 | 0 | 12 | 0 |
 | Phase 4 — P3 cleanup | 8 | 0 | 0 | 8 | 0 |
@@ -60,10 +60,10 @@ Record decisions before implementing dependent work.
 | # | Decision | Options | Status | Chosen | Date | Notes |
 |---|---|---|---|---|---|---|
 | D-01 | Course delete semantics | Hard delete vs soft delete (`deleted_at`) | ⬜ | | | Blocks P1-7 |
-| D-02 | Canonical lesson-content table name | `lesson_content` vs `lesson_contents` | ⬜ | | | Drift D1 |
-| D-03 | `lessons.access_type` | Add column vs remove code usage | ⬜ | | | Drift D2 |
-| D-04 | `quizzes.lesson_id` unique | Drop constraint vs keep one-question model | ⬜ | | | Drift D4 |
-| D-05 | Reset-code hashing | bcrypt vs HMAC-SHA256 + pepper | ⬜ | | | Drift D3 |
+| D-02 | Canonical lesson-content table name | `lesson_content` vs `lesson_contents` | ✅ | `lesson_contents` | 2026-09-15 | Matches code; schema.sql + migration 0001 |
+| D-03 | `lessons.access_type` | Add column vs remove code usage | ✅ | Add column | 2026-09-15 | `access_course_type DEFAULT 'FREE'` |
+| D-04 | `quizzes.lesson_id` unique | Drop constraint vs keep one-question model | ✅ | Drop constraint | 2026-09-15 | Keep `(lesson_id, position)` unique |
+| D-05 | Reset-code hashing | bcrypt vs HMAC-SHA256 + pepper | ✅ | HMAC-SHA256 + pepper | 2026-09-15 | Pepper = `SESSION_SECRET`; code via `crypto.randomInt` |
 | D-06 | CSRF strategy | Same-site + `sameSite=lax` vs CSRF tokens | ⬜ | | | P0-13 |
 | D-07 | Migration tooling | Plain SQL runner vs `node-pg-migrate` | ⬜ | | | Needs dependency approval |
 | D-08 | `course_reviews.helpful_count` | Maintain vs drop | ⬜ | | | Drift D6 |
@@ -75,7 +75,7 @@ Record decisions before implementing dependent work.
 
 | ID | Task | Plan ref | Status | Notes |
 |---|---|---|---|---|
-| PH0-01 | Resolve decisions D-01…D-09 | §1 | ⬜ | |
+| PH0-01 | Resolve decisions D-01…D-09 | §1 | 🟡 | D-02/03/04/05/07 resolved; D-01/06/08/09 open |
 | PH0-02 | Add `.env.example` and document variables | P0-14 | ✅ | `backend/.env.example` |
 | PH0-03 | Add structured logger + request-id middleware | P2-8 | 🟡 | logger added; request-id middleware pending |
 | PH0-04 | Log 5xx in `errorHandler` | P2-8 | ✅ | logs status/method/path/stack |
@@ -89,7 +89,7 @@ Record decisions before implementing dependent work.
 | ID | Task | Plan ref | Status | Notes |
 |---|---|---|---|---|
 | P0-1 | Strip `is_correct`/explanations from learner quiz responses | security §4 | ⬜ | Needs server-side grading (frontend uses `is_correct`) |
-| P0-2 | Fix password reset (secure random, salted/HMAC, column width) | security §2 | ⬜ | Depends D-03 (schema) |
+| P0-2 | Fix password reset (secure random, salted/HMAC, column width) | security §2 | ✅ | `crypto.randomInt` + HMAC-SHA256 pepper; column widened to VARCHAR(255) |
 | P0-3 | Stop returning password hashes (dashboard, admin update) | security §4 | ✅ | `getInstructors`/`updateById` now select explicit columns |
 | P0-4 | Add `authorize` + ownership to quiz options POST/PATCH/DELETE | security §3 | ✅ | `authorize` + `assertOwnership` via question instructor |
 | P0-5 | Webhook: idempotency + transaction + amount/payment_status fix | security §6 | ✅ | idempotent by payment intent; transactional; email amount fixed |
@@ -102,7 +102,7 @@ Record decisions before implementing dependent work.
 | P0-12 | Wire `loginLimiter`; add per-account throttling | security §5 | 🟡 | `loginLimiter` wired; per-account throttling pending |
 | P0-13 | CSRF strategy + security headers (`helmet`) | security §5 | ⬜ | `helmet` = new dependency; CSRF needs D-06 |
 | P0-14 | Env validation; remove `Origin`-based Stripe redirects | security §6 | ✅ | env fail-fast; redirects use `CLIENT_URL_1` |
-| P0-15 | Resolve schema drift (D1–D4) | db §6 | ⬜ | Needs schema migration (D-02/03/04) |
+| P0-15 | Resolve schema drift (D1–D4) | db §6 | ✅ | `lesson_contents`, `lessons.access_type`, reset-code width, quizzes unique — schema.sql + migration 0001 |
 
 ---
 
@@ -183,21 +183,15 @@ Per-module checklist from [`../08-refactoring/backend-plan.md`](../08-refactorin
 
 From [`../08-refactoring/backend/02-migration-plan.md`](../08-refactoring/backend/02-migration-plan.md).
 
+Approach adopted: `db/schema.sql` remains the baseline for fresh installs; incremental migrations are applied to existing databases via `db/migrate.js`.
+
 | Migration | Status | Notes |
 |---|---|---|
-| `0001_extensions_enums.sql` | ⬜ | |
-| `0002_trigger_function.sql` | ⬜ | |
-| `0003_identity.sql` | ⬜ | |
-| `0004_catalog.sql` | ⬜ | |
-| `0005_content.sql` | ⬜ | |
-| `0006_learning.sql` | ⬜ | |
-| `0007_billing.sql` | ⬜ | |
-| `0008_reviews.sql` | ⬜ | |
-| `0009_indexes.sql` | ⬜ | |
-| `0010_triggers.sql` | ⬜ | |
-| `0011_drift_fixes.sql` | ⬜ | D1–D8 |
-| `migrate.js` runner | ⬜ | |
-| `schema_migrations` tracking | ⬜ | |
+| `0001_drift_fixes.sql` | ✅ | `lesson_contents`, `lessons.access_type`, reset-code width, `quizzes` unique |
+| `migrate.js` runner | ✅ | `npm run db:migrate` / `npm run db:status` |
+| `schema_migrations` tracking | ✅ | |
+| Baseline for fresh installs | ✅ | `db/schema.sql` (updated to canonical schema) |
+| Full from-scratch baseline migrations | ⏭️ | Not needed; `schema.sql` is the baseline |
 
 ---
 
@@ -303,6 +297,7 @@ Not in scope yet. Tracked here so nothing is lost.
 | 2026-09-15 | Module migration — `admin` + final cleanup | ⬜ → ✅ | Created `modules/admin/` (service.js, users.service.js, controller.js, users.controller.js, routes.js, users.routes.js) for dashboard stats + admin user management; deleted the last legacy files (`adminControllers`, `adminUserControllers`, `userRoute`, `adminUserRoute`). Removed the now-empty `controllers/`, `routes/`, `repositories/`, `validators/`, and stray `src/uploads/` folders. Moved `validators/common.validator.js` → `common/validation.js` and updated all module validation imports. Used `HashService` in admin user creation. Rewrote `app/routes.js` for the final module layout. Import smoke test OK; 22 routers; `npx eslint .` 0 errors (warnings 8→7). **All 10 modules migrated; backend `src/` is fully module-based.** |
 | 2026-09-15 | Fix: multer upload path after move | — | `common/middleware/multer.js` computed `../../uploads` (→ `src/uploads`) after moving from `src/middlewares`; corrected to `../../../uploads` (→ `backend/uploads`) to match the static-serve path in `app/middleware.js`. Removed the stray `src/uploads`. |
 | 2026-09-15 | Phase 1 — P0 security fixes (batch 1) | ⬜ → 🟡 | Implemented: login rate limiting (P0-12); login status check + constant-time dummy bcrypt + generic reset responses + register 409 (P0-7 partial, P0-11); stop password-hash leaks (P0-3); env fail-fast validation + remove `Origin`-based Stripe redirects (P0-14); quiz-option authorize+ownership (P0-4); validators for options/enroll/progress/completions/payment/admin routes (P0-10); `withTransaction` for register/enroll/admin-create-user/reset (P0-8); webhook idempotency + transaction + payment_status + email amount fix (P0-5); subscription check on enroll and enrollment checks on completion/review (P0-6); `.env.example` (PH0-02); 5xx logging (PH0-04). Verified: app import OK; `npx eslint .` 0 errors. Remaining P0: quiz answer key, reset hashing, temp password, CSRF/helmet, schema drift, session invalidation, per-account throttling. |
+| 2026-09-15 | Schema/DB decisions (D-02/03/04/05/07) + P0-2 + P0-15 | ⬜ → ✅ | Canonical `lesson_contents` (plural); added `lessons.access_type`; widened `password_reset_codes.code` to VARCHAR(255); dropped `quizzes.lesson_id` UNIQUE. Updated `db/schema.sql` (fresh installs) and added `db/migrations/0001_drift_fixes.sql` (idempotent) + `db/migrate.js` runner with `schema_migrations` tracking and npm scripts `db:migrate`/`db:status`. Reset codes now use `crypto.randomInt` and HMAC-SHA256 keyed with `SESSION_SECRET`. Verified: app import OK; `npx eslint .` 0 errors. |
 
 ---
 

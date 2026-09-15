@@ -1,6 +1,6 @@
 # Architecture
 
-> **Backend refactor (structure complete):** the backend now follows the module-based architecture (`app/`, `config/`, `db/`, `common/`, `modules/`). Target: [`docs/08-refactoring/backend/01-structure.md`](../08-refactoring/backend/01-structure.md); status: [`docs/09-implement/progress-tracking.md`](../09-implement/progress-tracking.md).
+> **Backend refactor (structure complete):** the backend now follows the module-based architecture (`app/`, `config/`, `db/`, `common/`, `modules/`). Target: [`docs/08-refactoring/backend/01-structure.md`](../08-refactoring/backend/01-structure.md); tasks: [`docs/09-implement/tasks/`](../09-implement/tasks/); status: [`docs/09-implement/progress-tracking.md`](../09-implement/progress-tracking.md).
 
 ## 1. Overview
 

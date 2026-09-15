@@ -2,7 +2,7 @@
 
 Annotated structure of the monorepo.
 
-> **Backend refactor (structure complete):** the backend follows the module-based architecture (`app/`, `config/`, `db/`, `common/`, `modules/`). Target: [`docs/08-refactoring/backend/01-structure.md`](../08-refactoring/backend/01-structure.md); status: [`docs/09-implement/progress-tracking.md`](../09-implement/progress-tracking.md).
+> **Backend refactor (structure complete):** the backend follows the module-based architecture (`app/`, `config/`, `db/`, `common/`, `modules/`). Target: [`docs/08-refactoring/backend/01-structure.md`](../08-refactoring/backend/01-structure.md); tasks: [`docs/09-implement/tasks/`](../09-implement/tasks/); status: [`docs/09-implement/progress-tracking.md`](../09-implement/progress-tracking.md).
 
 ```text
 LEARNING_ONLINE_PLATFORM/
@@ -210,6 +210,8 @@ docs/
 ├── 05-development/    coding-standards.md, folder-structure.md, git-workflow.md, environment-setup.md
 ├── 06-testing/        test-strategy.md, test-cases.md
 ├── 07-deployment/     deployment.md, production-checklist.md
+├── 08-refactoring/    audits + architecture/backend/API/DB/perf/security plans
+├── 09-implement/      decisions.md, progress-tracking.md, tasks/
 └── diagrams/          system-context.md, architecture.md, erd.md, sequence-diagrams.md
 ```
 

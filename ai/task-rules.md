@@ -45,7 +45,7 @@ Run the checks for every app you touch:
 
 - Update `docs/` when a contract, schema, or workflow changes.
 - Update `ai/` rules when conventions change.
-- **Track everything in [`docs/09-implement/progress-tracking.md`](../docs/09-implement/progress-tracking.md):** update the item status, the §0 dashboard counts, and the §14 changelog after every completed item.
+- **Track everything in [`docs/09-implement/tasks/`](../docs/09-implement/tasks/) and [`docs/09-implement/progress-tracking.md`](../docs/09-implement/progress-tracking.md):** update the task's status in its task file, the rollup dashboard counts, and the changelog after every completed item.
 - Record decisions in the tracker's §1 Decisions Log before starting dependent work.
 - If you change the DB schema, update `backend/src/db/schema.sql` and note that there are no migrations.
 - Record new known issues rather than hiding them.

@@ -2,7 +2,7 @@
 
 Condensed, authoritative context. Read this before making changes.
 
-> **Backend refactor (structure complete):** the backend now uses the module-based structure (`app/`, `config/`, `db/`, `common/`, `modules/`). See [`docs/08-refactoring/`](../docs/08-refactoring/) and status in [`docs/09-implement/progress-tracking.md`](../docs/09-implement/progress-tracking.md).
+> **Backend refactor (structure complete):** the backend now uses the module-based structure (`app/`, `config/`, `db/`, `common/`, `modules/`). See [`docs/08-refactoring/`](../docs/08-refactoring/); tasks in [`docs/09-implement/tasks/`](../docs/09-implement/tasks/); status in [`docs/09-implement/progress-tracking.md`](../docs/09-implement/progress-tracking.md).
 
 ## What This Is
 

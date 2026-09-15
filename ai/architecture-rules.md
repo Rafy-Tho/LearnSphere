@@ -2,7 +2,7 @@
 
 These rules define the architectural boundaries you must preserve. Violations should be treated as bugs.
 
-> **Backend refactor (structure complete):** the backend now uses the module-based structure (`app/`, `config/`, `db/`, `common/`, `modules/`). Target: [`docs/08-refactoring/backend/01-structure.md`](../docs/08-refactoring/backend/01-structure.md), status: [`docs/09-implement/progress-tracking.md`](../docs/09-implement/progress-tracking.md).
+> **Backend refactor (structure complete):** the backend now uses the module-based structure (`app/`, `config/`, `db/`, `common/`, `modules/`). Target: [`docs/08-refactoring/backend/01-structure.md`](../docs/08-refactoring/backend/01-structure.md); tasks: [`docs/09-implement/tasks/`](../docs/09-implement/tasks/); status: [`docs/09-implement/progress-tracking.md`](../docs/09-implement/progress-tracking.md).
 
 ## 1. Backend Layering
 

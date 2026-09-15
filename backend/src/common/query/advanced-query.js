@@ -5,6 +5,8 @@ class AdvancedQuery {
   constructor({
     db = pgPool,
     baseQuery,
+    countBaseQuery = null,
+    countJoinAliases = [],
     queryString,
     filterMap = {},
     sortMap = {},
@@ -12,6 +14,8 @@ class AdvancedQuery {
   }) {
     this.db = db;
     this.baseQuery = baseQuery;
+    this.countBaseQuery = countBaseQuery;
+    this.countJoinAliases = countJoinAliases;
     this.queryString = queryString;
     this.filterMap = filterMap;
     this.sortMap = sortMap;
@@ -148,8 +152,19 @@ class AdvancedQuery {
       ? `WHERE ${this.where.join(" AND ")}`
       : "";
 
+    // Use the lightweight count base unless an active filter references a
+    // joined alias, in which case the joined base is required.
+    const whereSql = this.where.join(" AND ");
+    const needsJoinedBase = this.countJoinAliases.some((alias) =>
+      whereSql.includes(`${alias}.`),
+    );
+    const countBase =
+      this.countBaseQuery && !needsJoinedBase
+        ? this.countBaseQuery
+        : this.baseQuery;
+
     // ✅ include extraValues (like userId)
-    const countQuery = `SELECT COUNT(*) ${this.baseQuery} ${whereClause}`;
+    const countQuery = `SELECT COUNT(*) ${countBase} ${whereClause}`;
     const countResult = await this.db.query(countQuery, [
       ...extraValues,
       ...this.values,

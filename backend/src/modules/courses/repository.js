@@ -1,6 +1,30 @@
 import pgPool from "../../config/database.js";
 import AdvancedQuery from "../../common/query/advanced-query.js";
 
+// Shared aggregates over the module → chapter → lesson chain. Keeping them in
+// one place avoids drift between the many course read paths.
+const COURSE_STATS_SUBQUERY = `
+  SELECT
+    m.course_id,
+    SUM(l.duration_minutes) AS total_duration,
+    COUNT(l.id) FILTER (WHERE l.type = 'TEXT') AS total_lessons,
+    COUNT(l.id) FILTER (WHERE l.type = 'QUIZ') AS total_quizzes
+  FROM modules m
+  JOIN chapters ch ON ch.module_id = m.id
+  JOIN lessons l ON l.chapter_id = ch.id
+  GROUP BY m.course_id
+`;
+
+const COURSE_DURATION_SUBQUERY = `
+  SELECT
+    m.course_id,
+    SUM(l.duration_minutes) AS total_duration
+  FROM modules m
+  JOIN chapters ch ON ch.module_id = m.id
+  JOIN lessons l ON l.chapter_id = ch.id
+  GROUP BY m.course_id
+`;
+
 class CourseRepository {
   constructor({ db = pgPool } = {}) {
     this.db = db;
@@ -106,15 +130,7 @@ class CourseRepository {
     FROM courses c
 
     LEFT JOIN (
-      SELECT 
-        m.course_id,
-        SUM(l.duration_minutes) AS total_duration,
-        COUNT(l.id) FILTER (WHERE l.type = 'TEXT') AS total_lessons,
-        COUNT(l.id) FILTER (WHERE l.type = 'QUIZ') AS total_quizzes
-      FROM modules m
-      JOIN chapters ch ON ch.module_id = m.id
-      JOIN lessons l ON l.chapter_id = ch.id
-      GROUP BY m.course_id
+      ${COURSE_STATS_SUBQUERY}
     ) ld ON ld.course_id = c.id
 
     LEFT JOIN (
@@ -144,6 +160,8 @@ class CourseRepository {
 
     const features = new AdvancedQuery({
       baseQuery,
+      countBaseQuery: "FROM courses c",
+      countJoinAliases: ["rv", "ld"],
       queryString,
       filterMap,
       sortMap,
@@ -374,27 +392,22 @@ class CourseRepository {
   
       FROM courses c
   
-      -- ✅ duration subquery (correct way)
       LEFT JOIN (
-        SELECT 
-          m.course_id,
-          SUM(l.duration_minutes) AS total_duration
-        FROM modules m
-        JOIN chapters ch ON ch.module_id = m.id
-        JOIN lessons l ON l.chapter_id = ch.id
-        GROUP BY m.course_id
+        ${COURSE_DURATION_SUBQUERY}
       ) d ON d.course_id = c.id
   
-      WHERE c.category_id IN (
-        SELECT DISTINCT c2.category_id
+      WHERE EXISTS (
+        SELECT 1
         FROM lesson_completion lc
         JOIN courses c2 ON c2.id = lc.course_id
         WHERE lc.user_id = $1
+          AND c2.category_id = c.category_id
       )
-      AND c.id NOT IN (
-        SELECT course_id 
-        FROM lesson_completion 
-        WHERE user_id = $1
+      AND NOT EXISTS (
+        SELECT 1
+        FROM lesson_completion lc2
+        WHERE lc2.user_id = $1
+          AND lc2.course_id = c.id
       )
       AND c.status = 'PUBLISHED'
       AND c.deleted_at IS NULL
@@ -409,22 +422,16 @@ class CourseRepository {
     const query = `
       SELECT 
         c.*,
-        COUNT(DISTINCT lc.id) AS enroll_count,
+        COUNT(DISTINCT e.id) AS enroll_count,
         COALESCE(d.total_duration, 0) AS total_duration
   
       FROM courses c
   
-      LEFT JOIN lesson_completion lc 
-        ON lc.course_id = c.id
+      LEFT JOIN enrollments e 
+        ON e.course_id = c.id
   
       LEFT JOIN (
-        SELECT 
-          m.course_id,
-          SUM(l.duration_minutes) AS total_duration
-        FROM modules m
-        JOIN chapters ch ON ch.module_id = m.id
-        JOIN lessons l ON l.chapter_id = ch.id
-        GROUP BY m.course_id
+        ${COURSE_DURATION_SUBQUERY}
       ) d ON d.course_id = c.id
   
       WHERE c.status = 'PUBLISHED'
@@ -452,13 +459,7 @@ class CourseRepository {
         ON r.course_id = c.id
   
       LEFT JOIN (
-        SELECT 
-          m.course_id,
-          SUM(l.duration_minutes) AS total_duration
-        FROM modules m
-        JOIN chapters ch ON ch.module_id = m.id
-        JOIN lessons l ON l.chapter_id = ch.id
-        GROUP BY m.course_id
+        ${COURSE_DURATION_SUBQUERY}
       ) d ON d.course_id = c.id
   
       WHERE c.status = 'PUBLISHED'
@@ -706,6 +707,7 @@ class CourseRepository {
 
     const features = new AdvancedQuery({
       baseQuery,
+      countBaseQuery: "FROM courses AS c",
       queryString,
       filterMap,
       sortMap,

@@ -22,12 +22,12 @@ function Feature() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
           {/* Feature cards - changed icons/text to e-learning */}
-          {features.map((feature, index) => {
+          {features.map((feature) => {
             const Icon = feature.icon;
             return (
               <div
                 className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all"
-                key={index}
+                key={feature.title}
               >
                 <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-6">
                   <Icon />

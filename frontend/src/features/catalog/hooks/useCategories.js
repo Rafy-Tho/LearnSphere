@@ -5,5 +5,6 @@ export function useCategories() {
   return useQuery({
     queryKey: ["categories"],
     queryFn: () => categoriesApi.getAll(),
+    staleTime: 1000 * 60 * 30,
   });
 }

@@ -14,7 +14,7 @@ function Guide() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
           {guideSteps.map((step, index) => (
-            <div className="text-center" key={index}>
+            <div className="text-center" key={step.title}>
               <div className="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
                 {index + 1}
               </div>

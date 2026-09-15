@@ -1,12 +1,12 @@
 import { CheckCircle2, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useCreatePayment } from "@/features/subscriptions/hooks/useSubscriptionMutations";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { toast } from "react-toastify";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 
-export default function PricingCard({ plan, activeSubscription }) {
+function PricingCard({ plan, activeSubscription }) {
   const { id, tier, price, description, features, highlighted = false } = plan;
   const { mutateAsync } = useCreatePayment();
   const { user } = useAuth();
@@ -107,8 +107,8 @@ export default function PricingCard({ plan, activeSubscription }) {
       </div>
 
       <ul className="flex-1 space-y-4 mb-8">
-        {features.map((feature, index) => (
-          <li key={index} className="flex items-center gap-3">
+        {features.map((feature) => (
+          <li key={feature} className="flex items-center gap-3">
             <CheckCircle2
               size={18}
               className={`flex-shrink-0 ${
@@ -165,3 +165,5 @@ export default function PricingCard({ plan, activeSubscription }) {
     </div>
   );
 }
+
+export default memo(PricingCard);

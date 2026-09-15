@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import PersonalInfoSection from "@/features/settings/components/PersonalInfoSection";
 import ProfileHeader from "@/features/settings/components/ProfileHeader";
 import { useUserProfile as useGetUserProfile } from "@/features/settings/hooks/useUsers";
@@ -6,7 +6,7 @@ import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { useUpdateUserProfile } from "@/features/settings/hooks/useUserMutations";
 import { toast } from "react-toastify";
-import useAuth from "@/features/auth/hooks/useAuth";
+import useAuthActions from "@/features/auth/hooks/useAuthActions";
 
 const defaultUser = {
   name: "",
@@ -32,26 +32,27 @@ const mapUser = (u) => ({
 });
 function UserProfile() {
   const [editMode, setEditMode] = useState(false);
-  const [user, setUser] = useState(defaultUser);
-  const [draft, setDraft] = useState(defaultUser);
-  const { saveAuth } = useAuth();
+  const [draft, setDraft] = useState(null);
+  const { saveAuth } = useAuthActions();
   const { data, isPending, error } = useGetUserProfile();
   const { mutateAsync: updateProfile, isPending: isUpdatePending } =
     useUpdateUserProfile();
   const [errors, setErrors] = useState({});
-  // ✅ Load data from API
-  useEffect(() => {
-    if (!data) return;
-    const mapped = mapUser(data);
-    setUser(mapped);
-    setDraft(mapped);
-  }, [data]);
 
-  const field = (key) => (editMode ? draft[key] : user[key]);
-  const update = (key) =>
-    editMode ? (v) => setDraft((prev) => ({ ...prev, [key]: v })) : () => {};
+  const serverUser = useMemo(() => mapUser(data), [data]);
+
+  const field = useCallback(
+    (key) => (editMode && draft ? draft[key] : serverUser[key]),
+    [editMode, draft, serverUser],
+  );
+  const update = useCallback(
+    (key) => (v) =>
+      setDraft((prev) => ({ ...(prev ?? defaultUser), [key]: v })),
+    [],
+  );
 
   const handleSaveProfile = async () => {
+    if (!draft) return;
     setErrors({});
     const errors = {};
     const required = ["name", "email"];
@@ -73,7 +74,7 @@ function UserProfile() {
       const updatedUser = await updateProfile(formData);
       saveAuth(updatedUser);
       toast.success("Profile updated successfully");
-      setUser(draft);
+      setDraft(null);
       setEditMode(false);
     } catch (error) {
       toast.error(error.message || "Failed to update profile");
@@ -81,11 +82,11 @@ function UserProfile() {
   };
 
   const handleCancelEdit = () => {
-    setDraft(user);
+    setDraft(null);
     setEditMode(false);
   };
   const handleOpenEdit = () => {
-    setDraft(user);
+    setDraft(serverUser);
     setEditMode(true);
   };
   if (isPending) return <SpinnerLoader />;

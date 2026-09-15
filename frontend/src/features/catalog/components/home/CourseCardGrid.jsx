@@ -1,3 +1,4 @@
+import { memo } from "react";
 import CourseCard from "@/components/common/CourseCard";
 
 function CourseCardGrid({ courses }) {
@@ -10,4 +11,4 @@ function CourseCardGrid({ courses }) {
   );
 }
 
-export default CourseCardGrid;
+export default memo(CourseCardGrid);

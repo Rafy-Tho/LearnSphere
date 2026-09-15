@@ -1,10 +1,11 @@
+import { memo } from "react";
 import { BarChart3, Bookmark, BookOpen, CheckCircle, Clock, MessageSquare, Star } from "lucide-react";
 import { Link } from "react-router-dom";
 import formatCapitalize from "@/utils/formatCapitalize";
 import formatMinutes from "@/utils/formatMinutes";
 import formatTimeAgo from "@/utils/formatTimeAgo";
 
-export function CourseCardDetailed({ course }) {
+export const CourseCardDetailed = memo(function CourseCardDetailed({ course }) {
   return (
     <Link
       to={`/courses/${course.id}`}
@@ -89,4 +90,4 @@ export function CourseCardDetailed({ course }) {
       </div>
     </Link>
   );
-}
+});

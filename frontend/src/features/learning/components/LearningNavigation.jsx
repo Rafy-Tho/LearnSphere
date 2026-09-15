@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import useScrollEffect from "@/hooks/useScrollEffect";
+import useMediaQuery from "@/hooks/useMediaQuery";
 import DesktopMenu from "@/features/learning/components/learning-navbar/DesktopMenu";
 import LeftCluster from "@/features/learning/components/learning-navbar/LeftCluster";
 import MobileMenu from "@/features/learning/components/learning-navbar/MobileMenu";
@@ -14,6 +15,7 @@ export function LearningNavigation({
 }) {
   const { courseId } = useParams();
   const isScrolled = useScrollEffect();
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   return (
     <header
@@ -31,11 +33,11 @@ export function LearningNavigation({
           setIsSidebarOpen={setIsSidebarOpen}
         />
 
-        {/* Desktop menu - visible on md and above */}
-        <DesktopMenu setIsRatingOpen={setIsRatingOpen} />
-
-        {/* Mobile menu - visible below md breakpoint */}
-        <MobileMenu setIsRatingOpen={setIsRatingOpen} />
+        {isDesktop ? (
+          <DesktopMenu setIsRatingOpen={setIsRatingOpen} />
+        ) : (
+          <MobileMenu setIsRatingOpen={setIsRatingOpen} />
+        )}
       </div>
     </header>
   );

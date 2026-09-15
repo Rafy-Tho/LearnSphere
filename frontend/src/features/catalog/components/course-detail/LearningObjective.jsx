@@ -15,8 +15,8 @@ export default function LearningObjective() {
           LEARNING OBJECTIVES
         </h2>
         <div className="space-y-4">
-          {objectives.map((objective, index) => (
-            <div key={index} className="flex gap-3 sm:gap-4">
+          {objectives.map((objective) => (
+            <div key={objective} className="flex gap-3 sm:gap-4">
               <div className="flex-shrink-0 mt-0.5">
                 <Check className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 dark:text-green-400" />
               </div>

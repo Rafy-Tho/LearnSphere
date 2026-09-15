@@ -8,6 +8,7 @@ export function useLessonContent() {
     queryKey: ["lesson-content", lessonId],
     queryFn: () => lessonsApi.getContent(lessonId),
     enabled: !!lessonId,
+    staleTime: 1000 * 60 * 10,
   });
 }
 
@@ -17,6 +18,7 @@ export function useQuizzes() {
     queryKey: ["quizzes", lessonId],
     queryFn: () => lessonsApi.getQuizzes(lessonId),
     enabled: !!lessonId,
+    staleTime: 1000 * 60 * 10,
   });
 }
 

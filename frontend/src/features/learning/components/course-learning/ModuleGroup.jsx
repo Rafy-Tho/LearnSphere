@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { CheckCircle2, ChevronDown, ChevronUp, Circle, CircleQuestionMark, Lock } from "lucide-react";
 import { NavLink, useParams } from "react-router-dom";
 import { lessonIcons } from "@/constants/lessonIcons";
@@ -7,7 +8,7 @@ function ModuleGroup({ module, isOpen, onToggle, index, completedIds }) {
   return (
     <div className="mb-1">
       <button
-        onClick={onToggle}
+        onClick={() => onToggle(module.id)}
         className="flex w-full items-start justify-between rounded-md px-2 py-2.5 text-left text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
       >
         <span>
@@ -67,4 +68,4 @@ function ModuleGroup({ module, isOpen, onToggle, index, completedIds }) {
   );
 }
 
-export default ModuleGroup;
+export default memo(ModuleGroup);

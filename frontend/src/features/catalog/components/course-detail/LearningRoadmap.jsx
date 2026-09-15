@@ -1,5 +1,5 @@
 import { Award, CheckCircle2, ChevronDown, ChevronUp, Circle, CircleQuestionMark, ExternalLink, Lock, Search } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useClaimCertificate } from "@/features/learning/hooks/useLearningMutations";
 import { useCertificate, useCertificateEligibility, useCourseLessonCompletions } from "@/features/learning/hooks/useLearning";
@@ -61,6 +61,22 @@ export default function LearningRoadmap({ sectionRef }) {
     );
   };
 
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    if (!value) return;
+    const normalized = value.toLowerCase();
+    const ids = modules
+      .filter(
+        (module) =>
+          module?.name?.toLowerCase().includes(normalized) ||
+          (module.lessons || []).some((lesson) =>
+            lesson?.name?.toLowerCase().includes(normalized),
+          ),
+      )
+      .map((module) => module.id);
+    setExpandedSections((prev) => [...new Set([...prev, ...ids])]);
+  };
+
   const toggleExpandAll = () => {
     const target = searchQuery ? filteredModules : modules;
 
@@ -82,13 +98,6 @@ export default function LearningRoadmap({ sectionRef }) {
 
   const isComplete = eligibility?.isComplete;
   const canClaim = isComplete && !certificate;
-  useEffect(() => {
-    if (!searchQuery) return;
-    setExpandedSections((prev) => {
-      const ids = filteredModules.map((m) => m.id);
-      return [...new Set([...prev, ...ids])];
-    });
-  }, [searchQuery, filteredModules]);
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
   return (
@@ -117,7 +126,7 @@ export default function LearningRoadmap({ sectionRef }) {
               type="text"
               placeholder="Search Lessons"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
@@ -168,7 +177,7 @@ export default function LearningRoadmap({ sectionRef }) {
 
             {expandedSections.includes(module.id) && (
               <div className="px-6 pb-5 space-y-3">
-                {module.lessons.map((lesson, index) => {
+                {module.lessons.map((lesson) => {
                   const isCompleted = completedIds.has(lesson.id);
                   const Icon = isCompleted
                     ? CheckCircle2
@@ -182,7 +191,7 @@ export default function LearningRoadmap({ sectionRef }) {
                       : `/courses/${course.id}/lessons/${lesson.id}`;
                   return (
                     <Link
-                      key={index}
+                      key={lesson.id}
                       onClick={handleProgress}
                       to={link}
                       className="flex items-center gap-3 py-2 text-sm sm:text-base"

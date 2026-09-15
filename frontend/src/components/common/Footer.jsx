@@ -11,14 +11,14 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-          {footerLinks.map((section, idx) => (
-            <div key={idx} className="space-y-4">
+          {footerLinks.map((section) => (
+            <div key={section.title} className="space-y-4">
               <h4 className="text-gray-900 dark:text-white font-semibold text-lg relative pb-2 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-12 after:h-0.5 after:bg-blue-600 dark:after:bg-blue-500">
                 {section.title}
               </h4>
               <ul className="space-y-3">
-                {section.links.map((link, linkIdx) => (
-                  <li key={linkIdx}>
+                {section.links.map((link) => (
+                  <li key={link.href}>
                     <a
                       href={link.href}
                       className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm transition-all duration-200 hover:translate-x-1 inline-block"
@@ -44,11 +44,11 @@ const Footer = () => {
 
             {/* Social Icons */}
             <div className="flex items-center gap-4">
-              {socialLinks.map((social, idx) => {
+              {socialLinks.map((social) => {
                 const Icon = social.icon;
                 return (
                   <a
-                    key={idx}
+                    key={social.label}
                     href={social.href}
                     className="w-10 h-10 bg-gray-200 dark:bg-gray-800 hover:bg-blue-600 dark:hover:bg-blue-600 rounded-full flex items-center justify-center text-lg text-gray-700 dark:text-gray-300 hover:text-white transition-all duration-200 hover:scale-110 hover:shadow-lg"
                     aria-label={social.label}

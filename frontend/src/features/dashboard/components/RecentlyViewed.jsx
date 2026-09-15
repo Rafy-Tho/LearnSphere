@@ -1,18 +1,28 @@
 // src/components/RecentlyViewed.tsx
 import { History } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 import { useRecentlyViewedCourses as useGetRecentlyViewedCourses } from "@/features/dashboard/hooks/useDashboard";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import EmptyState from "@/components/ui/EmptyState";
 import CourseCard from "@/components/common/CourseCard";
+import Pagination from "@/components/common/Pagination";
+
+const PAGE_SIZE = 8;
 
 export default function RecentlyViewed({ limit }) {
   const { data, isPending, error } = useGetRecentlyViewedCourses();
+  const [searchParams] = useSearchParams();
+  const page = Number(searchParams.get("page")) || 1;
   const courses = data || [];
-  const visible = limit ? courses.slice(0, limit) : courses;
 
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
+
+  const total = courses.length;
+  const visible = limit
+    ? courses.slice(0, limit)
+    : courses.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <section className="mb-14">
@@ -36,6 +46,13 @@ export default function RecentlyViewed({ limit }) {
             />
           ))}
         </div>
+      )}
+      {!limit && total > PAGE_SIZE && (
+        <Pagination
+          totalItems={total}
+          itemsPerPage={PAGE_SIZE}
+          siblingCount={1}
+        />
       )}
     </section>
   );

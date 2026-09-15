@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Award, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMyCertificates } from "@/features/learning/hooks/useLearning";
@@ -5,11 +6,13 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 
 export default function CertificationSection() {
   const { data: certificates, isPending, error } = useMyCertificates();
+  const [showAll, setShowAll] = useState(false);
 
   if (isPending) return null;
   if (error) return <ErrorMessage message={error.message} />;
 
   if (certificates && certificates.length > 0) {
+    const visible = showAll ? certificates : certificates.slice(0, 6);
     return (
       <div className="my-8 md:my-16">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-bold">
@@ -19,7 +22,7 @@ export default function CertificationSection() {
           My Certificates
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {certificates.map((cert) => (
+          {visible.map((cert) => (
             <Link
               key={cert.id}
               to={`/certificates/${cert.id}`}
@@ -42,9 +45,18 @@ export default function CertificationSection() {
               <p className="text-xs text-gray-400 dark:text-gray-500 font-mono truncate">
                 {cert.certificate_number}
               </p>
-            </Link>
-          ))}
+              </Link>
+            ))}
         </div>
+        {!showAll && certificates.length > 6 && (
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="mt-4 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            Show all {certificates.length} certificates
+          </button>
+        )}
       </div>
     );
   }

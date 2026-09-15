@@ -1,5 +1,5 @@
 import { Filter, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 export function SearchHeader({ setShowMobileFilter, showMobileFilter }) {
@@ -17,14 +17,15 @@ export function SearchHeader({ setShowMobileFilter, showMobileFilter }) {
     params.set("search", searchQuery);
     setSearchParams(params);
   };
-  useEffect(() => {
-    if (searchQuery.trim() !== "") return;
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    if (value.trim() !== "") return;
     const params = new URLSearchParams(searchParams);
     params.delete("search");
     params.delete("page");
     params.delete("limit");
     setSearchParams(params);
-  }, [searchQuery, searchParams, setSearchParams]);
+  };
   return (
     <form
       onSubmit={handleSearch}
@@ -37,7 +38,7 @@ export function SearchHeader({ setShowMobileFilter, showMobileFilter }) {
           type="search"
           placeholder="Search"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="w-full bg-transparent text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-600 text-sm focus:outline-none flex-1"
         />
 

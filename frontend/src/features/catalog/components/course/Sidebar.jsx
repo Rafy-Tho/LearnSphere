@@ -1,5 +1,5 @@
 import { Filter, X } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { durations, filters, levels, ratings, skills } from "@/features/catalog/constants/courseFilterData";
 import RatingStars from "@/components/common/RatingStars";
@@ -18,6 +18,9 @@ const rangeConfig = {
     return map[Number(v)]; // ✅ cast to Number so "1" matches key 1
   },
 };
+
+const isRange = ["rating", "duration"];
+const queryFields = ["isFree", "level", "rating", "duration", "skill"];
 
 // ✅ Derive initial state directly from URL params — no useEffect needed
 function getInitialSelected(searchParams) {
@@ -38,62 +41,66 @@ export function Sidebar({ setShowMobileFilter }) {
   const [selectedSkill, setSelectedSkill] = useState(
     () => searchParams.getAll("skill") || [],
   );
-  const isRange = ["rating", "duration"];
-  const queryFields = ["isFree", "level", "rating", "duration", "skill"];
   // ---------------- RADIO ----------------
-  const handleSelectOne = (e) => {
-    const { name, value } = e.target;
-    setSearchParams((prev) => {
-      const params = new URLSearchParams(prev);
-      if (selectedFilters[name] === value) {
-        if (isRange.includes(name)) {
-          params.delete(`${name}[gte]`);
-          params.delete(`${name}[lt]`);
+  const handleSelectOne = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      setSearchParams((prev) => {
+        const params = new URLSearchParams(prev);
+        if (selectedFilters[name] === value) {
+          if (isRange.includes(name)) {
+            params.delete(`${name}[gte]`);
+            params.delete(`${name}[lt]`);
+          } else {
+            params.delete(name);
+          }
+          setSelectedFilters((p) => ({ ...p, [name]: "" }));
         } else {
-          params.delete(name);
+          if (isRange.includes(name)) {
+            const range = rangeConfig[name]?.(value);
+            if (!range) return prev; // safety — return unchanged params
+            params.delete(`${name}[gte]`);
+            params.delete(`${name}[lt]`);
+            if (range.gte !== undefined) params.set(`${name}[gte]`, range.gte);
+            if (range.lt !== undefined) params.set(`${name}[lt]`, range.lt);
+          } else {
+            params.set(name, value);
+          }
+          setSelectedFilters((p) => ({ ...p, [name]: value }));
         }
-        setSelectedFilters((p) => ({ ...p, [name]: "" }));
-      } else {
-        if (isRange.includes(name)) {
-          const range = rangeConfig[name]?.(value);
-          if (!range) return prev; // safety — return unchanged params
-          params.delete(`${name}[gte]`);
-          params.delete(`${name}[lt]`);
-          if (range.gte !== undefined) params.set(`${name}[gte]`, range.gte);
-          if (range.lt !== undefined) params.set(`${name}[lt]`, range.lt);
-        } else {
-          params.set(name, value);
-        }
-        setSelectedFilters((p) => ({ ...p, [name]: value }));
-      }
-      params.delete("page");
-      params.delete("limit");
-      return params;
-    });
-  };
+        params.delete("page");
+        params.delete("limit");
+        return params;
+      });
+    },
+    [selectedFilters, setSearchParams],
+  );
 
   // ---------------- CHECKBOX ----------------
-  const handleSelectMany = (e) => {
-    const { name, value, checked } = e.target;
-    setSearchParams((prev) => {
-      const params = new URLSearchParams(prev);
-      if (checked) {
-        params.append(name, value);
-        setSelectedSkill((p) => [...p, value]);
-      } else {
-        const updated = params.getAll(name).filter((v) => v !== value);
-        params.delete(name);
-        updated.forEach((v) => params.append(name, v));
-        setSelectedSkill((p) => p.filter((v) => v !== value));
-      }
-      params.delete("page");
-      params.delete("limit");
-      return params;
-    });
-  };
+  const handleSelectMany = useCallback(
+    (e) => {
+      const { name, value, checked } = e.target;
+      setSearchParams((prev) => {
+        const params = new URLSearchParams(prev);
+        if (checked) {
+          params.append(name, value);
+          setSelectedSkill((p) => [...p, value]);
+        } else {
+          const updated = params.getAll(name).filter((v) => v !== value);
+          params.delete(name);
+          updated.forEach((v) => params.append(name, v));
+          setSelectedSkill((p) => p.filter((v) => v !== value));
+        }
+        params.delete("page");
+        params.delete("limit");
+        return params;
+      });
+    },
+    [setSearchParams],
+  );
 
   // ---------------- CLEAR ----------------
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     const params = new URLSearchParams(searchParams);
     queryFields.forEach((f) => {
       if (isRange.includes(f)) {
@@ -106,7 +113,7 @@ export function Sidebar({ setShowMobileFilter }) {
     setSearchParams(params);
     setSelectedFilters({ isFree: "", level: "", rating: "", duration: "" });
     setSelectedSkill([]);
-  };
+  }, [searchParams, setSearchParams]);
   // ---------------- UI ----------------
   return (
     <div className="w-full md:w-64 bg-slate-100 dark:bg-slate-900 border-r p-4 md:p-6 flex flex-col gap-6 relative text-slate-700 dark:text-slate-300">

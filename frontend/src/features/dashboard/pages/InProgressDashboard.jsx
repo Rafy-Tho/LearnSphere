@@ -4,6 +4,10 @@ import { useCoursesInProgress as useGetCourseInProgress } from "@/features/dashb
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 
+const sectionIcon = (
+  <History className="size-4 text-indigo-600 dark:text-indigo-400" />
+);
+
 export default function InProgressDashboard() {
   const { data, isPending, error } = useGetCourseInProgress();
   if (isPending) return <SpinnerLoader />;
@@ -12,7 +16,7 @@ export default function InProgressDashboard() {
   return (
     <CourseGridSection
       title="In Progress"
-      icon={<History className="size-4 text-indigo-600 dark:text-indigo-400" />}
+      icon={sectionIcon}
       courses={data?.data || []}
       pagination={data?.pagination || {}}
       emptyTitle="No in progress courses."

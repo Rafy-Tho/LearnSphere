@@ -13,9 +13,10 @@ export function StudentFeedback() {
   const [submittedSearch, setSubmittedSearch] = useState("");
   const selectRef = useRef(null);
 
+  const activeSearch = searchQuery.trim() === "" ? "" : submittedSearch;
   const filters = {
     rating: filterRating,
-    search: submittedSearch || undefined,
+    search: activeSearch || undefined,
     limit: 5,
   };
 
@@ -50,11 +51,6 @@ export function StudentFeedback() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    if (searchQuery.trim() !== "") return;
-    setSubmittedSearch("");
-  }, [searchQuery]);
 
   return (
     <>

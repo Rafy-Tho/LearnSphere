@@ -16,5 +16,6 @@ export function useSubscriptionDetails(planId) {
     queryKey: ["subscription", planId],
     queryFn: () => subscriptionsApi.getById(planId),
     enabled: !!planId,
+    staleTime: 1000 * 60 * 10,
   });
 }

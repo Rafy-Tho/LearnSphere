@@ -10,4 +10,27 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 700,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          const path = id.replace(/\\/g, "/");
+          if (path.includes("/swiper/")) return "swiper";
+          if (path.includes("/@tanstack/react-query/")) return "query";
+          if (path.includes("/lucide-react/")) return "icons";
+          if (
+            path.includes("/react-router") ||
+            path.includes("/react-dom/") ||
+            path.includes("/react/") ||
+            path.includes("/scheduler/")
+          ) {
+            return "react-vendor";
+          }
+          return undefined;
+        },
+      },
+    },
+  },
 });

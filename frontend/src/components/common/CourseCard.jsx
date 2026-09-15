@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { BookOpen, Bookmark, Clock, BarChart2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import formatMinutes from "@/utils/formatMinutes";
@@ -74,4 +75,4 @@ function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
   );
 }
 
-export default CourseCard;
+export default memo(CourseCard);

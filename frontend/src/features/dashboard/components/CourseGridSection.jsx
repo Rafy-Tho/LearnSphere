@@ -1,3 +1,4 @@
+import { memo } from "react";
 import CourseCard from "@/components/common/CourseCard";
 import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/common/Pagination";
@@ -48,4 +49,4 @@ function CourseGridSection({
   );
 }
 
-export default CourseGridSection;
+export default memo(CourseGridSection);

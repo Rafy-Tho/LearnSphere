@@ -29,8 +29,8 @@ export function SearchResult() {
         )}
         {courses.length > 0 && (
           <div className="space-y-4 md:space-y-5">
-            {courses.map((course, index) => (
-              <CourseCardDetailed key={index} course={course} />
+            {courses.map((course) => (
+              <CourseCardDetailed key={course.id} course={course} />
             ))}
           </div>
         )}

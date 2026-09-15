@@ -7,7 +7,7 @@ import EmailInput from "@/features/auth/components/form/EmailInput";
 import PasswordInput from "@/features/auth/components/form/PasswordInput";
 import TermCheck from "@/features/auth/components/form/TermCheck";
 import { useLogin } from "@/features/auth/hooks/useAuthMutations";
-import useAuth from "@/features/auth/hooks/useAuth";
+import useAuthActions from "@/features/auth/hooks/useAuthActions";
 import { toast } from "react-toastify";
 const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -35,7 +35,7 @@ const Login = () => {
   });
   const navigate = useNavigate();
   const { login, isPending } = useLogin();
-  const { saveAuth } = useAuth();
+  const { saveAuth } = useAuthActions();
   const onSubmit = async (formData) => {
     try {
       const res = await login(formData);

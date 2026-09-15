@@ -1,4 +1,4 @@
-import { queryClient } from "@/lib/queryClient";
+import { clearUserQueries } from "@/lib/queryClient";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 const authPath = ["/login", "/signup", "/reset-password"];
@@ -31,7 +31,7 @@ class ApiClient {
       response.status === 401 &&
       !authPath.some((path) => window.location.pathname.startsWith(path))
     ) {
-      queryClient.clear();
+      clearUserQueries();
       setTimeout(() => (window.location.href = "/login"), 0);
     }
     if (!response.ok) {

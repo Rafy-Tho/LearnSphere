@@ -4,6 +4,10 @@ import { useCompletedCourses as useGetCompletedCourse } from "@/features/dashboa
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 
+const sectionIcon = (
+  <History className="size-4 text-indigo-600 dark:text-indigo-400" />
+);
+
 export default function CompletedCourseDashboard() {
   const { data, isPending, error } = useGetCompletedCourse();
   if (isPending) return <SpinnerLoader />;
@@ -12,7 +16,7 @@ export default function CompletedCourseDashboard() {
   return (
     <CourseGridSection
       title="Completed Courses"
-      icon={<History className="size-4 text-indigo-600 dark:text-indigo-400" />}
+      icon={sectionIcon}
       courses={data?.data || []}
       pagination={data?.pagination || {}}
       emptyTitle="No completed courses."

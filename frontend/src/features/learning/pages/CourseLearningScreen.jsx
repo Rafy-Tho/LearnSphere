@@ -1,50 +1,59 @@
-import { useRef } from "react";
+import { useCallback, useRef } from "react";
 import { Outlet, useLocation, useOutletContext } from "react-router-dom";
+import useMediaQuery from "@/hooks/useMediaQuery";
 import { CourseSidebar } from "@/features/learning/components/course-learning/CourseSidebar";
 import NextPrevious from "@/features/learning/components/course-learning/NextPrevious";
 import CourseRating from "@/features/learning/components/course-learning/CourseRating";
 
 const CourseLearningScreen = () => {
   const { isSidebarOpen, setIsSidebarOpen } = useOutletContext();
+  const isDesktop = useMediaQuery("(min-width: 1024px)");
   const sectionRef = useRef(null);
   const location = useLocation();
+  const closeSidebar = useCallback(
+    () => setIsSidebarOpen(false),
+    [setIsSidebarOpen],
+  );
 
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-slate-100 dark:bg-slate-900">
       {/* rating modal */}
       <CourseRating />
       {/* Mobile overlay */}
-      {isSidebarOpen && (
+      {!isDesktop && isSidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-slate-900/20 dark:bg-slate-950/20 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 z-30 bg-slate-900/20 dark:bg-slate-950/20"
+          onClick={closeSidebar}
         />
       )}
       {/* Mobile sidebar (overlay) */}
-      <div
-        className={`fixed top-0 left-0 h-full z-40 w-[320px] lg:hidden
-      transition-transform duration-200 ease-out pt-15
-      ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-    `}
-      >
-        <CourseSidebar onClose={() => setIsSidebarOpen(false)} />
-      </div>
-
-      {/* Desktop layout with collapsible sidebar */}
-      <div className="hidden lg:flex w-full">
-        {/* Desktop sidebar - collapsible by controlling width */}
+      {!isDesktop && (
         <div
-          className={`
-        shrink-0 transition-all duration-200 ease-out overflow-hidden
-        ${isSidebarOpen ? "w-[320px]" : "w-0"}
+          className={`fixed top-0 left-0 h-full z-40 w-[320px]
+        transition-transform duration-200 ease-out pt-15
+        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
       `}
         >
-          <div className="w-[320px] h-full">
-            <CourseSidebar onClose={() => setIsSidebarOpen(false)} />
-          </div>
+          <CourseSidebar onClose={closeSidebar} />
         </div>
+      )}
 
-        {/* Desktop main content */}
+      <div className="flex w-full">
+        {/* Desktop sidebar - collapsible by controlling width */}
+        {isDesktop && (
+          <div
+            className={`
+          shrink-0 transition-all duration-200 ease-out overflow-hidden
+          ${isSidebarOpen ? "w-[320px]" : "w-0"}
+        `}
+          >
+            <div className="w-[320px] h-full">
+              <CourseSidebar onClose={closeSidebar} />
+            </div>
+          </div>
+        )}
+
+        {/* Main content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <main
             key={location.pathname}
@@ -56,19 +65,6 @@ const CourseLearningScreen = () => {
             <NextPrevious />
           </main>
         </div>
-      </div>
-
-      {/* Mobile main content */}
-      <div className="lg:hidden flex-1 flex flex-col overflow-hidden">
-        <main
-          key={location.pathname}
-          className="flex-1 overflow-y-auto"
-          ref={sectionRef}
-        >
-          <Outlet />
-          {/* Navigation buttons for mobile */}
-          <NextPrevious />
-        </main>
       </div>
     </div>
   );

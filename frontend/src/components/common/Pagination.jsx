@@ -1,5 +1,4 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 const Pagination = ({
@@ -10,9 +9,7 @@ const Pagination = ({
   showPrevNext = true,
 }) => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [currentPage, setCurrentPage] = useState(
-    () => Number(searchParams.get("page")) || 1,
-  );
+  const currentPage = Number(searchParams.get("page")) || 1;
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -22,7 +19,6 @@ const Pagination = ({
   const handlePageChange = (page) => {
     if (page === currentPage) return;
     if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
     setSearchParams((prev) => {
       const params = new URLSearchParams(prev);
       params.set("page", page);

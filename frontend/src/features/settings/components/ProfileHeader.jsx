@@ -1,5 +1,5 @@
 import { Calendar, Camera, Check, Edit3, MapPin, User, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Avatar from "@/features/settings/components/Avatar";
 import InputField from "@/features/settings/components/InputField";
 function ProfileHeader({
@@ -13,6 +13,11 @@ function ProfileHeader({
   errors,
 }) {
   const [preview, setPreview] = useState(null);
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;

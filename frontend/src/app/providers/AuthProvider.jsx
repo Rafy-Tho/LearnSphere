@@ -1,7 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetMe } from "@/features/auth/hooks/useAuthQueries";
-import { AuthContext } from "@/app/providers/context";
+import { clearUserQueries } from "@/lib/queryClient";
+import {
+  AuthActionsContext,
+  AuthContext,
+} from "@/app/providers/context";
 
 function AuthProvider({ children }) {
   const queryClient = useQueryClient();
@@ -17,14 +21,23 @@ function AuthProvider({ children }) {
   );
 
   const clearAuth = useCallback(() => {
-    queryClient.setQueryData(["me"], null);
-    queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "me" });
-  }, [queryClient]);
+    clearUserQueries();
+  }, []);
+
+  const authValue = useMemo(
+    () => ({ user, isLoading, error }),
+    [user, isLoading, error],
+  );
+
+  const actionsValue = useMemo(
+    () => ({ saveAuth, clearAuth }),
+    [saveAuth, clearAuth],
+  );
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, error, saveAuth, clearAuth }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthActionsContext.Provider value={actionsValue}>
+      <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>
+    </AuthActionsContext.Provider>
   );
 }
 

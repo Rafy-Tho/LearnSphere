@@ -1,7 +1,8 @@
+import { useCallback } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { authApi } from "@/features/auth/services/auth";
-import useAuth from "@/features/auth/hooks/useAuth";
+import useAuthActions from "@/features/auth/hooks/useAuthActions";
 
 export function useLogin() {
   const { mutateAsync: login, isPending, error } = useMutation({
@@ -44,22 +45,23 @@ export function useResetPassword() {
 }
 
 export function useLogout() {
-  const { clearAuth } = useAuth();
+  const { clearAuth } = useAuthActions();
   const mutation = useMutation({
     mutationKey: ["logout"],
     mutationFn: () => authApi.logout(),
   });
 
-  const logout = async () => {
+  const { mutateAsync } = mutation;
+  const logout = useCallback(async () => {
     try {
-      await mutation.mutateAsync();
+      await mutateAsync();
       toast.success("Logout success");
       clearAuth();
       window.location.href = "/login";
     } catch (err) {
       toast.error(err.message || "Logout failed");
     }
-  };
+  }, [mutateAsync, clearAuth]);
 
   return { logout, isPending: mutation.isPending };
 }

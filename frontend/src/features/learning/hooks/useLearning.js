@@ -9,6 +9,7 @@ export function useCourseLearningData() {
     queryKey: ["course-learning-data", courseId],
     queryFn: () => learningApi.getLearningData(courseId),
     enabled: !!courseId,
+    staleTime: 1000 * 60 * 10,
   });
 }
 
@@ -18,6 +19,7 @@ export function useFirstLesson() {
     queryKey: ["first-lesson", courseId],
     queryFn: () => learningApi.getFirstLesson(courseId),
     enabled: !!courseId,
+    staleTime: 1000 * 60 * 10,
   });
 }
 
@@ -70,9 +72,11 @@ export function useCourseLessonCompletions() {
 }
 
 export function useMyCertificates() {
+  const { user } = useAuth();
   return useQuery({
     queryKey: ["my-certificates"],
     queryFn: () => learningApi.getMyCertificates(),
+    enabled: !!user,
     select: (response) =>
       Array.isArray(response) ? response : response?.data ?? [],
   });
@@ -83,5 +87,6 @@ export function useCertificateById(id) {
     queryKey: ["certificate-by-id", id],
     queryFn: () => learningApi.getCertificateById(id),
     enabled: !!id,
+    staleTime: 1000 * 60 * 10,
   });
 }

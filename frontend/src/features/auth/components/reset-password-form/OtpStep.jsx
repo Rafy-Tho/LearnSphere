@@ -19,8 +19,15 @@ const otpSchema = z.object({
 });
 
 const OtpStep = ({ email, onSuccess }) => {
-  const [timer, setTimer] = useState(60);
-  const [canResend, setCanResend] = useState(false);
+  const [timer, setTimer] = useState(() => {
+    const savedExpire = getResendTimer();
+    if (!savedExpire) return 60;
+    return Math.max(0, getResendTimerRemaining());
+  });
+  const [canResend, setCanResend] = useState(() => {
+    const savedExpire = getResendTimer();
+    return Boolean(savedExpire) && getResendTimerRemaining() <= 0;
+  });
 
   const {
     register,
@@ -98,20 +105,11 @@ const OtpStep = ({ email, onSuccess }) => {
   useEffect(() => {
     const savedExpire = getResendTimer();
 
-    if (savedExpire) {
-      const remaining = getResendTimerRemaining();
-
-      if (remaining > 0) {
-        setTimer(remaining); // ✅ IMPORTANT
-        startTimer();
-      } else {
-        setTimer(0);
-        setCanResend(true);
-      }
-    } else {
-      // First time (no timer yet)
+    if (!savedExpire) {
       saveResendTimer();
-      setTimer(60);
+    }
+
+    if (!savedExpire || getResendTimerRemaining() > 0) {
       startTimer();
     }
 

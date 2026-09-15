@@ -1,5 +1,5 @@
 import { Search, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import ModuleGroup from "@/features/learning/components/course-learning/ModuleGroup";
 import { useCourseLearningData as useGetCourseLearningData } from "@/features/learning/hooks/useLearning";
 import { useCourseLessonCompletions as useGetCourseLessonCompletions } from "@/features/learning/hooks/useLearning";
@@ -21,13 +21,13 @@ export function CourseSidebar({ onClose }) {
   const modules = useMemo(() => course.modules || [], [course.modules]);
   const normalizedSearch = searchQuery.toLowerCase();
   const { lessonId } = useParams();
-  const hasInitialized = useRef(false);
-  const toggle = (id) =>
+  const toggle = useCallback((id) => {
     setExpandedModuleIds((prev) =>
       prev.includes(id)
         ? prev.filter((moduleId) => moduleId !== id)
         : [...prev, id],
     );
+  }, []);
   const filteredModules = useMemo(() => {
     return modules
       .map((m) => {
@@ -79,26 +79,32 @@ export function CourseSidebar({ onClose }) {
     setExpandedModuleIds(freeModules.map((m) => m.id));
     setActiveFilter("FREE");
   };
-  // Search content
-  useEffect(() => {
-    if (!searchQuery) return;
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    if (!value) return;
+    const normalized = value.toLowerCase();
+    const ids = modules
+      .filter(
+        (m) =>
+          m?.name?.toLowerCase().includes(normalized) ||
+          (m.lessons || []).some((l) =>
+            l?.name?.toLowerCase().includes(normalized),
+          ),
+      )
+      .map((m) => m.id);
+    setExpandedModuleIds((prev) => [...new Set([...prev, ...ids])]);
+  };
 
-    setExpandedModuleIds((prev) => {
-      const ids = filteredModules.map((m) => m.id);
-      return [...new Set([...prev, ...ids])];
-    });
-  }, [searchQuery, filteredModules]);
-  // Expand the lesson lessonId on first render
-  useEffect(() => {
-    if (hasInitialized.current) return;
-    if (!lessonId || lessonToModuleMap.size === 0) return;
+  const [hasInitialized, setHasInitialized] = useState(false);
+  if (!hasInitialized && lessonId && lessonToModuleMap.size > 0) {
+    setHasInitialized(true);
     const moduleId = lessonToModuleMap.get(lessonId);
-    if (!moduleId) return;
-    setExpandedModuleIds((prev) =>
-      prev.includes(moduleId) ? prev : [...prev, moduleId],
-    );
-    hasInitialized.current = true; // ✅ lock it
-  }, [lessonId, lessonToModuleMap]);
+    if (moduleId) {
+      setExpandedModuleIds((prev) =>
+        prev.includes(moduleId) ? prev : [...prev, moduleId],
+      );
+    }
+  }
 
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
@@ -123,7 +129,7 @@ export function CourseSidebar({ onClose }) {
             type="text"
             placeholder="Search Content"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-2 pl-9 pr-3 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
@@ -157,7 +163,7 @@ export function CourseSidebar({ onClose }) {
             key={module.id}
             module={module}
             isOpen={expandedModuleIds.includes(module.id)}
-            onToggle={() => toggle(module.id)}
+            onToggle={toggle}
             index={index}
             completedIds={completedIds}
           />

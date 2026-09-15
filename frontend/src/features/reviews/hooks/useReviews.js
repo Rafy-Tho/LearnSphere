@@ -1,6 +1,11 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQuery,
+} from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { reviewsApi } from "@/features/reviews/services/reviews";
+import useAuth from "@/features/auth/hooks/useAuth";
 import parseQueryToObject from "@/utils/parseQueryToObject";
 import parseQueryToString from "@/utils/parseQueryToString";
 
@@ -12,6 +17,7 @@ export function useReviews(params) {
     queryKey: ["reviews", courseId, queryObject],
     queryFn: () => reviewsApi.getReviews(queryString, courseId),
     enabled: !!courseId,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -51,9 +57,10 @@ export function useReviewDetails() {
 
 export function useMyReview() {
   const { courseId } = useParams();
+  const { user } = useAuth();
   return useQuery({
     queryKey: ["review-me", courseId],
     queryFn: () => reviewsApi.getReview(courseId),
-    enabled: !!courseId,
+    enabled: !!courseId && !!user,
   });
 }

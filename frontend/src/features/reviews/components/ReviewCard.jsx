@@ -1,5 +1,5 @@
 import { ThumbsDown, ThumbsUp } from "lucide-react";
-import { useState } from "react";
+import { memo, useState } from "react";
 import formatTimeAgo from "@/utils/formatTimeAgo";
 import RatingStars from "@/components/common/RatingStars";
 import { ReportModal } from "@/features/reviews/components/ReportModal";
@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { useHelpfulVote } from "@/features/reviews/hooks/useReviewMutations";
 
-export function ReviewCard({ review }) {
+export const ReviewCard = memo(function ReviewCard({ review }) {
   const [showReportModal, setShowReportModal] = useState(false);
   const { mutate } = useHelpfulVote();
   const [helpfulVote, setHelpfulVote] = useState(
@@ -131,4 +131,4 @@ export function ReviewCard({ review }) {
       />
     </div>
   );
-}
+});

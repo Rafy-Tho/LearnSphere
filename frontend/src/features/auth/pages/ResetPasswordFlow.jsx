@@ -4,46 +4,37 @@ import EmailStep from "@/features/auth/components/reset-password-form/EmailStep"
 import OtpStep from "@/features/auth/components/reset-password-form/OtpStep";
 import ProgressStep from "@/features/auth/components/reset-password-form/ProgressStep";
 import PasswordStep from "@/features/auth/components/reset-password-form/PasswordStep";
-import { getResetPasswordFlow } from "@/features/auth/utils/resetPasswordFlow";
+import {
+  getResetPasswordFlow,
+  saveResetPasswordFlow,
+} from "@/features/auth/utils/resetPasswordFlow";
 
 const ResetPasswordFlow = () => {
-  const [step, setStep] = useState(1);
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-
-  // ✅ Load from sessionStorage
-  useEffect(() => {
+  const [flow, setFlow] = useState(() => {
     const saved = getResetPasswordFlow();
-    if (saved) {
-      const { step, email, otp } = saved;
-      setStep(step);
-      setEmail(email);
-      setOtp(otp);
-    }
-  }, []);
+    return {
+      step: saved?.step ?? 1,
+      email: saved?.email ?? "",
+      otp: saved?.otp ?? "",
+    };
+  });
+  const { email, otp } = flow;
+  const step =
+    (flow.step === 2 && !email) || (flow.step === 3 && (!email || !otp))
+      ? 1
+      : flow.step;
 
   // ✅ Persist state
   useEffect(() => {
-    sessionStorage.setItem(
-      "reset-password-flow",
-      JSON.stringify({ step, email, otp }),
-    );
+    saveResetPasswordFlow(step, email, otp);
   }, [step, email, otp]);
 
-  // ✅ Guard steps
-  useEffect(() => {
-    if (step === 2 && !email) setStep(1);
-    if (step === 3 && (!email || !otp)) setStep(1);
-  }, [step, email, otp]);
-
-  const handleEmailSuccess = (email) => {
-    setEmail(email.trim());
-    setStep(2);
+  const handleEmailSuccess = (value) => {
+    setFlow({ step: 2, email: value.trim(), otp: "" });
   };
 
-  const handleOtpSuccess = (otp) => {
-    setOtp(otp);
-    setStep(3);
+  const handleOtpSuccess = (value) => {
+    setFlow((prev) => ({ ...prev, step: 3, otp: value }));
   };
 
   return (
@@ -59,7 +50,7 @@ const ResetPasswordFlow = () => {
           <div className="p-8">
             {step > 1 && (
               <button
-                onClick={() => setStep((s) => s - 1)}
+                onClick={() => setFlow((prev) => ({ ...prev, step: prev.step - 1 }))}
                 className="mt-4 text-sm text-blue-500 hover:underline"
               >
                 ← Back

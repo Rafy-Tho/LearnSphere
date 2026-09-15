@@ -1,9 +1,11 @@
+import { apiFetch } from "./http.js";
+
 class CourseApi {
   constructor() {
     this.baseUrl = import.meta.env.VITE_BASE_URL + '/courses';
   }
   async getAllCourses(params) {
-    const res = await fetch(
+    const res = await apiFetch(
       `${import.meta.env.VITE_BASE_URL}/admin/courses?${params}`,
       {
         method: 'GET',
@@ -20,7 +22,7 @@ class CourseApi {
     return result;
   }
   async createCourse(data) {
-    const res = await fetch(`${this.baseUrl}`, {
+    const res = await apiFetch(`${this.baseUrl}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -35,7 +37,7 @@ class CourseApi {
     return result;
   }
   async updateCourse(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -51,7 +53,7 @@ class CourseApi {
   }
 
   async deleteCourse(id) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -65,7 +67,7 @@ class CourseApi {
     return result;
   }
   async getCourseDetails(id) {
-    const res = await fetch(
+    const res = await apiFetch(
       `${import.meta.env.VITE_BASE_URL}/admin/courses/${id}`,
       {
         method: 'GET',
@@ -82,7 +84,7 @@ class CourseApi {
     return result;
   }
   async createObjective(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}/objectives`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}/objectives`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -98,7 +100,7 @@ class CourseApi {
   }
 
   async createModule(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}/modules`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}/modules`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

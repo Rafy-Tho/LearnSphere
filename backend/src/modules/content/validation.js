@@ -6,6 +6,7 @@ import {
   numberValidator,
   textValidator,
   uuidParamValidator,
+  uuidValidator,
 } from "../../common/validation.js";
 import {
   ACCESS_COURSE_TYPE,
@@ -54,6 +55,19 @@ export const optionValidator = checkSchema({
   text: textValidator("Answer", false, 500),
   isCorrect: booleanValidator("Is Correct"),
   position: numberValidator("Position", false),
+});
+
+export const quizSubmissionValidator = checkSchema({
+  answers: {
+    in: ["body"],
+    isArray: {
+      options: { min: 1 },
+      errorMessage: "answers must be a non-empty array",
+      bail: true,
+    },
+  },
+  "answers.*.questionId": uuidValidator("Question ID"),
+  "answers.*.optionId": uuidValidator("Option ID"),
 });
 
 export const moduleIdParamValidator = checkSchema({

@@ -14,7 +14,11 @@ import {
   lessonContentCollectionRoute,
   lessonContentItemRoute,
 } from "../modules/content/lesson-content.routes.js";
-import { questionCollectionRoute, questionItemRoute } from "../modules/content/question.routes.js";
+import {
+  questionCollectionRoute,
+  questionItemRoute,
+  quizSubmissionRoute,
+} from "../modules/content/question.routes.js";
 import { optionCollectionRoute, optionItemRoute } from "../modules/content/option.routes.js";
 import { reviewsItemRoute } from "../modules/reviews/routes.js";
 import {
@@ -53,6 +57,7 @@ export function registerRoutes(app) {
   app.use("/api/v1/lessons/:lessonId/contents", lessonContentCollectionRoute);
   app.use("/api/v1/contents", lessonContentItemRoute);
   app.use("/api/v1/lessons/:lessonId/questions", questionCollectionRoute);
+  app.use("/api/v1/lessons/:lessonId/quiz-submissions", quizSubmissionRoute);
   app.use("/api/v1/questions", questionItemRoute);
   app.use("/api/v1/questions/:questionId/options", optionCollectionRoute);
   app.use("/api/v1/options", optionItemRoute);

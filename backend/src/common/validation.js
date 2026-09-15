@@ -215,11 +215,22 @@ export const htmlValidator = (field) => ({
 
 export const booleanValidator = (field) => ({
   in: ["body"],
-  trim: true,
-  escape: true,
   notEmpty: {
     errorMessage: `${field} is required`,
     bail: true,
+  },
+  // Normalize only recognized boolean representations; leave anything else
+  // untouched so the strict validator below rejects it (no string coercion).
+  customSanitizer: {
+    options: (value) => {
+      if (value === true || value === "true" || value === "1" || value === 1) {
+        return true;
+      }
+      if (value === false || value === "false" || value === "0" || value === 0) {
+        return false;
+      }
+      return value;
+    },
   },
   isBoolean: {
     errorMessage: `${field} must be a boolean`,

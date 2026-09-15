@@ -65,18 +65,25 @@ Security is non-negotiable. Apply these rules to every change.
 - Apply `loginLimiter` to login when touching that route.
 - Do not raise limits without approval.
 
-## 10. Known Gaps to Address (with approval)
+## 10. Previously Known Gaps (now resolved)
 
-1. No CSRF token.
-2. `loginLimiter` unused.
-3. Missing `authorize` on option POST.
-4. Missing validators on option PATCH/DELETE.
-5. `is_correct` potentially exposed to learners.
-6. No password-reset invalidation on password change.
-7. No `helmet` security headers.
-8. No account lockout.
-9. No audit logging.
-10. `password_reset_codes.code` too small for the stored hash.
+All of the former gaps were implemented in the security-hardening pass — see
+[`docs/08-refactoring/backend/06-security.md`](../docs/08-refactoring/backend/06-security.md)
+and [`docs/09-implement/tasks/security-hardening.md`](../docs/09-implement/tasks/security-hardening.md).
+Keep these protections intact:
+
+1. CSRF guard (JSON-only + `X-Requested-With`) — `common/middleware/csrf-protection.js`.
+2. `loginLimiter` applied to login, plus per-account lockout (5 attempts → 15 min).
+3. `authorize(INSTRUCTOR, ADMIN)` + ownership on quiz options.
+4. Validators on option PATCH/DELETE (and all write endpoints).
+5. Quiz answer key server-side only (`POST /lessons/:lessonId/quiz-submissions`).
+6. Sessions invalidated on password change/reset.
+7. `helmet` security headers.
+8. Account lockout columns (`users.failed_login_attempts`, `users.locked_until`).
+9. Audit logging via `logger.audit`.
+10. `password_reset_codes.code` widened to `VARCHAR(255)`.
+
+Do not regress these when touching auth, content, or admin code.
 
 ## 11. Prohibited
 

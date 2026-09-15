@@ -9,7 +9,11 @@ class ApiClient {
     const url = `${this.baseURL}${endpoint}`;
     const config = {
       credentials: "include",
-      headers: { "Content-Type": "application/json", ...options.headers },
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+        ...options.headers,
+      },
       ...options,
     };
 

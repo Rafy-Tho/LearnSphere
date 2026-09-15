@@ -1,3 +1,5 @@
+import { apiFetch } from "./http.js";
+
 class SubscriptionApi {
   constructor() {
     this.baseUrl = import.meta.env.VITE_BASE_URL + '/admin';
@@ -7,7 +9,7 @@ class SubscriptionApi {
     const url = params
       ? `${this.baseUrl}/plans?${params}`
       : `${this.baseUrl}/plans`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -20,7 +22,7 @@ class SubscriptionApi {
   }
 
   async createPlan(data) {
-    const response = await fetch(`${this.baseUrl}/plans`, {
+    const response = await apiFetch(`${this.baseUrl}/plans`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -34,7 +36,7 @@ class SubscriptionApi {
   }
 
   async updatePlan(id, data) {
-    const response = await fetch(`${this.baseUrl}/plans/${id}`, {
+    const response = await apiFetch(`${this.baseUrl}/plans/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -48,7 +50,7 @@ class SubscriptionApi {
   }
 
   async deletePlan(id) {
-    const response = await fetch(`${this.baseUrl}/plans/${id}`, {
+    const response = await apiFetch(`${this.baseUrl}/plans/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -64,7 +66,7 @@ class SubscriptionApi {
     const url = params
       ? `${this.baseUrl}/subscriptions?${params}`
       : `${this.baseUrl}/subscriptions`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -77,7 +79,7 @@ class SubscriptionApi {
   }
 
   async createUserSubscription(data) {
-    const response = await fetch(`${this.baseUrl}/subscriptions`, {
+    const response = await apiFetch(`${this.baseUrl}/subscriptions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -91,7 +93,7 @@ class SubscriptionApi {
   }
 
   async updateUserSubscription(id, data) {
-    const response = await fetch(`${this.baseUrl}/subscriptions/${id}`, {
+    const response = await apiFetch(`${this.baseUrl}/subscriptions/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -105,7 +107,7 @@ class SubscriptionApi {
   }
 
   async deleteUserSubscription(id) {
-    const response = await fetch(`${this.baseUrl}/subscriptions/${id}`, {
+    const response = await apiFetch(`${this.baseUrl}/subscriptions/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -121,7 +123,7 @@ class SubscriptionApi {
     const url = params
       ? `${this.baseUrl}/payments?${params}`
       : `${this.baseUrl}/payments`;
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -134,7 +136,7 @@ class SubscriptionApi {
   }
 
   async createPayment(data) {
-    const response = await fetch(`${this.baseUrl}/payments`, {
+    const response = await apiFetch(`${this.baseUrl}/payments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -148,7 +150,7 @@ class SubscriptionApi {
   }
 
   async deletePayment(id) {
-    const response = await fetch(`${this.baseUrl}/payments/${id}`, {
+    const response = await apiFetch(`${this.baseUrl}/payments/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -161,7 +163,7 @@ class SubscriptionApi {
   }
 
   async updatePayment(id, data) {
-    const response = await fetch(`${this.baseUrl}/payments/${id}`, {
+    const response = await apiFetch(`${this.baseUrl}/payments/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

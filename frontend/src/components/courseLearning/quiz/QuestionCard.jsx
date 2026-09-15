@@ -4,10 +4,11 @@ import Explanation from "./Explanation";
 
 const QuestionCard = ({
   question,
-  selectedAnswer,
+  selectedOptionId,
   isAnswered,
+  isSubmitting,
+  result,
   onAnswerSelect,
-  correctOptionIndex,
 }) => {
   return (
     <div>
@@ -16,25 +17,31 @@ const QuestionCard = ({
       </h2>
 
       <div className="space-y-3 mb-6">
-        {question.options.map((option, idx) => (
-          <OptionButton
-            key={idx}
-            index={idx}
-            text={option.text}
-            isSelected={selectedAnswer === idx}
-            isAnswered={isAnswered}
-            isCorrect={idx === correctOptionIndex}
-            isWrong={selectedAnswer === idx && idx !== correctOptionIndex}
-            onSelect={() => onAnswerSelect(idx)}
-            disabled={isAnswered}
-          />
-        ))}
+        {question.options.map((option, idx) => {
+          const isSelected = selectedOptionId === option.id;
+          const isCorrect = isAnswered && result.correctOptionId === option.id;
+          const isWrong = isAnswered && isSelected && !result.isCorrect;
+
+          return (
+            <OptionButton
+              key={option.id}
+              index={idx}
+              option={option}
+              isSelected={isSelected}
+              isAnswered={isAnswered}
+              isCorrect={isCorrect}
+              isWrong={isWrong}
+              onSelect={() => onAnswerSelect(option.id)}
+              disabled={isAnswered || isSubmitting}
+            />
+          );
+        })}
       </div>
 
       {isAnswered && (
         <Explanation
-          isCorrect={selectedAnswer === correctOptionIndex}
-          explanation={question.explanation}
+          isCorrect={result.isCorrect}
+          explanation={result.explanation}
         />
       )}
     </div>

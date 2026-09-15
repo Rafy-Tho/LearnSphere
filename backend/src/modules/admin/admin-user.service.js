@@ -1,22 +1,24 @@
+import crypto from "crypto";
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
+import logger from "../../common/logger.js";
 import hashService from "../../common/services/hash-service.js";
 import {
   buildPagination,
   parsePagination,
 } from "../../common/query/pagination.js";
 import { withTransaction } from "../../config/database.js";
+import authService from "../auth/service.js";
 import userRepository from "../users/repository.js";
 
-// TODO(security): replace the hardcoded temporary password with an invite flow (audit P0-9).
-const TEMPORARY_PASSWORD = "TempPassword123!";
 const DEFAULT_AVATAR =
   "https://res.cloudinary.com/dmuu7x5vm/image/upload/v1775903021/men_oquwmw.jpg";
 
 class AdminUserService {
-  constructor({ userRepository, hashService }) {
+  constructor({ userRepository, hashService, authService }) {
     this.userRepository = userRepository;
     this.hashService = hashService;
+    this.authService = authService;
   }
 
   async getUsers({ role, page, limit }) {
@@ -52,10 +54,12 @@ class AdminUserService {
       );
     }
 
-    const hashedPassword = await this.hashService.hash(TEMPORARY_PASSWORD);
+    // Random unguessable password; the user sets their own via the invite below.
+    const randomPassword = crypto.randomBytes(32).toString("hex");
+    const hashedPassword = await this.hashService.hash(randomPassword);
 
-    return withTransaction(async (client) => {
-      const user = await this.userRepository.create(
+    const user = await withTransaction(async (client) => {
+      const createdUser = await this.userRepository.create(
         { name, email, password: hashedPassword, imageUrl: DEFAULT_AVATAR },
         client,
       );
@@ -64,20 +68,35 @@ class AdminUserService {
       if (role || status) {
         await this.userRepository.updateById(
           {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: role || user.role,
-            status: status || user.status,
+            id: createdUser.id,
+            name: createdUser.name,
+            email: createdUser.email,
+            role: role || createdUser.role,
+            status: status || createdUser.status,
           },
           client,
         );
       }
 
-      await this.userRepository.createProfile(user.id, client);
+      await this.userRepository.createProfile(createdUser.id, client);
 
-      return user;
+      return createdUser;
     });
+
+    logger.audit("admin.user.create", {
+      userId: user.id,
+      role: role || user.role,
+      status: status || user.status,
+    });
+
+    // Invite: send a password-reset code so the user can set their own password.
+    try {
+      await this.authService.sendResetCode(email);
+    } catch (error) {
+      logger.error("Failed to send admin invite", { message: error.message });
+    }
+
+    return user;
   }
 
   async updateUser(userId, userData) {
@@ -86,13 +105,21 @@ class AdminUserService {
       throw new ApiError(StatusCode.NOT_FOUND, "User not found");
     }
 
-    return this.userRepository.updateById({
+    const updatedUser = await this.userRepository.updateById({
       id: userId,
       name: userData.name || existingUser.name,
       email: userData.email || existingUser.email,
       role: userData.role || existingUser.role,
       status: userData.status || existingUser.status,
     });
+
+    logger.audit("admin.user.update", {
+      userId,
+      role: updatedUser.role,
+      status: updatedUser.status,
+    });
+
+    return updatedUser;
   }
 
   async deleteUser(userId) {
@@ -102,8 +129,13 @@ class AdminUserService {
     }
 
     await this.userRepository.deleteById(userId);
+    logger.audit("admin.user.delete", { userId });
   }
 }
 
 export { AdminUserService };
-export default new AdminUserService({ userRepository, hashService });
+export default new AdminUserService({
+  userRepository,
+  hashService,
+  authService,
+});

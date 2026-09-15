@@ -1,10 +1,12 @@
+import { apiFetch } from "./http.js";
+
 class LessonApi {
   constructor() {
     this.baseUrl = import.meta.env.VITE_BASE_URL + '/lessons';
   }
 
   async update(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -20,7 +22,7 @@ class LessonApi {
   }
 
   async delete(id) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -35,7 +37,7 @@ class LessonApi {
   }
 
   async createContent(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}/contents`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}/contents`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,7 +52,7 @@ class LessonApi {
     return result;
   }
   async createQuestion(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}/questions`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}/questions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

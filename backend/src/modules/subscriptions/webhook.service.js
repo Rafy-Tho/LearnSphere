@@ -58,6 +58,12 @@ class StripeWebhookService {
       return createdSubscription;
     });
 
+    logger.audit("payment.completed", {
+      userId,
+      planId: subscriptionId,
+      amount: subscription.price,
+    });
+
     const user = await this.userRepository.findById(userId);
     if (user?.email) {
       this.emailService

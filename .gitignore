@@ -13,6 +13,8 @@ dist-ssr
 *.local
 .env
 .env.test	
+# Local multer upload staging (files are pushed to Cloudinary)
+backend/uploads/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,6 +1,7 @@
 // QuizApp.jsx (Main Component)
 import { useState } from "react";
 import useGetQuizzes from "../../../hooks/course/useGetQuizzes";
+import useSubmitQuiz from "../../../hooks/course/useSubmitQuiz";
 import ErrorMessage from "../../../ui/ErrorMessage";
 import SpinnerLoader from "../../../ui/SpinnerLoader";
 import NavigationButtons from "./NavigationButtons";
@@ -12,16 +13,38 @@ import StartScreen from "./StartScreen";
 const Quiz = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [results, setResults] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
   const { data, isPending, error } = useGetQuizzes();
+  const submitQuiz = useSubmitQuiz();
   const questions = data || [];
   const currentQuestion = questions[currentIndex];
-  const isAnswered = answers[currentIndex] !== undefined;
+  const selectedOptionId = answers[currentIndex];
+  const currentResult = results[currentIndex];
+  const isAnswered = currentResult !== undefined;
+  const isSubmitting = submitQuiz.isPending;
 
-  const handleAnswer = (optionIndex) => {
-    if (isAnswered) return;
-    setAnswers({ ...answers, [currentIndex]: optionIndex });
+  const handleAnswer = async (optionId) => {
+    if (isAnswered || isSubmitting) return;
+
+    setAnswers((previous) => ({ ...previous, [currentIndex]: optionId }));
+
+    try {
+      const submission = await submitQuiz.mutateAsync([
+        { questionId: currentQuestion.id, optionId },
+      ]);
+      setResults((previous) => ({
+        ...previous,
+        [currentIndex]: submission.results[0],
+      }));
+    } catch {
+      setAnswers((previous) => {
+        const next = { ...previous };
+        delete next[currentIndex];
+        return next;
+      });
+    }
   };
 
   const handleNext = () => {
@@ -37,26 +60,20 @@ const Quiz = () => {
   };
 
   const calculateScore = () => {
-    let correct = 0;
-    Object.entries(answers).forEach(([idx, answerIndex]) => {
-      const question = questions[parseInt(idx)];
-      if (question.options[answerIndex]?.is_correct) {
-        correct++;
-      }
-    });
+    const correct = Object.values(results).filter(
+      (result) => result.isCorrect,
+    ).length;
     return { correct, total: questions.length };
   };
 
   const restart = () => {
     setCurrentIndex(0);
     setAnswers({});
+    setResults({});
     setShowResults(false);
     setQuizStarted(false);
   };
 
-  const getCorrectOptionIndex = (question) => {
-    return question.options.findIndex((option) => option.is_correct === true);
-  };
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
   if (!quizStarted) {
@@ -79,15 +96,16 @@ const Quiz = () => {
         <ProgressBar
           currentIndex={currentIndex}
           totalQuestions={questions.length}
-          answersCount={Object.keys(answers).length}
+          answersCount={Object.keys(results).length}
         />
 
         <QuestionCard
           question={currentQuestion}
-          selectedAnswer={answers[currentIndex]}
+          selectedOptionId={selectedOptionId}
           isAnswered={isAnswered}
+          isSubmitting={isSubmitting}
+          result={currentResult}
           onAnswerSelect={handleAnswer}
-          correctOptionIndex={getCorrectOptionIndex(currentQuestion)}
         />
 
         <NavigationButtons

@@ -1,18 +1,22 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
 import createRandomCode from "../../common/helper/create-random-code.js";
+import logger from "../../common/logger.js";
 import emailService from "../../common/services/email-service.js";
 import hashCode from "../../common/services/hash-code.js";
 import hashService from "../../common/services/hash-service.js";
 import { withTransaction } from "../../config/database.js";
 import userRepository from "../users/repository.js";
 import passwordResetCodeRepository from "./repository.js";
+import sessionRepository from "./session.repository.js";
 
 const DEFAULT_AVATAR =
   "https://res.cloudinary.com/dmuu7x5vm/image/upload/v1775903021/men_oquwmw.jpg";
 
 const RESET_CODE_TTL_MS = 10 * 60 * 1000;
 const MAX_RESET_ATTEMPTS = 5;
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCK_DURATION_MINUTES = 15;
 
 // Constant-time equalizer: compared against when the user is missing so login
 // response time does not reveal whether an account exists.
@@ -23,11 +27,13 @@ class AuthService {
   constructor({
     userRepository,
     passwordResetCodeRepository,
+    sessionRepository,
     hashService,
     emailService,
   }) {
     this.userRepository = userRepository;
     this.passwordResetCodeRepository = passwordResetCodeRepository;
+    this.sessionRepository = sessionRepository;
     this.hashService = hashService;
     this.emailService = emailService;
   }
@@ -35,19 +41,24 @@ class AuthService {
   async registerUser({ name, email, password }) {
     const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {
-      throw new ApiError(StatusCode.CONFLICT, "Email already registered");
+      // Do not reveal account existence: return the same shape as a new signup.
+      logger.audit("auth.register.duplicate");
+      return { created: false, user: null };
     }
 
     const hashedPassword = await this.hashService.hash(password);
 
-    return withTransaction(async (client) => {
-      const user = await this.userRepository.create(
+    const user = await withTransaction(async (client) => {
+      const createdUser = await this.userRepository.create(
         { email, password: hashedPassword, name, imageUrl: DEFAULT_AVATAR },
         client,
       );
-      await this.userRepository.createProfile(user.id, client);
-      return user;
+      await this.userRepository.createProfile(createdUser.id, client);
+      return createdUser;
     });
+
+    logger.audit("auth.register", { userId: user.id });
+    return { created: true, user };
   }
 
   async authenticate({ email, password }) {
@@ -55,6 +66,14 @@ class AuthService {
 
     if (!user) {
       await this.hashService.verify(password, DUMMY_PASSWORD_HASH);
+      logger.audit("auth.login.failed", { reason: "unknown_user" });
+      throw new ApiError(StatusCode.BAD_REQUEST, "Invalid credentials");
+    }
+
+    // Locked accounts are rejected without verifying the password; the response
+    // stays generic so it does not reveal account state.
+    if (this.isLocked(user)) {
+      logger.audit("auth.login.locked", { userId: user.id });
       throw new ApiError(StatusCode.BAD_REQUEST, "Invalid credentials");
     }
 
@@ -63,20 +82,37 @@ class AuthService {
       user.password,
     );
     if (!isPasswordMatch) {
+      await this.userRepository.recordFailedLogin({
+        userId: user.id,
+        maxAttempts: MAX_LOGIN_ATTEMPTS,
+        lockMinutes: LOCK_DURATION_MINUTES,
+      });
+      logger.audit("auth.login.failed", { userId: user.id });
       throw new ApiError(StatusCode.BAD_REQUEST, "Invalid credentials");
     }
 
     if (user.status !== "ACTIVE") {
+      logger.audit("auth.login.inactive", {
+        userId: user.id,
+        status: user.status,
+      });
       throw new ApiError(StatusCode.FORBIDDEN, "Account is not active");
     }
 
+    await this.userRepository.resetFailedLogin(user.id);
     await this.userRepository.updateLastLogin({
       userId: user.id,
       lastLogin: new Date(),
     });
+    logger.audit("auth.login.success", { userId: user.id });
     delete user.password;
 
     return user;
+  }
+
+  isLocked(user) {
+    if (!user.locked_until) return false;
+    return new Date(user.locked_until).getTime() > Date.now();
   }
 
   async getUserById(userId) {
@@ -102,6 +138,7 @@ class AuthService {
     });
 
     await this.emailService.sendResetCode(email, code);
+    logger.audit("auth.password.reset_requested", { userId: user.id });
   }
 
   async assertValidResetCode({ email, code }) {
@@ -142,7 +179,9 @@ class AuthService {
         client,
       );
       await this.passwordResetCodeRepository.delete(user.id, client);
+      await this.sessionRepository.deleteByUserId(user.id, client);
     });
+    logger.audit("auth.password.reset", { userId: user.id });
   }
 
   async changePassword({ userId, oldPassword, newPassword }) {
@@ -158,6 +197,8 @@ class AuthService {
 
     const passwordHash = await this.hashService.hash(newPassword);
     await this.userRepository.updatePassword({ userId, passwordHash });
+    await this.sessionRepository.deleteByUserId(userId);
+    logger.audit("auth.password.change", { userId });
   }
 }
 
@@ -165,6 +206,7 @@ export { AuthService };
 export default new AuthService({
   userRepository,
   passwordResetCodeRepository,
+  sessionRepository,
   hashService,
   emailService,
 });

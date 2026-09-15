@@ -50,6 +50,7 @@ class CertificateController {
   getCertificateById = asyncHandler(async (req, res) => {
     const certificate = await this.certificateService.getCertificateById(
       req.params.certificateId,
+      req.session.user,
     );
 
     return sendSuccess(res, certificate, {

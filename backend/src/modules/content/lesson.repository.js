@@ -121,7 +121,31 @@ class LessonRepository {
     return result.rows[0];
   }
 
+  // Learner-safe: never exposes the answer key (`is_correct`) or explanation.
   async getQuestions(lessonId) {
+    const query = `SELECT 
+  q.id,
+  q.question,
+  q.position,
+  json_agg(
+    json_build_object(
+      'id', qo.id,
+      'text', qo.text,
+      'position', qo.position
+    ) ORDER BY qo.position
+  ) AS options
+  FROM quizzes q
+  JOIN quiz_options qo ON qo.quiz_id = q.id
+  WHERE q.lesson_id = $1
+  GROUP BY q.id
+  ORDER BY q.position;`;
+    const values = [lessonId];
+    const result = await this.db.query(query, values);
+    return result.rows;
+  }
+
+  // Server-side only: includes the answer key for grading.
+  async getQuestionsWithAnswers(lessonId) {
     const query = `SELECT 
   q.id,
   q.question,
@@ -129,6 +153,7 @@ class LessonRepository {
   q.position,
   json_agg(
     json_build_object(
+      'id', qo.id,
       'text', qo.text,
       'is_correct', qo.is_correct,
       'position', qo.position

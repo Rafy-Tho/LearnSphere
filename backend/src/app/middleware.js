@@ -1,31 +1,74 @@
 import cors from "cors";
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
+import helmet from "helmet";
 import environment from "../config/environment.js";
+import csrfProtection from "../common/middleware/csrf-protection.js";
 import { globalLimiter } from "../common/middleware/rate-limit-middlewares.js";
+import sessionIdleTimeout from "../common/middleware/session-idle-timeout.js";
 import sessionMiddleware from "../common/middleware/session-middleware.js";
 import webhookRoute from "../modules/subscriptions/webhook.routes.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Accepts either a hop count ("1") or a comma-separated CIDR list
+// ("loopback, 10.0.0.0/8"). Defaults to a single trusted proxy.
+export function resolveTrustProxy(value) {
+  if (!value) return 1;
+
+  const hops = Number(value);
+  if (Number.isInteger(hops) && hops >= 0) return hops;
+
+  const list = value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return list.length > 0 ? list : 1;
+}
 
 export async function registerMiddleware(app) {
-  // 1. Trust proxy (required for secure cookies behind Nginx/ALB/etc.)
-  app.set("trust proxy", 1);
+  // 1. Trust proxy: exact hops/CIDR so X-Forwarded-For cannot be spoofed.
+  app.set("trust proxy", resolveTrustProxy(environment.TRUST_PROXY));
 
-  // 2. CORS before everything
+  // 2. Security headers (helmet; also removes X-Powered-By)
   app.use(
-    cors({ origin: [environment.CLIENT_URL_1, environment.CLIENT_URL_2], credentials: true }),
+    helmet({
+      // The API serves JSON only, never HTML, so a locked-down CSP is safe.
+      // The frontends set their own CSP at their host.
+      contentSecurityPolicy: {
+        useDefaults: false,
+        directives: {
+          defaultSrc: ["'none'"],
+          baseUri: ["'none'"],
+          frameAncestors: ["'none'"],
+          formAction: ["'none'"],
+        },
+      },
+      // Uploaded media lives on Cloudinary; keep API resources loadable cross-origin.
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      strictTransportSecurity:
+        environment.NODE_ENV === "production"
+          ? { maxAge: 15552000, includeSubDomains: false }
+          : false,
+    }),
   );
 
-  // 3. Webhook route (needs raw body, so before json parser)
+  // 3. CORS before everything
+  app.use(
+    cors({
+      origin: [environment.CLIENT_URL_1, environment.CLIENT_URL_2],
+      credentials: true,
+      allowedHeaders: ["Content-Type", "X-Requested-With"],
+    }),
+  );
+
+  // 4. Webhook route (needs raw body, so before json parser)
   app.use("/api/v1/webhooks/stripe", webhookRoute);
 
-  // 4. Body parsers
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  // 5. CSRF guard for state-changing requests (after the server-to-server webhook)
+  app.use(csrfProtection);
 
-  // 5. No cookieParser needed - session handles it
+  // 6. Body parser (JSON only; urlencoded is intentionally unsupported)
+  app.use(express.json());
+
+  // 7. Development request logging (session handles cookies; no cookieParser)
   if (process.env.NODE_ENV === "development") {
     const { default: morgan } = await import("morgan");
     app.use(morgan("dev"));
@@ -33,7 +76,5 @@ export async function registerMiddleware(app) {
 
   app.use(globalLimiter);
   app.use(sessionMiddleware);
-
-  // 6. Static uploads
-  app.use(express.static(path.join(__dirname, "../../uploads")));
+  app.use(sessionIdleTimeout);
 }

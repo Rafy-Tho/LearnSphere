@@ -1,9 +1,11 @@
+import { apiFetch } from "./http.js";
+
 class CategoryApi {
   constructor() {
     this.baseUrl = import.meta.env.VITE_BASE_URL + '/categories';
   }
   async getCategories() {
-    const res = await fetch(`${this.baseUrl}`, {
+    const res = await apiFetch(`${this.baseUrl}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -17,7 +19,7 @@ class CategoryApi {
   }
 
   async createCategory(category) {
-    const res = await fetch(`${this.baseUrl}`, {
+    const res = await apiFetch(`${this.baseUrl}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -32,7 +34,7 @@ class CategoryApi {
     return result;
   }
   async updateCategory(id, category) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -47,7 +49,7 @@ class CategoryApi {
     return result;
   }
   async deleteCategory(id) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'DELETE',
       credentials: 'include',
     });

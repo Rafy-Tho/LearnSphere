@@ -1,10 +1,12 @@
+import { apiFetch } from "./http.js";
+
 class UserApi {
   constructor() {
     this.baseUrl = import.meta.env.VITE_BASE_URL + "/users";
     this.adminBaseUrl = import.meta.env.VITE_BASE_URL + "/admin/users";
   }
   async getMe() {
-    const res = await fetch(`${this.baseUrl}/me`, {
+    const res = await apiFetch(`${this.baseUrl}/me`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -18,7 +20,7 @@ class UserApi {
     return result;
   }
   async getProfile() {
-    const res = await fetch(`${this.baseUrl}/me/profile`, {
+    const res = await apiFetch(`${this.baseUrl}/me/profile`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -32,7 +34,7 @@ class UserApi {
     return result;
   }
   async updateProfile(data) {
-    const res = await fetch(`${this.baseUrl}/me/profile`, {
+    const res = await apiFetch(`${this.baseUrl}/me/profile`, {
       method: "PATCH",
       body: data,
       credentials: "include",
@@ -44,7 +46,7 @@ class UserApi {
     return result;
   }
   async updatePassword(data) {
-    const res = await fetch(`${this.baseUrl}/me/password`, {
+    const res = await apiFetch(`${this.baseUrl}/me/password`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -59,7 +61,7 @@ class UserApi {
     return result;
   }
   async getDashboardData() {
-    const res = await fetch(
+    const res = await apiFetch(
       `${import.meta.env.VITE_BASE_URL}/admin/dashboard`,
       {
         method: "GET",
@@ -77,7 +79,7 @@ class UserApi {
   }
   async getUsers(params) {
     const url = params ? `${this.adminBaseUrl}?${params}` : this.adminBaseUrl;
-    const res = await fetch(url, {
+    const res = await apiFetch(url, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -91,7 +93,7 @@ class UserApi {
     return result;
   }
   async createUser(data) {
-    const res = await fetch(this.adminBaseUrl, {
+    const res = await apiFetch(this.adminBaseUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -106,7 +108,7 @@ class UserApi {
     return result;
   }
   async updateUser(id, data) {
-    const res = await fetch(`${this.adminBaseUrl}/${id}`, {
+    const res = await apiFetch(`${this.adminBaseUrl}/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -121,7 +123,7 @@ class UserApi {
     return result;
   }
   async deleteUser(id) {
-    const res = await fetch(`${this.adminBaseUrl}/${id}`, {
+    const res = await apiFetch(`${this.adminBaseUrl}/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

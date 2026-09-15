@@ -18,18 +18,26 @@ class AuthController {
   register = asyncHandler(async (req, res) => {
     const { email, password, name } = req.body;
 
-    const user = await this.authService.registerUser({ name, email, password });
-    await this.sessionService.create(req, user);
+    const { created } = await this.authService.registerUser({
+      name,
+      email,
+      password,
+    });
 
-    this.emailService
-      .sendWelcome(email, name)
-      .catch((error) =>
-        logger.error("Failed to send welcome email", { message: error.message }),
-      );
+    // Never auto-login and never reveal whether the email already existed.
+    if (created) {
+      this.emailService
+        .sendWelcome(email, name)
+        .catch((error) =>
+          logger.error("Failed to send welcome email", {
+            message: error.message,
+          }),
+        );
+    }
 
-    return sendSuccess(res, user, {
+    return sendSuccess(res, null, {
       statusCode: StatusCode.CREATED,
-      message: "User registered successfully",
+      message: "Registration successful. Please log in.",
     });
   });
 
@@ -52,6 +60,7 @@ class AuthController {
 
     await this.sessionService.destroy(req);
     res.clearCookie(environment.COOKIE_NAME);
+    logger.audit("auth.logout", { userId });
 
     return sendSuccess(res, null, { message: "User logged out successfully" });
   });

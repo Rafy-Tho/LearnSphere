@@ -13,12 +13,13 @@ All implementation tasks, grouped by area. **Status lives in the task files**; t
 | API refactor | [`api-refactor.md`](./api-refactor.md) | AP-1…AP-6 |
 | Endpoint naming refactor | [`endpoint-refactor.md`](./endpoint-refactor.md) | ER-1…ER-12 |
 | Backend naming & OOP refactor | [`naming-oop-refactor.md`](./naming-oop-refactor.md) | NO-1…NO-5 |
+| Security hardening | [`security-hardening.md`](./security-hardening.md) | SH-1…SH-8 |
 
 Decisions that block tasks: [`../decisions.md`](../decisions.md).
 
-> The phase 0–4, security verification, performance baseline, frontend, and
-> documentation task files were removed — that work is deferred. Backend module
-> migration, database migrations, and the API refactor are the active areas.
+> The phase 0–4, performance baseline, frontend, and documentation task files were
+> removed — that work is deferred. Backend module migration, database migrations, the
+> API refactor, and security hardening are the active areas.
 
 ## Plan References
 
@@ -32,6 +33,7 @@ Decisions that block tasks: [`../decisions.md`](../decisions.md).
 - [`../../08-refactoring/api-refactor-plan.md`](../../08-refactoring/api-refactor-plan.md) — API refactor (origin audit)
 - [`../../08-refactoring/performance-plan.md`](../../08-refactoring/performance-plan.md) — performance
 - [`../../08-refactoring/security-plan.md`](../../08-refactoring/security-plan.md) — security
+- [`../../08-refactoring/backend/06-security.md`](../../08-refactoring/backend/06-security.md) — backend security hardening (supersedes backend sections of the above)
 
 ## How To Update
 
@@ -41,4 +43,5 @@ Decisions that block tasks: [`../decisions.md`](../decisions.md).
 4. Record decisions in [`../decisions.md`](../decisions.md) before dependent work.
 5. Link the commit/PR when a task is ✅.
 
-> Scope note: backend module migration, database migrations, and the API refactor are the active areas; all other phases are deferred.
+> Scope note: backend module migration, database migrations, the API refactor, and
+> security hardening are the active areas; all other phases are deferred.

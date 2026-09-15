@@ -26,6 +26,13 @@ class EnrollmentService {
     const course = await this.courseRepository.findById(courseId);
     if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
 
+    if (course.status !== "PUBLISHED") {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        "Course is not available for enrollment",
+      );
+    }
+
     if (course.access_type === "SUBSCRIPTION") {
       const activeSubscription =
         await this.subscriptionRepository.getActivePaidSubscription(userId);

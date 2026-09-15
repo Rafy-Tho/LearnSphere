@@ -30,6 +30,7 @@ export const certificateItemRoute = express.Router();
 
 certificateItemRoute.get(
   "/:certificateId",
+  requireAuth,
   certificateIdParamValidator,
   validateResult,
   certificateController.getCertificateById,

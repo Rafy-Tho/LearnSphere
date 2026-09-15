@@ -19,7 +19,8 @@ class UserRepository {
 
   async findByEmail(email) {
     const query = `
-      SELECT id, email, role, password, last_login, name, image_url, created_at, updated_at,status
+      SELECT id, email, role, password, last_login, name, image_url, created_at, updated_at,status,
+             failed_login_attempts, locked_until
       FROM users
       WHERE email = $1
     `;
@@ -130,6 +131,38 @@ class UserRepository {
       WHERE id = $2
     `;
     await this.db.query(query, [lastLogin, userId]);
+  }
+
+  // Atomically increments the failure counter and locks the account once the
+  // threshold is reached.
+  async recordFailedLogin({ userId, maxAttempts, lockMinutes }) {
+    const query = `
+      UPDATE users
+      SET
+        failed_login_attempts = failed_login_attempts + 1,
+        locked_until = CASE
+          WHEN failed_login_attempts + 1 >= $2
+            THEN NOW() + ($3 * INTERVAL '1 minute')
+          ELSE locked_until
+        END
+      WHERE id = $1
+      RETURNING failed_login_attempts, locked_until
+    `;
+    const result = await this.db.query(query, [
+      userId,
+      maxAttempts,
+      lockMinutes,
+    ]);
+    return result.rows[0];
+  }
+
+  async resetFailedLogin(userId) {
+    const query = `
+      UPDATE users
+      SET failed_login_attempts = 0, locked_until = NULL
+      WHERE id = $1
+    `;
+    await this.db.query(query, [userId]);
   }
   async getTotalStudents() {
     const query = `

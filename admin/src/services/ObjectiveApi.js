@@ -1,9 +1,11 @@
+import { apiFetch } from "./http.js";
+
 class ObjectiveApi {
   constructor() {
     this.baseUrl = import.meta.env.VITE_BASE_URL + '/objectives';
   }
   async update(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -19,7 +21,7 @@ class ObjectiveApi {
   }
 
   async delete(id) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

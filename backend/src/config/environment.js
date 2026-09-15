@@ -13,6 +13,8 @@ const environment = {
   // url
   CLIENT_URL_1: process.env.CLIENT_URL_1,
   CLIENT_URL_2: process.env.CLIENT_URL_2,
+  // proxy: number of trusted hops, or a comma-separated CIDR list (optional)
+  TRUST_PROXY: process.env.TRUST_PROXY,
   // mail
   BREVO_API_KEY: process.env.BREVO_API_KEY,
   SENDER_EMAIL: process.env.SENDER_EMAIL,
@@ -26,7 +28,10 @@ const environment = {
 };
 
 // Fail fast on missing configuration instead of failing later at request time.
-const REQUIRED_KEYS = Object.keys(environment);
+const OPTIONAL_KEYS = ["TRUST_PROXY"];
+const REQUIRED_KEYS = Object.keys(environment).filter(
+  (key) => !OPTIONAL_KEYS.includes(key),
+);
 const missing = REQUIRED_KEYS.filter((key) => !environment[key]);
 if (missing.length > 0) {
   throw new Error(

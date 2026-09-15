@@ -49,6 +49,15 @@ class ProgressService {
     const course = await this.courseRepository.findById(courseId);
     if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
 
+    const lessonCourseId =
+      await this.courseRepository.getCourseIdByLessonId(lessonId);
+    if (!lessonCourseId || lessonCourseId !== courseId) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        "Lesson does not belong to this course",
+      );
+    }
+
     const progress = await this.learningProgressRepository.findOne({
       courseId,
       userId,

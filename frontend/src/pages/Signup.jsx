@@ -9,7 +9,6 @@ import PasswordInput from "../components/form/PasswordInput";
 import TermCheck from "../components/form/TermCheck";
 import SocialButtons from "../components/SocialButtons";
 import useRegister from "../hooks/auth/useRegister";
-import useAuth from "../hooks/useAuth";
 
 const SignupSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -37,17 +36,15 @@ const Signup = () => {
   });
   const navigate = useNavigate();
   const { registerUser, isPending } = useRegister();
-  const { saveAuth } = useAuth();
   const onSubmit = async (formData) => {
     try {
-      const res = await registerUser(formData);
+      await registerUser(formData);
 
-      toast.success("Register successfully");
+      toast.success("Registration successful. Please log in.");
 
-      saveAuth(res);
       reset();
 
-      navigate("/");
+      navigate("/login");
     } catch (err) {
       toast.error(err.message || "Register failed");
     }

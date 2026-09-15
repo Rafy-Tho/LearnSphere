@@ -1,7 +1,7 @@
 // components/OptionButton.jsx
 const OptionButton = ({
   index,
-  text,
+  option,
   isSelected,
   isAnswered,
   isCorrect,
@@ -33,7 +33,7 @@ const OptionButton = ({
     >
       <div className="flex items-center justify-between">
         <span className="text-slate-700 dark:text-slate-200">
-          {String.fromCharCode(65 + index)}. {text}
+          {String.fromCharCode(65 + index)}. {option.text}
         </span>
         {isAnswered && isCorrect && (
           <span className="text-green-600 text-xl">✓</span>

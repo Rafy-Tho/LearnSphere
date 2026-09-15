@@ -1,10 +1,12 @@
+import { apiFetch } from "./http.js";
+
 class ModuleApi {
   constructor() {
     this.baseUrl = import.meta.env.VITE_BASE_URL + '/modules';
   }
 
   async update(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -20,7 +22,7 @@ class ModuleApi {
   }
 
   async delete(id) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -35,7 +37,7 @@ class ModuleApi {
   }
 
   async createChapter(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}/chapters`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}/chapters`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

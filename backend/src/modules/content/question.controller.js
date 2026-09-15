@@ -52,6 +52,18 @@ class QuestionController {
       message: "Questions retrieved successfully",
     });
   });
+
+  submitQuiz = asyncHandler(async (req, res) => {
+    const submission = await this.questionService.submitQuiz({
+      lessonId: req.params.lessonId,
+      answers: req.body.answers,
+      user: req.session.user,
+    });
+
+    return sendSuccess(res, submission, {
+      message: "Quiz submitted successfully",
+    });
+  });
 }
 
 export { QuestionController };

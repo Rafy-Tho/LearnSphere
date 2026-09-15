@@ -1,5 +1,6 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
+import logger from "../../common/logger.js";
 import {
   buildPagination,
   parsePagination,
@@ -34,12 +35,18 @@ class PaymentService {
         "user_subscription_id and amount are required",
       );
     }
-    return this.subscriptionRepository.adminCreatePayment({
+    const payment = await this.subscriptionRepository.adminCreatePayment({
       userSubscriptionId: user_subscription_id,
       amount,
       paymentStatus: payment_status,
       stripePaymentIntentId: stripe_payment_intent_id,
     });
+
+    logger.audit("payment.admin.create", {
+      paymentId: payment?.id,
+      amount,
+    });
+    return payment;
   }
 
   async updatePayment(paymentId, paymentData) {
@@ -49,21 +56,29 @@ class PaymentService {
       throw new ApiError(StatusCode.NOT_FOUND, "Payment not found");
     }
 
-    return this.subscriptionRepository.updatePayment(paymentId, {
-      amount:
-        paymentData.amount !== undefined
-          ? paymentData.amount
-          : existingPayment.amount,
-      paymentStatus: paymentData.payment_status || existingPayment.payment_status,
-      stripePaymentIntentId:
-        paymentData.stripe_payment_intent_id !== undefined
-          ? paymentData.stripe_payment_intent_id
-          : existingPayment.stripe_payment_intent_id,
-    });
+    const updatedPayment = await this.subscriptionRepository.updatePayment(
+      paymentId,
+      {
+        amount:
+          paymentData.amount !== undefined
+            ? paymentData.amount
+            : existingPayment.amount,
+        paymentStatus:
+          paymentData.payment_status || existingPayment.payment_status,
+        stripePaymentIntentId:
+          paymentData.stripe_payment_intent_id !== undefined
+            ? paymentData.stripe_payment_intent_id
+            : existingPayment.stripe_payment_intent_id,
+      },
+    );
+
+    logger.audit("payment.admin.update", { paymentId });
+    return updatedPayment;
   }
 
   async deletePayment(paymentId) {
     await this.subscriptionRepository.deletePayment(paymentId);
+    logger.audit("payment.admin.delete", { paymentId });
   }
 }
 

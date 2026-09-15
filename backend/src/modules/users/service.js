@@ -30,19 +30,23 @@ class UserService {
 
     let imageUrl = user.image_url;
     if (imageFile) {
-      const uploaded = await cloudinary.uploader.upload(imageFile.path, {
-        resource_type: "image",
-        folder: "image",
-      });
+      try {
+        const uploaded = await cloudinary.uploader.upload(imageFile.path, {
+          resource_type: "image",
+          folder: "image",
+        });
 
-      imageUrl = uploaded.secure_url;
-      fs.unlink(imageFile.path, (error) => {
-        if (error) {
-          logger.error("Failed to delete local file", {
-            message: error.message,
-          });
-        }
-      });
+        imageUrl = uploaded.secure_url;
+      } finally {
+        // Always remove the local staging file, even if the upload failed.
+        fs.unlink(imageFile.path, (error) => {
+          if (error) {
+            logger.error("Failed to delete local file", {
+              message: error.message,
+            });
+          }
+        });
+      }
     }
 
     const updatedUser = await this.userRepository.update({

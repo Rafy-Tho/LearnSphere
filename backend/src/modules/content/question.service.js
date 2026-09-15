@@ -66,7 +66,7 @@ class QuestionService {
     return this.questionRepository.deleteQuestion(questionId);
   }
 
-  async getQuestions(lessonId, user) {
+  async assertQuizAccess(lessonId, user) {
     const lesson = await this.lessonRepository.findById(lessonId);
     if (!lesson) throw new ApiError(StatusCode.NOT_FOUND, "Lesson not found");
 
@@ -89,11 +89,60 @@ class QuestionService {
       }
     }
 
+    return course;
+  }
+
+  async getQuestions(lessonId, user) {
+    await this.assertQuizAccess(lessonId, user);
+
     const questions = await this.lessonRepository.getQuestions(lessonId);
     if (!questions) {
       throw new ApiError(StatusCode.NOT_FOUND, "Questions not found");
     }
     return questions;
+  }
+
+  async submitQuiz({ lessonId, answers, user }) {
+    await this.assertQuizAccess(lessonId, user);
+
+    const questions =
+      await this.lessonRepository.getQuestionsWithAnswers(lessonId);
+    const questionsById = new Map(
+      questions.map((question) => [question.id, question]),
+    );
+
+    const results = answers.map(({ questionId, optionId }) => {
+      const question = questionsById.get(questionId);
+      if (!question) {
+        throw new ApiError(
+          StatusCode.BAD_REQUEST,
+          "Question does not belong to this lesson",
+        );
+      }
+
+      const options = question.options || [];
+      const selectedOption = options.find((option) => option.id === optionId);
+      if (!selectedOption) {
+        throw new ApiError(
+          StatusCode.BAD_REQUEST,
+          "Option does not belong to this question",
+        );
+      }
+
+      const correctOption = options.find((option) => option.is_correct === true);
+
+      return {
+        questionId,
+        selectedOptionId: optionId,
+        correctOptionId: correctOption?.id ?? null,
+        isCorrect: selectedOption.is_correct === true,
+        explanation: question.explanation,
+      };
+    });
+
+    const correct = results.filter((result) => result.isCorrect).length;
+
+    return { score: { correct, total: results.length }, results };
   }
 }
 

@@ -10,6 +10,7 @@ class SessionService {
           loginAt: new Date(),
           userAgent: req.headers["user-agent"],
         };
+        req.session.lastActivity = Date.now();
         resolve();
       });
     });

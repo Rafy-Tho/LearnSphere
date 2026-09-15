@@ -1,5 +1,6 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
+import assertOwnership from "../../common/auth/ownership.js";
 import {
   buildPagination,
   parsePagination,
@@ -94,11 +95,18 @@ class CertificateService {
     };
   }
 
-  async getCertificateById(certificateId) {
+  async getCertificateById(certificateId, user) {
     const certificate = await this.certificateRepository.findById(certificateId);
     if (!certificate) {
       throw new ApiError(StatusCode.NOT_FOUND, "Certificate not found");
     }
+
+    assertOwnership({
+      ownerId: certificate.user_id,
+      user,
+      message: "You are not authorized to view this certificate",
+    });
+
     return certificate;
   }
 

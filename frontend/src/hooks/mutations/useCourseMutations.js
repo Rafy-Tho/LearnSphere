@@ -86,3 +86,14 @@ export function useCreateCompletedLesson() {
     },
   });
 }
+
+export function useSubmitQuiz() {
+  const { lessonId } = useParams();
+  return useMutation({
+    mutationKey: ["submit-quiz", lessonId],
+    mutationFn: (answers) => lessonsApi.submitQuiz(lessonId, answers),
+    onError: (error) => {
+      toast.error(error.message || "Failed to submit answer");
+    },
+  });
+}

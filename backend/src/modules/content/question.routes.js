@@ -4,7 +4,12 @@ import authorize from "../../common/middleware/authorize.js";
 import requireAuth from "../../common/middleware/require-auth.js";
 import { validateResult } from "../../common/middleware/validate-result.js";
 import questionController from "./question.controller.js";
-import { questionIdParamValidator, questionValidator } from "./validation.js";
+import {
+  lessonIdParamValidator,
+  questionIdParamValidator,
+  questionValidator,
+  quizSubmissionValidator,
+} from "./validation.js";
 
 // Mounted at /api/v1/lessons/:lessonId/questions
 export const questionCollectionRoute = express.Router({ mergeParams: true });
@@ -17,6 +22,18 @@ questionCollectionRoute.post(
   questionValidator,
   validateResult,
   questionController.createQuestion,
+);
+
+// Mounted at /api/v1/lessons/:lessonId/quiz-submissions
+export const quizSubmissionRoute = express.Router({ mergeParams: true });
+
+quizSubmissionRoute.post(
+  "/",
+  requireAuth,
+  lessonIdParamValidator,
+  quizSubmissionValidator,
+  validateResult,
+  questionController.submitQuiz,
 );
 
 // Mounted at /api/v1/questions

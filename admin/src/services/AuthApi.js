@@ -1,9 +1,11 @@
+import { apiFetch } from "./http.js";
+
 class AuthApi {
   constructor() {
     this.baseUrl = import.meta.env.VITE_BASE_URL + "/auth";
   }
   async login(data) {
-    const res = await fetch(`${this.baseUrl}/login`, {
+    const res = await apiFetch(`${this.baseUrl}/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -19,7 +21,7 @@ class AuthApi {
     return result;
   }
   async logout() {
-    const res = await fetch(`${this.baseUrl}/logout`, {
+    const res = await apiFetch(`${this.baseUrl}/logout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

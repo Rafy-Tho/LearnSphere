@@ -18,6 +18,9 @@ const logger = {
   info: (message, meta) => write("info", message, meta),
   warn: (message, meta) => write("warn", message, meta),
   error: (message, meta) => write("error", message, meta),
+  // Structured audit trail for security-relevant events. Callers must pass only
+  // non-sensitive fields (ids, actions, outcomes) — never secrets or credentials.
+  audit: (action, meta) => write("info", `audit:${action}`, meta),
 };
 
 export default logger;

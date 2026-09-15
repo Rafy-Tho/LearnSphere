@@ -1,10 +1,12 @@
+import { apiFetch } from "./http.js";
+
 class ContentApi {
   constructor() {
     this.baseUrl = import.meta.env.VITE_BASE_URL + '/contents';
   }
 
   async update(id, data) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -20,7 +22,7 @@ class ContentApi {
   }
 
   async delete(id) {
-    const res = await fetch(`${this.baseUrl}/${id}`, {
+    const res = await apiFetch(`${this.baseUrl}/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

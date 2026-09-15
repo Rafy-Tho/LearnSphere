@@ -47,7 +47,7 @@ Session cookie configuration lives in `backend/src/common/middleware/sessionMidd
 | `globalLimiter` | 1 min | 100 | All requests |
 | `passwordResetLimiter` | 12 h | 10 | Password reset code requests |
 | `codeAttemptsLimiter` | 1 h | 10 | Code verify + reset |
-| `loginLimiter` | 15 min | 5 | **Not applied (gap)** |
+| `loginLimiter` | 15 min | 5 | Applied to `POST /auth/login` (+ per-account lockout) |
 
 Rate-limit exhaustion returns HTTP 429.
 
@@ -94,29 +94,39 @@ Rate-limit exhaustion returns HTTP 429.
 |---|---|---|
 | Spoofing | Session hijack | HTTP-only, secure cookies; session regeneration |
 | Tampering | Forged payment events | Stripe webhook signature verification |
-| Repudiation | Missing audit trail | No dedicated audit log (gap) |
+| Repudiation | Missing audit trail | Structured audit log for auth/role/payment events |
 | Information disclosure | Secret leakage | Env vars, no secrets in source, sanitized errors |
-| Denial of service | Brute force / flooding | Global + auth rate limits (login limiter unused) |
-| Elevation of privilege | Role bypass | `authorize` + ownership checks (option POST gap) |
+| Denial of service | Brute force / flooding | Global + auth rate limits + per-account lockout |
+| Elevation of privilege | Role bypass | `authorize` + ownership checks (incl. quiz options) |
 | XSS | Malicious lesson HTML | DOMPurify on input and render |
 | SQL injection | Malicious query input | Parameterized SQL everywhere; `AdvancedQuery` uses placeholders |
-| CSRF | Cross-site request forgery | `sameSite` cookies; no explicit CSRF token (gap for `lax` dev) |
+| CSRF | Cross-site request forgery | JSON-only + `X-Requested-With` guard; `sameSite` cookies |
 | Insecure file upload | Malicious uploads | Type/MIME filter + size limit; files pushed to Cloudinary |
 
-## 11. Known Security Gaps
+## 11. Security Hardening (resolved)
 
-| # | Gap | Recommendation |
+The former gaps were implemented in the backend security-hardening pass. See
+[`../08-refactoring/backend/06-security.md`](../08-refactoring/backend/06-security.md) and
+[`../09-implement/tasks/security-hardening.md`](../09-implement/tasks/security-hardening.md).
+
+| # | Former gap | Resolution |
 |---|---|---|
-| 1 | No CSRF token | Add a CSRF token or rely on `sameSite=strict`/`lax` consistently. |
-| 2 | `loginLimiter` unused | Apply it to `POST /users/login`. |
-| 3 | Missing `authorize` on option POST | Add `authorize(INSTRUCTOR, ADMIN)` + ownership check. |
-| 4 | Missing validators on option PATCH/DELETE | Add validators. |
-| 5 | `is_correct` may be returned to learners in quiz payloads | Strip the correct flag from learner-facing responses. |
-| 6 | No password-reset invalidation on password change | Invalidate outstanding codes when a password changes. |
-| 7 | No security headers (`helmet`) | Add `helmet` for HSTS, X-Content-Type-Options, etc. |
-| 8 | No account lockout after repeated failures | Track failed logins and lock/suspend. |
-| 9 | No audit logging | Log sensitive actions (auth, role changes, payments). |
-| 10 | Password reset code column too small | Widen to `VARCHAR(64)`+ or store the hash elsewhere. |
+| 1 | No CSRF token | JSON-only + `X-Requested-With` guard (SH-2) |
+| 2 | `loginLimiter` unused | Applied + per-account lockout, 5 attempts → 15 min (SH-5) |
+| 3 | Missing `authorize` on option POST | `authorize(INSTRUCTOR, ADMIN)` + ownership |
+| 4 | Missing validators on option PATCH/DELETE | Validators added |
+| 5 | `is_correct` exposed to learners | Server-side grading endpoint (SH-1) |
+| 6 | No reset invalidation on password change | Sessions deleted on change/reset (SH-4) |
+| 7 | No security headers | `helmet` (SH-3) |
+| 8 | No account lockout | `users.failed_login_attempts` / `locked_until` (SH-5) |
+| 9 | No audit logging | `logger.audit` for auth/role/payment events (SH-6) |
+| 10 | Reset-code column too small | Widened to `VARCHAR(255)` (migration 0011) |
+
+Other improvements: `trust proxy` configurable, generic registration (no enumeration),
+progress/enroll authorization checks, public uploads removed, static 404, idle session
+timeout, certificate lookup restricted to owner/admin, and admin invite instead of a
+hardcoded temporary password. Remaining operational step: apply migration `0012` to the
+live database.
 
 ## 12. Production Security Requirements
 

@@ -1,12 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
-import SocialButtons from "@/components/common/SocialButtons";
+import SocialButtons from "@/features/auth/components/SocialButtons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
 import { useForm } from "react-hook-form";
 import EmailInput from "@/features/auth/components/form/EmailInput";
 import PasswordInput from "@/features/auth/components/form/PasswordInput";
 import TermCheck from "@/features/auth/components/form/TermCheck";
-import useLogin from "@/features/auth/hooks/useLogin";
+import { useLogin } from "@/features/auth/hooks/useAuthMutations";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { toast } from "react-toastify";
 const LoginSchema = z.object({

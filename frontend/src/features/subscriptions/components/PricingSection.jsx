@@ -2,10 +2,11 @@ import { useActiveSubscription as useGetActiveSubscription } from "@/features/su
 import useAuth from "@/features/auth/hooks/useAuth";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import PricingCard from "@/features/subscriptions/components/PricingCard";
+import { PLAN_IDS } from "@/constants/plans";
 
 const plans = [
   {
-    id: "00c7b88f-fcf3-4d7c-a10d-c83efe587e9d",
+    id: PLAN_IDS["1-Month"],
     tier: "1 Month",
     duration: 30,
     price: 5,
@@ -20,7 +21,7 @@ const plans = [
     highlighted: false,
   },
   {
-    id: "618a46ae-30e6-4983-ad0b-fa3126df19e6",
+    id: PLAN_IDS["6-Months"],
     tier: "6 Months",
     duration: 180,
     price: 20,
@@ -35,7 +36,7 @@ const plans = [
     highlighted: true,
   },
   {
-    id: "d196d5c8-3cd0-46ac-b6ec-0a676d189216",
+    id: PLAN_IDS["12-Months"],
     tier: "12 Months",
     duration: 360,
     price: 30,

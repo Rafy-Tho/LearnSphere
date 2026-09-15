@@ -8,7 +8,7 @@ import RecommendedSection from "@/features/dashboard/components/RecommendedSecti
 function HomeDashboard() {
   return (
     <>
-      <RecentlyViewed />
+      <RecentlyViewed limit={4} />
       <RecommendedSection />
       <PopularCourses />
       <ActivitySection />

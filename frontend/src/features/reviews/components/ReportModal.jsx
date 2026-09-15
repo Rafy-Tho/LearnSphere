@@ -1,4 +1,3 @@
-import { X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useCreateReviewReport } from "@/features/reviews/hooks/useReviewMutations";
 import z from "zod";
@@ -6,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import Modal from "@/components/ui/Modal";
 
 const ISSUE_TYPES = [
   "Inappropriate content",
@@ -59,21 +59,8 @@ export function ReportModal({ isOpen, onClose, reviewId, setIsReported }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white dark:bg-slate-800 flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Report abuse
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
+    <Modal open={isOpen} onClose={onClose} title="Report abuse" size="lg">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <p className="text-blue-900 dark:text-blue-100 text-sm leading-relaxed">
               Flagged content is reviewed by staff to determine whether it
@@ -154,7 +141,6 @@ export function ReportModal({ isOpen, onClose, reviewId, setIsReported }) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 }

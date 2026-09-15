@@ -3,13 +3,17 @@ import { History } from "lucide-react";
 import { useRecentlyViewedCourses as useGetRecentlyViewedCourses } from "@/features/dashboard/hooks/useDashboard";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
-import CourseCardRecentReview from "@/features/dashboard/components/CourseCardRecentReview";
+import EmptyState from "@/components/ui/EmptyState";
+import CourseCard from "@/components/common/CourseCard";
 
-export default function RecentlyViewed() {
+export default function RecentlyViewed({ limit }) {
   const { data, isPending, error } = useGetRecentlyViewedCourses();
   const courses = data || [];
+  const visible = limit ? courses.slice(0, limit) : courses;
+
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
+
   return (
     <section className="mb-14">
       <h2 className="mb-6 flex items-center gap-2 text-lg font-bold">
@@ -19,14 +23,17 @@ export default function RecentlyViewed() {
         Recently Viewed
       </h2>
       {courses.length === 0 && (
-        <div className="text-center text-gray-500 dark:text-gray-400">
-          No recently viewed courses.
-        </div>
+        <EmptyState title="No recently viewed courses." />
       )}
       {courses.length > 0 && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {courses.slice(0, 4).map((c) => (
-            <CourseCardRecentReview key={c.id} course={c} />
+          {visible.map((course) => (
+            <CourseCard
+              key={course.id}
+              course={course}
+              lessonId={course.last_lesson}
+              scrollToTop={false}
+            />
           ))}
         </div>
       )}

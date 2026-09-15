@@ -3,15 +3,26 @@ import { useNavigate } from "react-router-dom";
 import formatMinutes from "@/utils/formatMinutes";
 import formatCapitalize from "@/utils/formatCapitalize";
 import truncateText from "@/utils/truncateText";
-function CourseCard({ course }) {
+import ProgressBar from "@/components/ui/ProgressBar";
+
+function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
   const navigate = useNavigate();
+  const hasProgress = progress != null;
+  const progressPercentage = progress ?? 0;
+
+  const handleClick = () => {
+    navigate(
+      lessonId
+        ? `/courses/${course.id}/lessons/${lessonId}`
+        : `/courses/${course.id}`,
+    );
+    if (scrollToTop) window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <article
       className="flex shrink-0 flex-col rounded-xl border border-slate-100 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 h-full w-full cursor-pointer"
-      onClick={() => {
-        navigate(`/courses/${course.id}`);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }}
+      onClick={handleClick}
     >
       <div className="mb-4 flex items-start justify-between">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 ">
@@ -48,6 +59,17 @@ function CourseCard({ course }) {
           {formatCapitalize(course.level)}
         </span>
       </div>
+
+      {hasProgress && (
+        <ProgressBar
+          value={progressPercentage}
+          color="indigo"
+          size="sm"
+          leftLabel="Progress"
+          rightLabel={`${Math.round(progressPercentage)}%`}
+          className="mt-4 pt-2 border-t border-slate-100 dark:border-slate-800"
+        />
+      )}
     </article>
   );
 }

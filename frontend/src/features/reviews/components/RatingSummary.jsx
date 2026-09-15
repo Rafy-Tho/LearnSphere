@@ -1,8 +1,9 @@
 import { useReviewDetails as useGetReviewDetails } from "@/features/reviews/hooks/useReviews";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import ProgressBar from "@/components/ui/ProgressBar";
 import RatingStars from "@/components/common/RatingStars";
-import NotSummary from "@/features/reviews/components/NotSummary";
+import NoSummary from "@/features/reviews/components/NoSummary";
 
 export function RatingSummary() {
   const { data, isPending, error } = useGetReviewDetails();
@@ -18,7 +19,7 @@ export function RatingSummary() {
 
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
-  if (!total || !data || !ratings) return <NotSummary />;
+  if (!total || !data || !ratings) return <NoSummary />;
   return (
     <div className="bg-white  py-4 dark:bg-slate-800  sm:p-6 md:p-8 rounded-lg">
       <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-8 text-slate-900 dark:text-slate-100">
@@ -42,12 +43,11 @@ export function RatingSummary() {
               key={stars}
               className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3"
             >
-              <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-slate-400 dark:bg-slate-500 h-full transition-all duration-300"
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
+              <ProgressBar
+                value={percentage}
+                color="slate"
+                className="w-full flex-1"
+              />
               <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3">
                 <div className="flex items-center gap-1">
                   <RatingStars rating={stars} />

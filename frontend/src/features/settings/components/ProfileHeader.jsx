@@ -124,10 +124,8 @@ function ProfileHeader({
                 icon={<User size={15} />}
                 value={field("name")}
                 onChange={update("name")}
+                error={errors?.name}
               />
-              {editMode && errors?.name && (
-                <span className="text-red-500">{errors.name}</span>
-              )}
             </div>
 
             <div className="flex flex-col gap-1.5">

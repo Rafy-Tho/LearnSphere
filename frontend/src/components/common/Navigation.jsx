@@ -4,13 +4,11 @@ import Desktop from "@/components/common/navbar/Desktop";
 import Logo from "@/components/common/navbar/Logo";
 import Menu from "@/components/common/navbar/Menu";
 import Mobile from "@/components/common/navbar/Mobile";
-import useAuth from "@/features/auth/hooks/useAuth";
-import LoginSignupBtn from "@/components/common/LoginSignupBtn";
+import LoginSignupButton from "@/components/common/LoginSignupButton";
 
-const Navigation = () => {
+const Navigation = ({ user, onLogout }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
-  const { user } = useAuth();
   const navRef = useRef(null);
 
   // Close dropdowns when clicking outside
@@ -59,12 +57,14 @@ const Navigation = () => {
             {/* Avatar */}
             {user && (
               <Avatar
+                user={user}
+                onLogout={onLogout}
                 avatarOpen={avatarOpen}
                 toggleAvatar={toggleAvatar}
                 closeAll={closeAll}
               />
             )}
-            {!user && <LoginSignupBtn />}
+            {!user && <LoginSignupButton />}
             {/* Mobile menu button */}
             <Menu
               mobileMenuOpen={mobileMenuOpen}
@@ -74,6 +74,8 @@ const Navigation = () => {
         </div>
         {/* Mobile Menu with Functional Dropdowns */}
         <Mobile
+          user={user}
+          onLogout={onLogout}
           mobileMenuOpen={mobileMenuOpen}
           closeAll={closeAll}
           avatarOpen={avatarOpen}

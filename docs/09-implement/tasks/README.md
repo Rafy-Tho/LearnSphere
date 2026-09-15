@@ -15,6 +15,7 @@ All implementation tasks, grouped by area. **Status lives in the task files**; t
 | Backend naming & OOP refactor | [`naming-oop-refactor.md`](./naming-oop-refactor.md) | NO-1…NO-5 |
 | Security hardening | [`security-hardening.md`](./security-hardening.md) | SH-1…SH-8 |
 | Frontend refactor (learner app) | [`frontend-refactor.md`](./frontend-refactor.md) | FE-1…FE-20 |
+| Frontend components (learner app) | [`frontend-components.md`](./frontend-components.md) | FC-1…FC-16 |
 
 Decisions that block tasks: [`../decisions.md`](../decisions.md).
 
@@ -38,6 +39,7 @@ Decisions that block tasks: [`../decisions.md`](../decisions.md).
 - [`../../08-refactoring/backend/06-security.md`](../../08-refactoring/backend/06-security.md) — backend security hardening (supersedes backend sections of the above)
 - [`../../08-refactoring/frontend/01-architecture.md`](../../08-refactoring/frontend/01-architecture.md) — frontend target structure
 - [`../../08-refactoring/frontend/02-migration-plan.md`](../../08-refactoring/frontend/02-migration-plan.md) — frontend migration plan
+- [`../../08-refactoring/frontend/03-components.md`](../../08-refactoring/frontend/03-components.md) — frontend component standard
 
 ## How To Update
 

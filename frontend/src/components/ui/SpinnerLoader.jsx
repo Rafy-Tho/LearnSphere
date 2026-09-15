@@ -18,10 +18,17 @@ const SpinnerLoader = ({ size = "md", color = "blue" }) => {
     white: "border-white",
   };
 
+  const borderClasses = {
+    sm: "border-2",
+    md: "border-4",
+    lg: "border-4",
+    xl: "border-4",
+  };
+
   return (
     <div className="flex items-center justify-center">
       <div
-        className={`${sizeClasses[size]} ${colorClasses[color]} border-4 border-t-transparent rounded-full animate-spin`}
+        className={`${sizeClasses[size]} ${colorClasses[color]} ${borderClasses[size]} border-t-transparent rounded-full animate-spin`}
         role="status"
         aria-label="Loading"
       ></div>

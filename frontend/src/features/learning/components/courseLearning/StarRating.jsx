@@ -1,5 +1,5 @@
 import { useState } from "react";
-import HalfStar from "@/components/ui/HalfStar";
+import HalfStar from "@/features/learning/components/courseLearning/HalfStar";
 
 const labels = {
   0.5: "Useless",

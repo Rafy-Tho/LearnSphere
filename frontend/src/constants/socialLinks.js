@@ -1,4 +1,4 @@
-import FaceBook from "@/components/common/socialSvg/FaceBook";
+import Facebook from "@/components/common/socialSvg/Facebook";
 import Instagram from "@/components/common/socialSvg/Instagram";
 import LinkedIn from "@/components/common/socialSvg/LinkedIn";
 import Twitter from "@/components/common/socialSvg/Twitter";
@@ -8,7 +8,7 @@ export const socialLinks = [
   {
     label: "Facebook",
     href: "#",
-    icon: FaceBook,
+    icon: Facebook,
   },
   {
     label: "Twitter",

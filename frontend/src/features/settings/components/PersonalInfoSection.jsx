@@ -20,10 +20,8 @@ function PersonalInfoSection({ editMode, field, update, errors }) {
             onChange={update("email")}
             type="email"
             disabled={!editMode}
+            error={editMode ? errors?.email : undefined}
           />
-          {editMode && errors?.email && (
-            <span className="text-red-500 text-sm">{errors?.email}</span>
-          )}
         </div>
 
         <InputField

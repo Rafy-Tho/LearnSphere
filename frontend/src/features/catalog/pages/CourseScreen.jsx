@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FilterTab } from "@/features/catalog/components/course/FilterTap";
+import { FilterTab } from "@/features/catalog/components/course/FilterTab";
 import { SearchHeader } from "@/features/catalog/components/course/SearchHeader";
 import { SearchResult } from "@/features/catalog/components/course/SearchResult";
 import { Sidebar } from "@/features/catalog/components/course/Sidebar";

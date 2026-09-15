@@ -7,8 +7,8 @@ import EmailInput from "@/features/auth/components/form/EmailInput";
 import NameInput from "@/features/auth/components/form/NameInput";
 import PasswordInput from "@/features/auth/components/form/PasswordInput";
 import TermCheck from "@/features/auth/components/form/TermCheck";
-import SocialButtons from "@/components/common/SocialButtons";
-import useRegister from "@/features/auth/hooks/useRegister";
+import SocialButtons from "@/features/auth/components/SocialButtons";
+import { useRegister } from "@/features/auth/hooks/useAuthMutations";
 
 const SignupSchema = z.object({
   name: z.string().min(1, "Name is required"),

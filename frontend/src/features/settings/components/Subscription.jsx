@@ -1,14 +1,16 @@
 import { useState } from "react";
 import SectionCard from "@/features/settings/components/SectionCard";
-import { Check, Crown, Loader2 } from "lucide-react";
+import { Check, Crown } from "lucide-react";
 import { useCreatePayment } from "@/features/subscriptions/hooks/useSubscriptionMutations";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import { PLAN_IDS } from "@/constants/plans";
 
 const planConfig = {
   "1-Month": {
-    id: "00c7b88f-fcf3-4d7c-a10d-c83efe587e9d",
+    id: PLAN_IDS["1-Month"],
     label: "1 Month",
     color: "bg-slate-100 text-slate-600 border-slate-200",
     darkColor: "dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
@@ -20,7 +22,7 @@ const planConfig = {
     ],
   },
   "6-Months": {
-    id: "618a46ae-30e6-4983-ad0b-fa3126df19e6",
+    id: PLAN_IDS["6-Months"],
     label: "6 Months",
     color: "bg-slate-700 text-white border-slate-600",
     darkColor: "dark:bg-slate-200 dark:text-slate-900 dark:border-slate-300",
@@ -33,7 +35,7 @@ const planConfig = {
     ],
   },
   "12-Months": {
-    id: "d196d5c8-3cd0-46ac-b6ec-0a676d189216",
+    id: PLAN_IDS["12-Months"],
     label: "12 Months",
     color: "bg-slate-900 text-white border-slate-800",
     darkColor: "dark:bg-slate-100 dark:text-slate-900 dark:border-slate-200",
@@ -110,7 +112,7 @@ function Subscription() {
             disabled={isLoading}
             className="w-full px-4 py-3 rounded-xl text-sm font-medium text-white dark:text-slate-900 bg-slate-700 dark:bg-slate-200 mt-5 inline-flex items-center justify-center gap-2 disabled:opacity-60"
           >
-            {isLoading && <Loader2 className="animate-spin" size={16} />}
+            {isLoading && <SpinnerLoader size="sm" color="gray" />}
             {isLoading ? "Redirecting..." : "Get Started"}
           </button>
         </div>

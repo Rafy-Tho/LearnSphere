@@ -1,10 +1,11 @@
-import { X } from "lucide-react";
 import { useState } from "react";
 
 import { useOutletContext, useParams } from "react-router-dom";
-import StarRating from "@/components/ui/StarRating";
+import StarRating from "@/features/learning/components/courseLearning/StarRating";
 import { useCreateReview } from "@/features/reviews/hooks/useReviewMutations";
 import { toast } from "react-toastify";
+import Modal from "@/components/ui/Modal";
+import Button from "@/components/ui/Button";
 
 export default function CourseRating() {
   const { courseId } = useParams();
@@ -31,61 +32,42 @@ export default function CourseRating() {
       },
     );
   };
-  if (!ratingOpen) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4">
-      <form
-        onSubmit={handleSubmit}
-        className="relative w-full max-w-md rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-8"
-      >
-        <button
-          onClick={() => setRatingOpen(false)}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-        >
-          <X size={16} />
-        </button>
+    <Modal
+      open={ratingOpen}
+      onClose={() => setRatingOpen(false)}
+      title="Rate this course"
+      size="sm"
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <p className="text-xs text-slate-500">Share your experience</p>
 
-        <p className="text-xs text-slate-500 mb-1">Share your experience</p>
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-6">
-          Rate this course
-        </h2>
-
-        <div className="flex flex-col gap-5">
-          <div>
-            <label className="text-xs text-slate-500 block mb-2">
-              Your rating
-            </label>
-            <StarRating
-              value={rating}
-              onChange={setRating}
-              setError={setError}
-            />
-          </div>
-          {error && (
-            <p className="text-xs text-red-500 dark:text-red-400">{error}</p>
-          )}
-          <div>
-            <label className="text-xs text-slate-500 block mb-2">
-              Description (optional)
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Tell others what you thought about this course..."
-              rows={4}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isPending}
-            className="w-full rounded-lg bg-orange-500 hover:bg-orange-600 text-white py-2.5 text-sm font-medium transition-colors"
-          >
-            {isPending ? "Submitting..." : " Submit review"}
-          </button>
+        <div>
+          <label className="text-xs text-slate-500 block mb-2">
+            Your rating
+          </label>
+          <StarRating value={rating} onChange={setRating} setError={setError} />
         </div>
+        {error && (
+          <p className="text-xs text-red-500 dark:text-red-400">{error}</p>
+        )}
+        <div>
+          <label className="text-xs text-slate-500 block mb-2">
+            Description (optional)
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Tell others what you thought about this course..."
+            rows={4}
+            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+          />
+        </div>
+
+        <Button type="submit" variant="orange" isLoading={isPending} fullWidth>
+          Submit review
+        </Button>
       </form>
-    </div>
+    </Modal>
   );
 }

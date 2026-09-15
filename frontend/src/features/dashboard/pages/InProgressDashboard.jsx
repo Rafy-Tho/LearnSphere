@@ -1,21 +1,21 @@
 import { History } from "lucide-react";
 import CourseGridSection from "@/features/dashboard/components/CourseGridSection";
-import { useCompletedCourses as useGetCompletedCourse } from "@/features/dashboard/hooks/useDashboard";
+import { useCoursesInProgress as useGetCourseInProgress } from "@/features/dashboard/hooks/useDashboard";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 
-export default function CompletedCourseDashboard() {
-  const { data, isPending, error } = useGetCompletedCourse();
+export default function InProgressDashboard() {
+  const { data, isPending, error } = useGetCourseInProgress();
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
 
   return (
     <CourseGridSection
-      title="Completed Courses"
+      title="In Progress"
       icon={<History className="size-4 text-indigo-600 dark:text-indigo-400" />}
       courses={data?.data || []}
       pagination={data?.pagination || {}}
-      emptyTitle="No completed courses."
+      emptyTitle="No in progress courses."
     />
   );
 }

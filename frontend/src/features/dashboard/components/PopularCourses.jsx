@@ -2,7 +2,7 @@
 import { ArrowUpRight } from "lucide-react";
 import { SwiperSlide } from "swiper/react";
 import CourseCard from "@/components/common/CourseCard";
-import SwiperWrapper from "@/components/common/SwiperWrapper";
+import SwiperWrapper from "@/features/dashboard/components/SwiperWrapper";
 import { usePopularCourses as useGetPopularCourse } from "@/features/catalog/hooks/useCourses";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import ErrorMessage from "@/components/ui/ErrorMessage";

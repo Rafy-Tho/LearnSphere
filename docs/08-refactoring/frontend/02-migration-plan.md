@@ -4,6 +4,8 @@ Incremental execution plan for moving `frontend/` to the target architecture in
 [`01-architecture.md`](./01-architecture.md). Admin is out of scope.
 
 > **Status:** Complete. See [`../../09-implement/tasks/frontend-refactor.md`](../../09-implement/tasks/frontend-refactor.md) for task-level status.
+>
+> **Follow-up:** component consolidation is tracked in [`03-components.md`](./03-components.md) and [`../../09-implement/tasks/frontend-components.md`](../../09-implement/tasks/frontend-components.md).
 
 ---
 

@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import useLogout from "@/features/auth/hooks/useLogout";
-import useAuth from "@/features/auth/hooks/useAuth";
 import ThemeSelector from "@/components/common/ThemeSelector";
 import { ChevronDown, ChevronUp, LogOut } from "lucide-react";
 import { navLinks } from "@/constants/navLinks";
@@ -9,14 +7,14 @@ import { avatarMenuItems } from "@/constants/avatarMenuItems";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 function Mobile({
+  user,
+  onLogout,
   mobileMenuOpen,
   closeAll,
 
   avatarOpen,
   toggleAvatar,
 }) {
-  const { user } = useAuth();
-  const { logout } = useLogout();
   const [showConfirm, setShowConfirm] = useState(false);
 
   return (
@@ -117,7 +115,7 @@ function Mobile({
         onCancel={() => setShowConfirm(false)}
         onConfirm={() => {
           setShowConfirm(false);
-          logout();
+          onLogout();
         }}
         title="Logout"
         message="Are you sure you want to logout?"

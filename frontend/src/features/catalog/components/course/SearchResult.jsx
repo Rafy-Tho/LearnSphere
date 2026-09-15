@@ -1,8 +1,10 @@
 import { useSearchParams } from "react-router-dom";
+import { Search } from "lucide-react";
 import { useCourses as useGetCourses } from "@/features/catalog/hooks/useCourses";
 import { CourseCardDetailed } from "@/features/catalog/components/course/CourseCardDetailed";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
+import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/common/Pagination";
 
 export function SearchResult() {
@@ -20,9 +22,10 @@ export function SearchResult() {
           Search Results ({pagination?.totalItems || 0})
         </h2>
         {courses.length === 0 && (
-          <p className="text-center text-gray-500 dark:text-white">
-            No courses found.
-          </p>
+          <EmptyState
+            icon={<Search className="size-6" />}
+            title="No courses found."
+          />
         )}
         {courses.length > 0 && (
           <div className="space-y-4 md:space-y-5">

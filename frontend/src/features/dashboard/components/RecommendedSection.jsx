@@ -5,7 +5,7 @@ import { SwiperSlide } from "swiper/react";
 import { useRecommendedCourses as useGetRecommendedCourse } from "@/features/dashboard/hooks/useDashboard";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
-import SwiperWrapper from "@/components/common/SwiperWrapper";
+import SwiperWrapper from "@/features/dashboard/components/SwiperWrapper";
 import CourseCard from "@/components/common/CourseCard";
 import { Link } from "react-router-dom";
 

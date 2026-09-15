@@ -5,6 +5,8 @@ Target architecture for the learner app (`frontend/`) only. The admin dashboard 
 See also [`../architecture-plan.md`](../architecture-plan.md) §4 and [`../frontend-audit.md`](../frontend-audit.md).
 
 > **Status:** Implemented. The learner app now follows this structure; see [`02-migration-plan.md`](./02-migration-plan.md) and [`../../09-implement/tasks/frontend-refactor.md`](../../09-implement/tasks/frontend-refactor.md).
+>
+> **Component standard:** see [`03-components.md`](./03-components.md) and its tasks [`../../09-implement/tasks/frontend-components.md`](../../09-implement/tasks/frontend-components.md).
 
 ---
 

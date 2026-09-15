@@ -1,4 +1,4 @@
-import FaceBook from "@/components/common/socialSvg/FaceBook";
+import Facebook from "@/components/common/socialSvg/Facebook";
 import GitHub from "@/components/common/socialSvg/GitHub";
 import Google from "@/components/common/socialSvg/Google";
 
@@ -21,7 +21,7 @@ export const socialLogins = [
   },
   {
     name: "Facebook",
-    icon: FaceBook,
+    icon: Facebook,
     bgColor: "bg-blue-600",
     textColor: "text-white",
     hoverColor: "hover:bg-blue-700",

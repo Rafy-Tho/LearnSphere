@@ -26,8 +26,8 @@ const HomeDashboard = lazy(
 const RecentViewDashboard = lazy(
   () => import("@/features/dashboard/pages/RecentViewDashboard"),
 );
-const InprogressDashboard = lazy(
-  () => import("@/features/dashboard/pages/InprogressDashboard"),
+const InProgressDashboard = lazy(
+  () => import("@/features/dashboard/pages/InProgressDashboard"),
 );
 const CompletedCourseDashboard = lazy(
   () => import("@/features/dashboard/pages/CompletedCourseDashboard"),
@@ -36,11 +36,9 @@ const CourseLearningScreen = lazy(
   () => import("@/features/learning/pages/CourseLearningScreen"),
 );
 const LessonContent = lazy(
-  () => import("@/features/learning/components/courseLearning/LessonContent"),
+  () => import("@/features/learning/pages/LessonContent"),
 );
-const Quiz = lazy(
-  () => import("@/features/learning/components/courseLearning/quiz/Quiz"),
-);
+const Quiz = lazy(() => import("@/features/learning/pages/Quiz"));
 const CertificateView = lazy(
   () => import("@/features/learning/pages/CertificateView"),
 );
@@ -48,10 +46,10 @@ const PricingScreen = lazy(
   () => import("@/features/subscriptions/pages/PricingScreen"),
 );
 const PaymentSuccess = lazy(
-  () => import("@/features/subscriptions/components/PaymentSuccess"),
+  () => import("@/features/subscriptions/pages/PaymentSuccess"),
 );
 const PaymentCancel = lazy(
-  () => import("@/features/subscriptions/components/PaymentCancel"),
+  () => import("@/features/subscriptions/pages/PaymentCancel"),
 );
 const UserSetting = lazy(() => import("@/features/settings/pages/UserSetting"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
@@ -74,7 +72,7 @@ function AppRouter() {
             <Route path="/learning-dashboard" element={<LearningDashboard />}>
               <Route index element={<HomeDashboard />} />
               <Route path="recent-viewed" element={<RecentViewDashboard />} />
-              <Route path="in-progress" element={<InprogressDashboard />} />
+              <Route path="in-progress" element={<InProgressDashboard />} />
               <Route path="completed" element={<CompletedCourseDashboard />} />
             </Route>
             <Route path="/payment-success" element={<PaymentSuccess />} />

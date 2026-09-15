@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useInfiniteReviews as useGetReviews } from "@/features/reviews/hooks/useReviews";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import EmptyState from "@/components/ui/EmptyState";
 import { ReviewCard } from "@/features/reviews/components/ReviewCard";
 
 export function StudentFeedback() {
@@ -131,15 +132,23 @@ export function StudentFeedback() {
             disabled={isFetchingNextPage}
             className="w-full px-6 py-3 border-2 border-violet-500 dark:border-violet-400 text-violet-600 dark:text-violet-400 font-medium rounded-lg hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isFetchingNextPage ? "Loading..." : "See more reviews"}
+            {isFetchingNextPage ? (
+              <span className="inline-flex items-center gap-2">
+                <SpinnerLoader size="sm" color="purple" />
+                Loading...
+              </span>
+            ) : (
+              "See more reviews"
+            )}
           </button>
         </div>
       )}
 
       {reviews.length === 0 && !isPending && !error && (
-        <div className="text-center py-12 text-slate-600 dark:text-slate-400">
-          No reviews found matching your criteria.
-        </div>
+        <EmptyState
+          icon={<Search className="size-6" />}
+          title="No reviews found matching your criteria."
+        />
       )}
     </>
   );

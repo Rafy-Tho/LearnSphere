@@ -1,9 +1,10 @@
-import { CheckCircle2, Info, Loader2 } from "lucide-react";
+import { CheckCircle2, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useCreatePayment } from "@/features/subscriptions/hooks/useSubscriptionMutations";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { toast } from "react-toastify";
+import SpinnerLoader from "@/components/ui/SpinnerLoader";
 
 export default function PricingCard({ plan, activeSubscription }) {
   const { id, tier, price, description, features, highlighted = false } = plan;
@@ -152,7 +153,7 @@ export default function PricingCard({ plan, activeSubscription }) {
           }
         `}
       >
-        {isLoading && <Loader2 className="animate-spin" size={16} />}
+        {isLoading && <SpinnerLoader size="sm" color="gray" />}
         {isActivePlan
           ? "Current Plan"
           : hasActiveSubscription

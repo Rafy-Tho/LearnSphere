@@ -2,14 +2,10 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { avatarMenuItems } from "@/constants/avatarMenuItems";
-import useAuth from "@/features/auth/hooks/useAuth";
 import ThemeSelector from "@/components/common/ThemeSelector";
-import useLogout from "@/features/auth/hooks/useLogout";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
-function Avatar({ avatarOpen, toggleAvatar, closeAll }) {
-  const { logout } = useLogout();
-  const { user } = useAuth();
+function Avatar({ user, onLogout, avatarOpen, toggleAvatar, closeAll }) {
   const [showConfirm, setShowConfirm] = useState(false);
   if (!user) return null;
   return (
@@ -79,7 +75,7 @@ function Avatar({ avatarOpen, toggleAvatar, closeAll }) {
         onCancel={() => setShowConfirm(false)}
         onConfirm={() => {
           setShowConfirm(false);
-          logout();
+          onLogout();
         }}
         title="Logout"
         message="Are you sure you want to logout?"

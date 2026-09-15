@@ -9,6 +9,7 @@ import { useCourseProgress as useGetCourseProgress } from "@/features/learning/h
 import useAuth from "@/features/auth/hooks/useAuth";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import { lessonIcons } from "@/constants/lessonIcons";
 export default function LearningRoadmap({ sectionRef }) {
   const [expandedSections, setExpandedSections] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -169,10 +170,6 @@ export default function LearningRoadmap({ sectionRef }) {
               <div className="px-6 pb-5 space-y-3">
                 {module.lessons.map((lesson, index) => {
                   const isCompleted = completedIds.has(lesson.id);
-                  const lessonIcons = {
-                    TEXT: Circle,
-                    QUIZ: CircleQuestionMark,
-                  };
                   const Icon = isCompleted
                     ? CheckCircle2
                     : lessonIcons[lesson.type] || Circle;

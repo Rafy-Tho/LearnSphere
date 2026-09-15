@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 
-function LoginSignupBtn() {
+function LoginSignupButton() {
   const location = useLocation();
 
   const isLoginActive = location.pathname === "/login";
@@ -35,4 +35,4 @@ function LoginSignupBtn() {
   );
 }
 
-export default LoginSignupBtn;
+export default LoginSignupButton;

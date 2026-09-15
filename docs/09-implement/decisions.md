@@ -27,6 +27,7 @@ Decisions that block or shape dependent work. Record a decision here **before** 
 | D-19 | Frontend service layer | Feature `services/` + `lib/api-client` vs keep `api/` | ✅ | Feature `services/` + `lib/api-client` | 2026-09-15 | Client owns transport/401/unwrapping; services own endpoints. Blocks FE-2/FE-7…FE-13 |
 | D-20 | Frontend refactor scope | Structure-only vs structure + targeted fixes vs full remediation | ✅ | Structure + targeted fixes | 2026-09-15 | Behavior-preserving moves, plus audit fixes FE-14–FE-19. Blocks FE-20 |
 | D-21 | Admin app scope | Include vs exclude | ✅ | Exclude | 2026-09-15 | This refactor covers `frontend/` only. |
+| D-22 | Frontend component standards | Consolidate duplicates only vs add shared primitives vs no new abstractions | ✅ | Add shared primitives | 2026-09-15 | `components/ui/{Button,Modal,Card,Input,EmptyState,ProgressBar}` built with React + Tailwind + lucide (no new deps). Learner app only. Blocks FC-2…FC-16 |
 
 ## Related
 

@@ -1,12 +1,9 @@
 import { CheckCircle2, ChevronDown, ChevronUp, Circle, CircleQuestionMark, Lock } from "lucide-react";
 import { NavLink, useParams } from "react-router-dom";
+import { lessonIcons } from "@/constants/lessonIcons";
 
 function ModuleGroup({ module, isOpen, onToggle, index, completedIds }) {
   const { courseId } = useParams();
-  const lessonIcons = {
-    TEXT: Circle,
-    QUIZ: CircleQuestionMark,
-  };
   return (
     <div className="mb-1">
       <button

@@ -2,7 +2,7 @@ import { ArrowRightIcon } from "lucide-react";
 import { useCourses as useGetCourses } from "@/features/catalog/hooks/useCourses";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
-import CourseCardGrid from "@/components/common/CourseCardGrid";
+import CourseCardGrid from "@/features/catalog/components/home/CourseCardGrid";
 import { useNavigate } from "react-router-dom";
 
 function TopCourse() {

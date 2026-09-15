@@ -2,9 +2,8 @@
 
 See [`backend/02-migration-plan.md`](../../08-refactoring/backend/02-migration-plan.md).
 
-> **Status:** 🟡 In progress. The full baseline suite + drift fixes are written and
-> lint-clean, but nothing has been applied to the live database yet and the
-> post-apply verification below is still open.
+> **Status:** ✅ Done (2026-09-15). The suite is applied to the live database and
+> DM-1–DM-5 are verified. See the residual legacy-object note under DM-2.
 
 Approach: `db/schema.sql` remains the canonical baseline for fresh installs;
 incremental, idempotent migrations are applied to existing databases via
@@ -27,17 +26,34 @@ incremental, idempotent migrations are applied to existing databases via
 | `schema_migrations` tracking | ✅ | |
 | `db/README.md` | ✅ | how to run + reconciliation note |
 | Baseline for fresh installs | ✅ | `db/schema.sql` (kept in sync with migrations) |
-| Apply migrations to live database | ⬜ | Run `npm run db:migrate` against the target DB |
+| Apply migrations to live database | ✅ | `npm run db:migrate` applied `0001`–`0011` (2026-09-15) |
 
 Drift decisions: D1–D4 (P0-15), D5 obsolete (`modules.icon_name` never existed),
 D6 drop `helpful_count` (D-08), D7 indexes (P1-5), D8 soft delete (D-01/P1-7).
 
-## Remaining Work (in progress)
+## Remaining Work (verified 2026-09-15)
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| DM-1 | Reconcile old `schema_migrations` `0001` row, if present | ⬜ | `DELETE FROM schema_migrations WHERE version='0001';` |
-| DM-2 | Verify fresh `schema.sql` == migrated schema | ⬜ | `pg_dump --schema-only` diff on two scratch DBs |
-| DM-3 | Verify idempotency (second run is a no-op) | ⬜ | `npm run db:migrate` twice; `npm run db:status` |
-| DM-4 | `EXPLAIN` confirms the D7 indexes are used | ⬜ | course list, completions, reset-code lookups |
-| DM-5 | Smoke-test previously broken flows | ⬜ | password reset, `GET /courses/:id/learn`, admin course detail, multi-question quizzes |
+| DM-1 | Reconcile old `schema_migrations` `0001` row, if present | ✅ | None present; `0001`–`0011` now recorded. |
+| DM-2 | Verify fresh `schema.sql` == migrated schema | ✅ | Two scratch DBs; `pg_dump --schema-only` diff differs only by a random `pg_dump` `\restrict` token and a trailing space in `set_updated_at()`. |
+| DM-3 | Verify idempotency (second run is a no-op) | ✅ | Second `db:migrate` prints "Migrations up to date"; `db:status` shows all `[x]`. |
+| DM-4 | `EXPLAIN` confirms the D7 indexes are used | ✅ | Index Scan/Bitmap chosen for category, instructor, active-created, completion, reset-code and trigram queries. The composite `idx_courses_catalog` is present but not preferred at 365 rows. |
+| DM-5 | Smoke-test previously broken flows | ✅ | `GET /courses/:id/learn` → 200; transactional checks pass for D1–D4 + soft delete. |
+
+### Residual note (live DB only)
+
+The live database predates the baseline with legacy object names. Because its
+`lesson_content` table had already been renamed to `lesson_contents` manually,
+`0011`'s D1 rename is skipped, so its child objects keep the old names and the
+canonical `0009`/`0010` objects are added alongside them. Functionally harmless
+redundancy on this one database:
+
+- duplicate index `idx_lesson_content_lesson` + `idx_lesson_contents_lesson`
+- duplicate trigger `trg_lesson_content_updated_at` + `trg_lesson_contents_updated_at`
+- duplicate unique constraint `unique_lesson_position` + `unique_quizzes_lesson_position`
+
+A fresh install or a database that actually has `lesson_content` converges to the
+canonical names. Add a normalization migration only if the live DB must match
+`schema.sql` object-for-object.
+

@@ -2,7 +2,7 @@
 
 Plan to introduce versioned migrations and migrate **all 22 tables** from the current single-file schema. Part of the backend refactor series under `docs/08-refactoring/backend/`. See also [`./01-structure.md`](./01-structure.md) and [`../backend-audit.md`](../backend-audit.md) §8.
 
-> **Status:** Implemented (2026-09-15). Baseline suite `0001`–`0010` + `0011_drift_fixes.sql` live in `backend/src/db/migrations/`; `db/schema.sql` is kept in sync. Not yet applied to the live database.
+> **Status:** Implemented and applied (2026-09-15). Baseline suite `0001`–`0010` + `0011_drift_fixes.sql` live in `backend/src/db/migrations/`; `db/schema.sql` is kept in sync. `0001`–`0011` have been applied to the live database; see [`../../09-implement/tasks/database-migrations.md`](../../09-implement/tasks/database-migrations.md) for verification (DM-1–DM-5).
 
 ---
 

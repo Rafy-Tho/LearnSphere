@@ -1,6 +1,10 @@
 import ApiError from "../../common/errors/ApiError.js";
 import StatusCode from "../../common/constants/StatusCode.js";
 import hashService from "../../common/services/HashService.js";
+import {
+  buildPagination,
+  parsePagination,
+} from "../../common/query/pagination.js";
 import { withTransaction } from "../../config/database.js";
 import User from "../users/repository.js";
 
@@ -10,14 +14,19 @@ const DEFAULT_AVATAR =
   "https://res.cloudinary.com/dmuu7x5vm/image/upload/v1775903021/men_oquwmw.jpg";
 
 export async function getUsers({ role, page, limit }) {
-  const users = await User.findAll({
-    role,
-    page: page ? parseInt(page) : 1,
-    limit: limit ? parseInt(limit) : 20,
-  });
+  const {
+    page: currentPage,
+    limit: pageSize,
+    offset,
+  } = parsePagination({ page, limit }, { defaultLimit: 20 });
+
+  const users = await User.findAll({ role, limit: pageSize, offset });
   const total = await User.findAllCount(role);
 
-  return { users, total };
+  return {
+    users,
+    pagination: buildPagination({ total, page: currentPage, limit: pageSize }),
+  };
 }
 
 export async function createUser({ name, email, role, status }) {

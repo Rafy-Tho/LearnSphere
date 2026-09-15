@@ -4,7 +4,11 @@ import authorize from "../../common/middleware/authorize.js";
 import { validateResult } from "../../common/middleware/validateResult.js";
 import { ADMIN } from "../../common/constants/constants.js";
 import * as controller from "./users.controller.js";
-import { createUserValidator, updateUserValidator } from "./validation.js";
+import {
+  createUserValidator,
+  updateUserValidator,
+  userIdParamValidator,
+} from "./validation.js";
 
 const adminUsersRoute = express.Router();
 
@@ -16,8 +20,8 @@ adminUsersRoute
   .post(createUserValidator, validateResult, controller.createUser);
 
 adminUsersRoute
-  .route("/:id")
+  .route("/:userId")
   .patch(updateUserValidator, validateResult, controller.updateUser)
-  .delete(controller.deleteUser);
+  .delete(userIdParamValidator, validateResult, controller.deleteUser);
 
 export default adminUsersRoute;

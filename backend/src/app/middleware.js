@@ -19,7 +19,7 @@ export async function registerMiddleware(app) {
   );
 
   // 3. Webhook route (needs raw body, so before json parser)
-  app.use("/api/v1/stripe-webhook", webhookRoute);
+  app.use("/api/v1/webhooks/stripe", webhookRoute);
 
   // 4. Body parsers
   app.use(express.json());

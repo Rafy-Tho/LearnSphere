@@ -7,7 +7,7 @@ import * as contentService from "./service.js";
 
 export const createModule = asyncHandler(async (req, res) => {
   const module = await contentService.createModule({
-    courseId: req.params.id,
+    courseId: req.params.courseId,
     data: req.body,
     user: req.session.user,
   });
@@ -19,14 +19,14 @@ export const createModule = asyncHandler(async (req, res) => {
 });
 
 export const getModule = asyncHandler(async (req, res) => {
-  const module = await contentService.getModule(req.params.id);
+  const module = await contentService.getModule(req.params.moduleId);
 
-  return sendSuccess(res, module, { message: "Modules retrieved successfully" });
+  return sendSuccess(res, module, { message: "Module retrieved successfully" });
 });
 
 export const updateModule = asyncHandler(async (req, res) => {
   const module = await contentService.updateModule(
-    req.params.id,
+    req.params.moduleId,
     req.body,
     req.session.user,
   );
@@ -35,19 +35,16 @@ export const updateModule = asyncHandler(async (req, res) => {
 });
 
 export const deleteModule = asyncHandler(async (req, res) => {
-  const module = await contentService.deleteModule(
-    req.params.id,
-    req.session.user,
-  );
+  await contentService.deleteModule(req.params.moduleId, req.session.user);
 
-  return sendSuccess(res, module, { message: "Module deleted successfully" });
+  return sendSuccess(res, null, { message: "Module deleted successfully" });
 });
 
 // --- Chapters ---
 
 export const createChapter = asyncHandler(async (req, res) => {
   const chapter = await contentService.createChapter({
-    moduleId: req.params.id,
+    moduleId: req.params.moduleId,
     data: req.body,
     user: req.session.user,
   });
@@ -59,7 +56,7 @@ export const createChapter = asyncHandler(async (req, res) => {
 });
 
 export const getChapters = asyncHandler(async (req, res) => {
-  const chapters = await contentService.getChapters(req.params.id);
+  const chapters = await contentService.getChapters(req.params.moduleId);
 
   return sendSuccess(res, chapters, {
     message: "Chapters retrieved successfully",
@@ -67,7 +64,7 @@ export const getChapters = asyncHandler(async (req, res) => {
 });
 
 export const getChapter = asyncHandler(async (req, res) => {
-  const chapter = await contentService.getChapter(req.params.id);
+  const chapter = await contentService.getChapter(req.params.chapterId);
 
   return sendSuccess(res, chapter, {
     message: "Chapter retrieved successfully",
@@ -76,7 +73,7 @@ export const getChapter = asyncHandler(async (req, res) => {
 
 export const updateChapter = asyncHandler(async (req, res) => {
   const chapter = await contentService.updateChapter(
-    req.params.id,
+    req.params.chapterId,
     req.body,
     req.session.user,
   );
@@ -85,7 +82,7 @@ export const updateChapter = asyncHandler(async (req, res) => {
 });
 
 export const deleteChapter = asyncHandler(async (req, res) => {
-  await contentService.deleteChapter(req.params.id, req.session.user);
+  await contentService.deleteChapter(req.params.chapterId, req.session.user);
 
   return sendSuccess(res, null, { message: "Chapter deleted successfully" });
 });
@@ -94,7 +91,7 @@ export const deleteChapter = asyncHandler(async (req, res) => {
 
 export const createLesson = asyncHandler(async (req, res) => {
   const lesson = await contentService.createLesson({
-    chapterId: req.params.id,
+    chapterId: req.params.chapterId,
     data: req.body,
     user: req.session.user,
   });
@@ -107,7 +104,7 @@ export const createLesson = asyncHandler(async (req, res) => {
 
 export const updateLesson = asyncHandler(async (req, res) => {
   const lesson = await contentService.updateLesson(
-    req.params.id,
+    req.params.lessonId,
     req.body,
     req.session.user,
   );
@@ -116,13 +113,13 @@ export const updateLesson = asyncHandler(async (req, res) => {
 });
 
 export const deleteLesson = asyncHandler(async (req, res) => {
-  await contentService.deleteLesson(req.params.id, req.session.user);
+  await contentService.deleteLesson(req.params.lessonId, req.session.user);
 
   return sendSuccess(res, null, { message: "Lesson deleted successfully" });
 });
 
 export const getFirstLesson = asyncHandler(async (req, res) => {
-  const lesson = await contentService.getFirstLesson(req.params.id);
+  const lesson = await contentService.getFirstLesson(req.params.courseId);
 
   return sendSuccess(res, lesson, {
     message: "First lesson retrieved successfully",
@@ -130,7 +127,10 @@ export const getFirstLesson = asyncHandler(async (req, res) => {
 });
 
 export const getQuestions = asyncHandler(async (req, res) => {
-  const questions = await contentService.getQuestions(req.params.id);
+  const questions = await contentService.getQuestions(
+    req.params.lessonId,
+    req.session.user,
+  );
 
   return sendSuccess(res, questions, {
     message: "Questions retrieved successfully",
@@ -141,7 +141,7 @@ export const getQuestions = asyncHandler(async (req, res) => {
 
 export const createLessonContent = asyncHandler(async (req, res) => {
   const content = await contentService.createLessonContent({
-    lessonId: req.params.id,
+    lessonId: req.params.lessonId,
     data: req.body,
     user: req.session.user,
   });
@@ -154,7 +154,7 @@ export const createLessonContent = asyncHandler(async (req, res) => {
 
 export const updateLessonContent = asyncHandler(async (req, res) => {
   const content = await contentService.updateLessonContent(
-    req.params.id,
+    req.params.contentId,
     req.body,
     req.session.user,
   );
@@ -165,19 +165,19 @@ export const updateLessonContent = asyncHandler(async (req, res) => {
 });
 
 export const deleteLessonContent = asyncHandler(async (req, res) => {
-  const content = await contentService.deleteLessonContent(
-    req.params.id,
+  await contentService.deleteLessonContent(
+    req.params.contentId,
     req.session.user,
   );
 
-  return sendSuccess(res, content, {
-    message: "Lesson content delete successfully",
+  return sendSuccess(res, null, {
+    message: "Lesson content deleted successfully",
   });
 });
 
 export const getLessonContents = asyncHandler(async (req, res) => {
   const contents = await contentService.getLessonContents(
-    req.params.id,
+    req.params.lessonId,
     req.session?.user?.id || null,
   );
 
@@ -190,7 +190,7 @@ export const getLessonContents = asyncHandler(async (req, res) => {
 
 export const createQuestion = asyncHandler(async (req, res) => {
   const question = await contentService.createQuestion({
-    lessonId: req.params.id,
+    lessonId: req.params.lessonId,
     data: req.body,
     user: req.session.user,
   });
@@ -203,7 +203,7 @@ export const createQuestion = asyncHandler(async (req, res) => {
 
 export const updateQuestion = asyncHandler(async (req, res) => {
   const question = await contentService.updateQuestion(
-    req.params.id,
+    req.params.questionId,
     req.body,
     req.session.user,
   );
@@ -212,19 +212,16 @@ export const updateQuestion = asyncHandler(async (req, res) => {
 });
 
 export const deleteQuestion = asyncHandler(async (req, res) => {
-  const question = await contentService.deleteQuestion(
-    req.params.id,
-    req.session.user,
-  );
+  await contentService.deleteQuestion(req.params.questionId, req.session.user);
 
-  return sendSuccess(res, question, { message: "Question deleted successfully" });
+  return sendSuccess(res, null, { message: "Question deleted successfully" });
 });
 
 // --- Answers (options) ---
 
 export const createAnswer = asyncHandler(async (req, res) => {
   const answer = await contentService.createAnswer({
-    questionId: req.params.id,
+    questionId: req.params.questionId,
     data: req.body,
     user: req.session.user,
   });
@@ -237,7 +234,7 @@ export const createAnswer = asyncHandler(async (req, res) => {
 
 export const updateAnswer = asyncHandler(async (req, res) => {
   const answer = await contentService.updateAnswer(
-    req.params.id,
+    req.params.optionId,
     req.body,
     req.session.user,
   );
@@ -246,10 +243,7 @@ export const updateAnswer = asyncHandler(async (req, res) => {
 });
 
 export const deleteAnswer = asyncHandler(async (req, res) => {
-  const answer = await contentService.deleteAnswer(
-    req.params.id,
-    req.session.user,
-  );
+  await contentService.deleteAnswer(req.params.optionId, req.session.user);
 
-  return sendSuccess(res, answer, { message: "Answer deleted successfully" });
+  return sendSuccess(res, null, { message: "Answer deleted successfully" });
 });

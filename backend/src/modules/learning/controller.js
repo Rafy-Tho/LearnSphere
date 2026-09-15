@@ -7,7 +7,7 @@ import * as learningService from "./service.js";
 
 export const enrollCourse = asyncHandler(async (req, res) => {
   const enrollment = await learningService.enrollCourse({
-    courseId: req.params.id,
+    courseId: req.params.courseId,
     userId: req.session.user.id,
   });
 
@@ -18,7 +18,7 @@ export const enrollCourse = asyncHandler(async (req, res) => {
 
 export const getEnrollment = asyncHandler(async (req, res) => {
   const enrollment = await learningService.getEnrollment({
-    courseId: req.params.id,
+    courseId: req.params.courseId,
     userId: req.session.user.id,
   });
 
@@ -31,7 +31,7 @@ export const getEnrollment = asyncHandler(async (req, res) => {
 
 export const createLearningProgress = asyncHandler(async (req, res) => {
   const progress = await learningService.createProgress({
-    courseId: req.params.id,
+    courseId: req.params.courseId,
     userId: req.session.user.id,
   });
 
@@ -43,13 +43,13 @@ export const createLearningProgress = asyncHandler(async (req, res) => {
 
 export const updateLearningProgress = asyncHandler(async (req, res) => {
   const { created, progress } = await learningService.updateProgress({
-    courseId: req.params.id,
+    courseId: req.params.courseId,
     userId: req.session.user.id,
     lessonId: req.body.lessonId,
   });
 
   return sendSuccess(res, progress, {
-    statusCode: created ? StatusCode.CREATED : StatusCode.OK,
+    statusCode: StatusCode.OK,
     message: created
       ? "Learning progress created successfully"
       : "Learning progress updated successfully",
@@ -58,7 +58,7 @@ export const updateLearningProgress = asyncHandler(async (req, res) => {
 
 export const getLearningProgress = asyncHandler(async (req, res) => {
   const progress = await learningService.getProgress({
-    courseId: req.params.id,
+    courseId: req.params.courseId,
     userId: req.session.user.id,
   });
 
@@ -71,7 +71,7 @@ export const getLearningProgress = asyncHandler(async (req, res) => {
 
 export const createLessonCompletion = asyncHandler(async (req, res) => {
   const completion = await learningService.createCompletion({
-    lessonId: req.params.id,
+    lessonId: req.params.lessonId,
     userId: req.session.user.id,
   });
 
@@ -83,7 +83,7 @@ export const createLessonCompletion = asyncHandler(async (req, res) => {
 
 export const getCourseLessonCompletions = asyncHandler(async (req, res) => {
   const completions = await learningService.getCourseCompletions({
-    courseId: req.params.id,
+    courseId: req.params.courseId,
     userId: req.session.user.id,
   });
 
@@ -94,7 +94,7 @@ export const getCourseLessonCompletions = asyncHandler(async (req, res) => {
 
 export const getLessonCompletion = asyncHandler(async (req, res) => {
   const completion = await learningService.getCompletion({
-    lessonId: req.params.id,
+    lessonId: req.params.lessonId,
     userId: req.session.user.id,
   });
 

@@ -28,7 +28,7 @@ export const getAllCourses = asyncHandler(async (req, res) => {
 
 export const updateCourse = asyncHandler(async (req, res) => {
   const course = await coursesService.updateCourse(
-    req.params.id,
+    req.params.courseId,
     req.body,
     req.session.user,
   );
@@ -37,28 +37,25 @@ export const updateCourse = asyncHandler(async (req, res) => {
 });
 
 export const deleteCourse = asyncHandler(async (req, res) => {
-  const course = await coursesService.deleteCourse(
-    req.params.id,
-    req.session.user,
-  );
+  await coursesService.deleteCourse(req.params.courseId, req.session.user);
 
-  return sendSuccess(res, course, { message: "Course deleted successfully" });
+  return sendSuccess(res, null, { message: "Course deleted successfully" });
 });
 
 export const getCourseDetails = asyncHandler(async (req, res) => {
-  const course = await coursesService.getCourseDetails(req.params.id);
+  const course = await coursesService.getCourseDetails(req.params.courseId);
 
   return sendSuccess(res, course, { message: "Course retrieved successfully" });
 });
 
 export const getCourseLearningData = asyncHandler(async (req, res) => {
   const data = await coursesService.getLearningData(
-    req.params.id,
+    req.params.courseId,
     req.session?.user?.id,
   );
 
   return sendSuccess(res, data, {
-    message: "Module details retrieved successfully",
+    message: "Course curriculum retrieved successfully",
   });
 });
 
@@ -87,18 +84,27 @@ export const getPopularCourses = asyncHandler(async (req, res) => {
 });
 
 export const getCourseInprogress = asyncHandler(async (req, res) => {
-  const data = await coursesService.getInProgress(
+  const { data, pagination } = await coursesService.getInProgress(
     req.session.user.id,
     req.query,
   );
 
-  return sendSuccess(res, data, { message: "Courses retrieved successfully" });
+  return sendSuccess(res, data, {
+    message: "Courses retrieved successfully",
+    pagination,
+  });
 });
 
 export const getCourseCompleted = asyncHandler(async (req, res) => {
-  const data = await coursesService.getCompleted(req.session.user.id, req.query);
+  const { data, pagination } = await coursesService.getCompleted(
+    req.session.user.id,
+    req.query,
+  );
 
-  return sendSuccess(res, data, { message: "Courses retrieved successfully" });
+  return sendSuccess(res, data, {
+    message: "Courses retrieved successfully",
+    pagination,
+  });
 });
 
 export const getCoursesDashboard = asyncHandler(async (req, res) => {
@@ -111,7 +117,10 @@ export const getCoursesDashboard = asyncHandler(async (req, res) => {
 });
 
 export const getCourseDetailsDashboard = asyncHandler(async (req, res) => {
-  const data = await coursesService.getDashboardDetails(req.params.id);
+  const data = await coursesService.getDashboardDetails(
+    req.params.courseId,
+    req.session.user,
+  );
 
   return sendSuccess(res, data, {
     message: "Course details retrieved successfully",
@@ -121,7 +130,7 @@ export const getCourseDetailsDashboard = asyncHandler(async (req, res) => {
 // --- Course objectives ---
 
 export const getCourseObjectives = asyncHandler(async (req, res) => {
-  const data = await coursesService.getCourseObjectives(req.params.id);
+  const data = await coursesService.getCourseObjectives(req.params.courseId);
 
   return sendSuccess(res, data, {
     message: "Course objectives retrieved successfully",
@@ -130,7 +139,7 @@ export const getCourseObjectives = asyncHandler(async (req, res) => {
 
 export const createCourseObjective = asyncHandler(async (req, res) => {
   const objective = await coursesService.createCourseObjective({
-    courseId: req.params.id,
+    courseId: req.params.courseId,
     data: req.body,
     user: req.session.user,
   });
@@ -143,7 +152,7 @@ export const createCourseObjective = asyncHandler(async (req, res) => {
 
 export const updateCourseObjective = asyncHandler(async (req, res) => {
   const objective = await coursesService.updateCourseObjective(
-    req.params.id,
+    req.params.objectiveId,
     req.body,
     req.session.user,
   );
@@ -154,12 +163,12 @@ export const updateCourseObjective = asyncHandler(async (req, res) => {
 });
 
 export const deleteCourseObjective = asyncHandler(async (req, res) => {
-  const objective = await coursesService.deleteCourseObjective(
-    req.params.id,
+  await coursesService.deleteCourseObjective(
+    req.params.objectiveId,
     req.session.user,
   );
 
-  return sendSuccess(res, objective, {
-    message: "Course objective delete successfully",
+  return sendSuccess(res, null, {
+    message: "Course objective deleted successfully",
   });
 });

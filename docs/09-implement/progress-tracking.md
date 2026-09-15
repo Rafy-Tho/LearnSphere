@@ -25,17 +25,20 @@ Counts are a rollup of the task files — update them when a task's status chang
 |---|---|---|---|---|---|
 | Foundation — shared infra migration | 6 | 6 | 0 | 0 | 0 |
 | Backend module migration | 15 | 10 | 2 | 3 | 0 |
-| DB migrations | 21 | 15 | 0 | 6 | 0 |
+| DB migrations | 21 | 21 | 0 | 0 | 0 |
+| API refactor | 24 | 24 | 0 | 0 | 0 |
+| Endpoint naming refactor | 39 | 39 | 0 | 0 | 0 |
 
-> Deferred (task files removed): phase 0–4, API endpoint refactors, security
+> Deferred (task files removed): phase 0–4, security
 > verification, performance baseline, frontend, documentation.
-
 ## Task Files
 
 | Area | File |
 |---|---|
 | Backend module migration | [`tasks/backend-modules.md`](./tasks/backend-modules.md) |
 | Database migrations | [`tasks/database-migrations.md`](./tasks/database-migrations.md) |
+| API refactor | [`tasks/api-refactor.md`](./tasks/api-refactor.md) |
+| Endpoint naming refactor | [`tasks/endpoint-refactor.md`](./tasks/endpoint-refactor.md) |
 
 ---
 
@@ -64,3 +67,14 @@ Counts are a rollup of the task files — update them when a task's status chang
 | 2026-09-15 | Drift decisions D-01/D-07/D-08 | ⬜ → ✅ | D-01 soft delete; D-07 plain-SQL runner; D-08 drop `course_reviews.helpful_count`; D5 obsolete. Implemented D8 (P1-7) and D7 (P1-5): `Course.delete` soft-deletes and all course read paths filter `deleted_at IS NULL`; added missing indexes. Apply `npm run db:migrate` to the live DB still pending. |
 | 2026-09-15 | Tasks kept in progress | 🟡 | `backend-modules.md` and `database-migrations.md` marked 🟡 In progress; remaining work (cross-module service calls, nested routers, ownership/validator gaps, admin invite; DB apply + verification) recorded in those task files. Rollup updated. |
 | 2026-09-15 | Deferred tasks removed | ⏭️ | Deleted `phase-0-safety-net`, `phase-1-security`, `phase-2-performance`, `phase-3-maintainability`, `phase-4-cleanup`, `api-refactor`, `security-verification`, `performance-baseline`, `frontend`, `documentation`. Rollup and task index trimmed to backend-modules + database-migrations. |
+| 2026-09-15 | DB migrations — applied to live DB + verified | 🟡 → ✅ | Backed up the live Neon DB, ran `npm run db:migrate` (applied `0001`–`0011`), re-ran to confirm idempotency, and completed DM-1–DM-5. DM-2: `pg_dump --schema-only` diff of `schema.sql` vs migrated on two scratch DBs differs only by a `pg_dump` token + a trailing space. DM-4: `EXPLAIN` uses the D7 indexes (composite `idx_courses_catalog` present but not preferred at 365 rows). DM-5: `GET /courses/:id/learn` → 200 + transactional D1–D4/soft-delete checks pass. Residual: the pre-existing live DB keeps legacy `lesson_content*` child object names alongside the canonical ones (harmless; noted in the task file). |
+| 2026-09-15 | API refactor plan + tasks created | ⬜ → 🟡 | Wrote [`../08-refactoring/backend/03-api.md`](../08-refactoring/backend/03-api.md) (standards, current-state audit of 97 endpoints, compatibility/consumer map, phases) and [`tasks/api-refactor.md`](./tasks/api-refactor.md) (AP-1…AP-6, 24 items). No code changed. |
+| 2026-09-15 | API decisions D-10…D-13 | — | Guest `/users/me` stays `200`+`null`; quiz questions route gated to enrolled learners (client-side scoring kept); paginate growing lists only; absent sub-resources stay `200`+`null`. Recorded in [`decisions.md`](./decisions.md). |
+| 2026-09-15 | API refactor — AP-1 | ⬜ → ✅ | Response/status standardization: top-level `pagination` on `GET /courses/in-progress` + `/completed`; `PATCH /progresses` now 200 (was 201); delete payloads standardized to `null` and messages fixed ("deleted", singular `Module`). All controllers confirmed on `sendSuccess`. `npx eslint .` 0 errors (7 pre-existing warnings). |
+| 2026-09-15 | API refactor — AP-2 | ⬜ → ✅ | Validation completeness: `:id` UUID param validators + `validateResult` added to all 13 DELETE endpoints (categories, courses, objectives, modules, chapters, lessons, contents, questions, options, admin users/plans/user-subs/payments) and to `POST /courses/:id/certificates` (new `certificates/validation.js`). Route import smoke test OK; `npx eslint .` 0 errors (7 pre-existing warnings). |
+| 2026-09-15 | API refactor — AP-3 | ⬜ → ✅ | Query/pagination: new `common/query/pagination.js` (`parsePagination` caps `limit` at 100 + rejects `NaN`/`Infinity`, `buildPagination`); `AdvancedQuery.paginate` uses it and `filter()` skips object values; removed dead `limitFields()`. Paginated `GET /admin/users`, admin plans/user-subscriptions/payments, and `GET /certificates/mine`; consumers updated (`UsersPage`, `SubscriptionsPage`, subscription hooks pass `limit=100`, `useMyCertificates` normalizes). Backend import OK; `npx eslint .` 0 errors; frontend + admin builds pass. Residual: admin subscriptions UI pagination controls deferred (bounded at 100). |
+| 2026-09-15 | API refactor — AP-4 | ⬜ → ✅ | Auth/ownership: `GET /lessons/:id/questions` now `requireAuth` + enrollment/owner/admin check (keeps `is_correct`/`explanation` per D-11; added `Lesson.getCourse`). `/courses/:id/dashboard-details` asserts instructor/admin ownership. `/courses/:id/learn` confirmed public by design (curriculum metadata only). Remaining modules confirmed session-scoped/public (enrollment checks already on completion + review). Backend import OK; `npx eslint .` 0 errors (7 pre-existing warnings). |
+| 2026-09-15 | API refactor — AP-5 | ⬜ → ✅ | Data exposure + null semantics: `auth/service.getUserById` strips `password`; `getInstructors` selects no password and is bounded (`LIMIT 5`); documented `200`+`data:null` absent semantics (plan §2.7, D-13) and guest `/users/me` (D-10); verified no double-wrap. Backend import OK; `npx eslint .` 0 errors (7 pre-existing warnings). |
+| 2026-09-15 | API refactor — AP-6 + done | ⬜ → ✅ | Consumers updated in lockstep during AP-3/AP-4; final verification: backend `npx eslint .` 0 errors + route import OK, admin + frontend `npm run build` pass (lint errors pre-existing in untouched files). Synced [`docs/04-design/api-design.md`](../04-design/api-design.md) (pagination shape/cap, null semantics, DELETE validators, quiz gate, admin pagination). **API refactor complete: 24/24.** Residual: admin subscriptions UI pagination controls deferred (bounded at 100). |
+| 2026-09-15 | Endpoint naming plan + tasks created | ⬜ → 🟡 | Wrote [`../08-refactoring/backend/04-endpoint-naming.md`](../08-refactoring/backend/04-endpoint-naming.md) (naming standard, full 97-endpoint current→target map, scalability findings N-1…N-15) and [`tasks/endpoint-refactor.md`](./tasks/endpoint-refactor.md) (ER-1…ER-12, 39 items). Decision D-14: in-place rename + coordinated consumer updates. No code changed. |
+| 2026-09-15 | Endpoint naming refactor — done | 🟡 → ✅ | Renamed the whole `/api/v1` surface to REST resources: `/auth/*`, `/users/me/*`, `/admin/{dashboard,courses,users,plans,subscriptions,payments}`, `/plans/:planId`, `/webhooks/stripe`, `/courses/:courseId/{curriculum,first-lesson,completions,progress,enrollments,certificates,reviews,objectives,modules}`, content collection/item split, `/reviews/:reviewId/helpful-vote` (PUT/DELETE). Removed broken dual-mounted collections and 5-level nesting; descriptive params everywhere. Updated `frontend/src/api/*` + `admin/src/services/*` in lockstep. Backend `npx eslint .` 0 errors + import OK; both frontend builds pass. `api-design.md` synced. **39/39.** Residual: update the Stripe dashboard webhook URL to `/api/v1/webhooks/stripe`. |

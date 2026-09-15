@@ -3,6 +3,7 @@ import {
   emailValidator,
   EnumValidator,
   textValidator,
+  uuidParamValidator,
 } from "../../common/validation.js";
 
 const ROLES = ["LEARNER", "INSTRUCTOR", "ADMIN"];
@@ -20,4 +21,8 @@ export const updateUserValidator = checkSchema({
   email: emailValidator("Email", true),
   role: EnumValidator("Role", ROLES, true),
   status: EnumValidator("Status", STATUSES, true),
+});
+
+export const userIdParamValidator = checkSchema({
+  userId: uuidParamValidator("User ID"),
 });

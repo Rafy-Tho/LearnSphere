@@ -13,10 +13,10 @@ export function useActiveSubscription() {
 
 export function useSubscriptionDetails() {
   const searchParams = new URLSearchParams(window.location.search);
-  const subscriptionId = searchParams.get("subscriptionId");
+  const planId = searchParams.get("planId");
   return useQuery({
     queryKey: ["subscription"],
-    queryFn: () => subscriptionsApi.getById(subscriptionId),
-    enabled: !!subscriptionId,
+    queryFn: () => subscriptionsApi.getById(planId),
+    enabled: !!planId,
   });
 }

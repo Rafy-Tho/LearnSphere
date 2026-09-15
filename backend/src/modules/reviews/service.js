@@ -46,7 +46,7 @@ export async function getReview({ userId, courseId }) {
   return Review.getReview({ userId, courseId });
 }
 
-export async function reviewHelpfulVote({ userId, reviewId, isHelpful }) {
+export async function setHelpfulVote({ userId, reviewId, isHelpful }) {
   const user = userId ? await User.findById(userId) : null;
   if (!user) throw new ApiError(StatusCode.NOT_FOUND, "User not found");
 
@@ -57,12 +57,25 @@ export async function reviewHelpfulVote({ userId, reviewId, isHelpful }) {
   const isHelpfulBool = isHelpful === true || isHelpful === "true";
 
   if (!existingVote) {
-    await Review.createReviewHelpfulVote({ userId, reviewId, isHelpful });
-  } else if (existingVote.is_helpful === isHelpfulBool) {
-    await Review.deleteReviewHelpfulVote({ userId, reviewId });
-  } else {
-    await Review.updateReviewHelpfulVote({ userId, reviewId, isHelpful });
+    await Review.createReviewHelpfulVote({
+      userId,
+      reviewId,
+      isHelpful: isHelpfulBool,
+    });
+  } else if (existingVote.is_helpful !== isHelpfulBool) {
+    await Review.updateReviewHelpfulVote({
+      userId,
+      reviewId,
+      isHelpful: isHelpfulBool,
+    });
   }
+}
+
+export async function removeHelpfulVote({ userId, reviewId }) {
+  const review = await Review.findById(reviewId);
+  if (!review) throw new ApiError(StatusCode.NOT_FOUND, "Review not found");
+
+  await Review.deleteReviewHelpfulVote({ userId, reviewId });
 }
 
 export async function createReviewReport({

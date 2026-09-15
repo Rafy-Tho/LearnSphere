@@ -4,30 +4,42 @@ import authorize from "../../common/middleware/authorize.js";
 import requireAuth from "../../common/middleware/requireAuth.js";
 import { validateResult } from "../../common/middleware/validateResult.js";
 import * as controller from "./controller.js";
-import { lessonContentValidator } from "./validation.js";
+import {
+  lessonContentIdParamValidator,
+  lessonContentValidator,
+} from "./validation.js";
 
-const lessonContentRoute = express.Router({ mergeParams: true });
+// Mounted at /api/v1/lessons/:lessonId/contents
+export const lessonContentCollectionRoute = express.Router({
+  mergeParams: true,
+});
 
-lessonContentRoute
-  .route("/")
-  .get(controller.getLessonContents)
-  .post(
-    requireAuth,
-    authorize(INSTRUCTOR, ADMIN),
-    lessonContentValidator,
-    validateResult,
-    controller.createLessonContent,
-  );
+lessonContentCollectionRoute.get("/", controller.getLessonContents);
+lessonContentCollectionRoute.post(
+  "/",
+  requireAuth,
+  authorize(INSTRUCTOR, ADMIN),
+  lessonContentValidator,
+  validateResult,
+  controller.createLessonContent,
+);
 
-lessonContentRoute
-  .route("/:id")
-  .patch(
-    requireAuth,
-    authorize(INSTRUCTOR, ADMIN),
-    lessonContentValidator,
-    validateResult,
-    controller.updateLessonContent,
-  )
-  .delete(requireAuth, authorize(INSTRUCTOR, ADMIN), controller.deleteLessonContent);
+// Mounted at /api/v1/contents
+export const lessonContentItemRoute = express.Router();
 
-export default lessonContentRoute;
+lessonContentItemRoute.patch(
+  "/:contentId",
+  requireAuth,
+  authorize(INSTRUCTOR, ADMIN),
+  lessonContentValidator,
+  validateResult,
+  controller.updateLessonContent,
+);
+lessonContentItemRoute.delete(
+  "/:contentId",
+  requireAuth,
+  authorize(INSTRUCTOR, ADMIN),
+  lessonContentIdParamValidator,
+  validateResult,
+  controller.deleteLessonContent,
+);

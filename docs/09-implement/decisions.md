@@ -15,6 +15,11 @@ Decisions that block or shape dependent work. Record a decision here **before** 
 | D-07 | Migration tooling | Plain SQL runner vs `node-pg-migrate` | ✅ | Plain SQL runner | 2026-09-15 | No new deps; `db/migrate.js` + `schema_migrations` |
 | D-08 | `course_reviews.helpful_count` | Maintain vs drop | ✅ | Drop column | 2026-09-15 | Never maintained; count derives from `review_helpful_votes` |
 | D-09 | Admin temp password | Email invite vs keep | ⬜ | | | Blocks P0-9 |
+| D-10 | Guest `GET /users/me` semantics | `200` + `data:null` vs `401` | ✅ | `200` + `data:null` | 2026-09-15 | Intentional; admin treats `null` as guest. Blocks AP-5.4 |
+| D-11 | Quiz answer-key exposure | Gate route vs server-side scoring vs split endpoints | ✅ | Gate to enrolled learners | 2026-09-15 | Keep `is_correct`/`explanation` (client scores); server-side scoring deferred. Blocks AP-4.1 |
+| D-12 | Pagination rollout | Growing lists only vs all lists vs bug-fixes-only | ✅ | Growing lists only | 2026-09-15 | Small child collections stay unpaginated; consumer updates required for admin lists. Blocks AP-3.3/3.4/3.5 |
+| D-13 | Absent sub-resource semantics | `200` + `data:null` vs `404` | ✅ | `200` + `data:null` | 2026-09-15 | Frontend guards rely on `null`; `404` reserved for missing parent resources. Blocks AP-5.3 |
+| D-14 | Endpoint rename migration strategy | In-place vs `/api/v2` vs legacy aliases | ✅ | In-place + update consumers | 2026-09-15 | No known external clients except Stripe webhook; update frontend/admin/Stripe in the same change. Blocks ER-1…ER-12 |
 
 ## Related
 
@@ -22,3 +27,4 @@ Decisions that block or shape dependent work. Record a decision here **before** 
 - Progress: [`progress-tracking.md`](./progress-tracking.md)
 - Security plan: [`../08-refactoring/security-plan.md`](../08-refactoring/security-plan.md)
 - Migration plan: [`../08-refactoring/backend/02-migration-plan.md`](../08-refactoring/backend/02-migration-plan.md)
+- API plan: [`../08-refactoring/backend/03-api.md`](../08-refactoring/backend/03-api.md)

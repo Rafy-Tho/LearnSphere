@@ -146,24 +146,25 @@ class UserRepository {
     return result.rows[0].total_users;
   }
 
-  async getInstructors() {
+  async getInstructors({ limit = 5 } = {}) {
     const query = `
       SELECT id, email, name, role, status, last_login, created_at, updated_at
       FROM users
       WHERE role = 'INSTRUCTOR'
+      ORDER BY created_at DESC
+      LIMIT $1
     `;
-    const result = await pgPool.query(query);
+    const result = await pgPool.query(query, [limit]);
     return result.rows;
   }
 
-  async findAll({ role, page = 1, limit = 20 } = {}) {
+  async findAll({ role, limit = 20, offset = 0 } = {}) {
     let whereClause = "";
     const params = [];
     if (role) {
       whereClause = "WHERE role = $1";
       params.push(role);
     }
-    const offset = (page - 1) * limit;
     const query = `
       SELECT id, email, name, role, status, last_login, created_at, updated_at
       FROM users

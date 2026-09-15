@@ -8,43 +8,75 @@ import {
   createPaymentValidator,
   createPlanValidator,
   createUserSubscriptionValidator,
+  paymentIdParamValidator,
+  planIdParamValidator,
   updatePaymentValidator,
   updatePlanValidator,
   updateUserSubscriptionValidator,
+  userSubscriptionIdParamValidator,
 } from "./admin.validation.js";
 
-const adminSubscriptionsRoute = express.Router();
+const guard = [requireAuth, authorize(ADMIN)];
 
-adminSubscriptionsRoute.use(requireAuth, authorize(ADMIN));
+// Mounted at /api/v1/admin/plans
+export const adminPlansRoute = express.Router();
+adminPlansRoute
+  .route("/")
+  .get(...guard, controller.getPlans)
+  .post(...guard, createPlanValidator, validateResult, controller.createPlan);
+adminPlansRoute
+  .route("/:planId")
+  .patch(...guard, updatePlanValidator, validateResult, controller.updatePlan)
+  .delete(...guard, planIdParamValidator, validateResult, controller.deletePlan);
 
-// Plans
+// Mounted at /api/v1/admin/subscriptions
+export const adminSubscriptionsRoute = express.Router();
 adminSubscriptionsRoute
-  .route("/plans")
-  .get(controller.getPlans)
-  .post(createPlanValidator, validateResult, controller.createPlan);
+  .route("/")
+  .get(...guard, controller.getUserSubscriptions)
+  .post(
+    ...guard,
+    createUserSubscriptionValidator,
+    validateResult,
+    controller.createUserSubscription,
+  );
 adminSubscriptionsRoute
-  .route("/plans/:id")
-  .patch(updatePlanValidator, validateResult, controller.updatePlan)
-  .delete(controller.deletePlan);
+  .route("/:subscriptionId")
+  .patch(
+    ...guard,
+    updateUserSubscriptionValidator,
+    validateResult,
+    controller.updateUserSubscription,
+  )
+  .delete(
+    ...guard,
+    userSubscriptionIdParamValidator,
+    validateResult,
+    controller.deleteUserSubscription,
+  );
 
-// User subscriptions
-adminSubscriptionsRoute
-  .route("/user-subscriptions")
-  .get(controller.getUserSubscriptions)
-  .post(createUserSubscriptionValidator, validateResult, controller.createUserSubscription);
-adminSubscriptionsRoute
-  .route("/user-subscriptions/:id")
-  .patch(updateUserSubscriptionValidator, validateResult, controller.updateUserSubscription)
-  .delete(controller.deleteUserSubscription);
-
-// Payments
-adminSubscriptionsRoute
-  .route("/payments")
-  .get(controller.getPayments)
-  .post(createPaymentValidator, validateResult, controller.createPayment);
-adminSubscriptionsRoute
-  .route("/payments/:id")
-  .patch(updatePaymentValidator, validateResult, controller.updatePayment)
-  .delete(controller.deletePayment);
-
-export default adminSubscriptionsRoute;
+// Mounted at /api/v1/admin/payments
+export const adminPaymentsRoute = express.Router();
+adminPaymentsRoute
+  .route("/")
+  .get(...guard, controller.getPayments)
+  .post(
+    ...guard,
+    createPaymentValidator,
+    validateResult,
+    controller.createPayment,
+  );
+adminPaymentsRoute
+  .route("/:paymentId")
+  .patch(
+    ...guard,
+    updatePaymentValidator,
+    validateResult,
+    controller.updatePayment,
+  )
+  .delete(
+    ...guard,
+    paymentIdParamValidator,
+    validateResult,
+    controller.deletePayment,
+  );

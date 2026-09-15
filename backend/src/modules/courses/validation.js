@@ -8,6 +8,7 @@ import {
   EnumValidator,
   numberValidator,
   textValidator,
+  uuidParamValidator,
   uuidValidator,
 } from "../../common/validation.js";
 
@@ -25,4 +26,12 @@ export const courseValidator = checkSchema({
 export const courseObjectiveValidator = checkSchema({
   position: numberValidator("Course Objective Position"),
   content: textValidator("Course Objective", false, 500),
+});
+
+export const courseIdParamValidator = checkSchema({
+  courseId: uuidParamValidator("Course ID"),
+});
+
+export const courseObjectiveIdParamValidator = checkSchema({
+  objectiveId: uuidParamValidator("Course Objective ID"),
 });

@@ -6,9 +6,9 @@ export const learningProgressValidator = checkSchema({
 });
 
 export const courseIdParamValidator = checkSchema({
-  id: uuidParamValidator("Course ID"),
+  courseId: uuidParamValidator("Course ID"),
 });
 
 export const lessonIdParamValidator = checkSchema({
-  id: uuidParamValidator("Lesson ID"),
+  lessonId: uuidParamValidator("Lesson ID"),
 });

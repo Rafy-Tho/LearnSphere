@@ -4,11 +4,17 @@ import { validateResult } from "../../common/middleware/validateResult.js";
 import * as controller from "./controller.js";
 import { lessonIdParamValidator } from "./validation.js";
 
+// Mounted at /api/v1/lessons/:lessonId/completions
 const completionRoute = express.Router({ mergeParams: true });
 
 completionRoute
   .route("/")
-  .post(requireAuth, lessonIdParamValidator, validateResult, controller.createLessonCompletion)
+  .post(
+    requireAuth,
+    lessonIdParamValidator,
+    validateResult,
+    controller.createLessonCompletion,
+  )
   .get(requireAuth, controller.getLessonCompletion);
 
 export default completionRoute;

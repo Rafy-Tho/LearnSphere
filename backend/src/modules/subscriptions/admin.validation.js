@@ -5,6 +5,7 @@ import {
   floatValidator,
   numberValidator,
   textValidator,
+  uuidParamValidator,
   uuidValidator,
 } from "../../common/validation.js";
 
@@ -50,4 +51,16 @@ export const updatePaymentValidator = checkSchema({
   amount: floatValidator("Amount", true),
   payment_status: EnumValidator("Payment status", PAYMENT_STATUSES, true),
   stripe_payment_intent_id: textValidator("Stripe payment intent ID", true, 255),
+});
+
+export const planIdParamValidator = checkSchema({
+  planId: uuidParamValidator("Plan ID"),
+});
+
+export const userSubscriptionIdParamValidator = checkSchema({
+  subscriptionId: uuidParamValidator("User subscription ID"),
+});
+
+export const paymentIdParamValidator = checkSchema({
+  paymentId: uuidParamValidator("Payment ID"),
 });

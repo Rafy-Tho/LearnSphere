@@ -3,6 +3,7 @@ import StatusCode from "../../common/constants/StatusCode.js";
 import assertOwnership from "../../common/auth/ownership.js";
 import Subscription from "../subscriptions/repository.js";
 import Course from "../courses/repository.js";
+import Enrollment from "../learning/repository.js";
 import Module from "./module.repository.js";
 import Chapter from "./chapter.repository.js";
 import Lesson from "./lesson.repository.js";
@@ -218,9 +219,28 @@ export async function getFirstLesson(courseId) {
   return firstLesson;
 }
 
-export async function getQuestions(lessonId) {
+export async function getQuestions(lessonId, user) {
   const lesson = await Lesson.findById(lessonId);
   if (!lesson) throw new ApiError(StatusCode.NOT_FOUND, "Lesson not found");
+
+  const course = await Lesson.getCourse(lessonId);
+  if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Lesson not found");
+
+  const isAdmin = user?.role === "ADMIN";
+  const isOwner = course.instructor_id === user?.id;
+
+  if (!isAdmin && !isOwner) {
+    const enrollment = await Enrollment.findOne({
+      courseId: course.course_id,
+      userId: user?.id,
+    });
+    if (!enrollment) {
+      throw new ApiError(
+        StatusCode.FORBIDDEN,
+        "You must be enrolled in this course to view the quiz",
+      );
+    }
+  }
 
   const questions = await Lesson.getQuestions(lessonId);
   if (!questions) throw new ApiError(StatusCode.NOT_FOUND, "Questions not found");

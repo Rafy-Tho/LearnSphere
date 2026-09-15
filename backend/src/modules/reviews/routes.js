@@ -8,23 +8,36 @@ import {
   reviewValidator,
 } from "./validation.js";
 
-const reviewsRoute = express.Router({ mergeParams: true });
+// Mounted at /api/v1/courses/:courseId/reviews
+export const reviewsCollectionRoute = express.Router({ mergeParams: true });
 
-reviewsRoute
+reviewsCollectionRoute
   .route("/")
   .get(controller.getReviews)
   .post(requireAuth, reviewValidator, validateResult, controller.createReview);
 
-reviewsRoute.route("/summary").get(controller.getReviewDetail);
+reviewsCollectionRoute.get("/summary", controller.getReviewDetail);
+reviewsCollectionRoute.get("/me", requireAuth, controller.getReview);
 
-reviewsRoute
-  .route("/:id/helpful-votes")
-  .post(requireAuth, helpfulVoteValidator, validateResult, controller.reviewHelpfulVote);
+// Mounted at /api/v1/reviews
+export const reviewsItemRoute = express.Router();
 
-reviewsRoute
-  .route("/:id/reports")
-  .post(requireAuth, reportValidator, validateResult, controller.createReviewReport);
-
-reviewsRoute.route("/me").get(requireAuth, controller.getReview);
-
-export default reviewsRoute;
+reviewsItemRoute.put(
+  "/:reviewId/helpful-vote",
+  requireAuth,
+  helpfulVoteValidator,
+  validateResult,
+  controller.setHelpfulVote,
+);
+reviewsItemRoute.delete(
+  "/:reviewId/helpful-vote",
+  requireAuth,
+  controller.removeHelpfulVote,
+);
+reviewsItemRoute.post(
+  "/:reviewId/reports",
+  requireAuth,
+  reportValidator,
+  validateResult,
+  controller.createReviewReport,
+);

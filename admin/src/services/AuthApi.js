@@ -1,6 +1,6 @@
 class AuthApi {
   constructor() {
-    this.baseUrl = import.meta.env.VITE_BASE_URL + "/users";
+    this.baseUrl = import.meta.env.VITE_BASE_URL + "/auth";
   }
   async login(data) {
     const res = await fetch(`${this.baseUrl}/login`, {

@@ -61,11 +61,7 @@ export async function authenticate({ email, password }) {
 }
 
 export async function getUserById(userId) {
-  return User.findById(userId);
-}
-
-export async function getMe(userId) {
-  const user = userId ? await User.findById(userId) : null;
+  const user = await User.findById(userId);
   if (user) delete user.password;
   return user;
 }

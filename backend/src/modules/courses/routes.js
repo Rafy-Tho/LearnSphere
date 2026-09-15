@@ -3,28 +3,24 @@ import { ADMIN, INSTRUCTOR } from "../../common/constants/constants.js";
 import authorize from "../../common/middleware/authorize.js";
 import requireAuth from "../../common/middleware/requireAuth.js";
 import { validateResult } from "../../common/middleware/validateResult.js";
-// TODO(refactor): nested routers move into their own modules.
-import certificateRoute from "../certificates/routes.js";
+import { getFirstLesson } from "../content/controller.js";
+import { getCourseLessonCompletions } from "../learning/controller.js";
 import enrollmentRoute from "../learning/enrollment.routes.js";
 import progressRoute from "../learning/progress.routes.js";
-import lessonRoute from "../content/lesson.routes.js";
-import moduleRoute from "../content/module.routes.js";
-import reviewsRoute from "../reviews/routes.js";
-import { getCourseLessonCompletions } from "../learning/controller.js";
-import objectivesRoute from "./objectives.routes.js";
+import { courseCertificateRoute } from "../certificates/routes.js";
+import { reviewsCollectionRoute } from "../reviews/routes.js";
 import * as controller from "./controller.js";
-import { courseValidator } from "./validation.js";
+import { objectivesCollectionRoute } from "./objectives.routes.js";
+import { courseIdParamValidator, courseValidator } from "./validation.js";
 
 const coursesRoute = express.Router();
 
-// Nested resources
-coursesRoute.use("/:id/modules", moduleRoute);
-coursesRoute.use("/:id/objectives", objectivesRoute);
-coursesRoute.use("/:id/lessons", lessonRoute);
-coursesRoute.use("/:id/reviews", reviewsRoute);
-coursesRoute.use("/:id/enrollments", enrollmentRoute);
-coursesRoute.use("/:id/progresses", progressRoute);
-coursesRoute.use("/:id/certificates", certificateRoute);
+// Nested collections (max 1 level)
+coursesRoute.use("/:courseId/objectives", objectivesCollectionRoute);
+coursesRoute.use("/:courseId/reviews", reviewsCollectionRoute);
+coursesRoute.use("/:courseId/enrollments", enrollmentRoute);
+coursesRoute.use("/:courseId/progress", progressRoute);
+coursesRoute.use("/:courseId/certificates", courseCertificateRoute);
 
 // Courses
 coursesRoute
@@ -38,26 +34,10 @@ coursesRoute
     controller.createCourse,
   );
 
-coursesRoute.get("/recently-viewed", requireAuth, controller.getRecentlyViewedCourses);
-coursesRoute.get("/recommended", requireAuth, controller.getRecommendedCourses);
 coursesRoute.get("/popular", controller.getPopularCourses);
-coursesRoute.get("/in-progress", requireAuth, controller.getCourseInprogress);
-coursesRoute.get("/completed", requireAuth, controller.getCourseCompleted);
-coursesRoute.get(
-  "/dashboard",
-  requireAuth,
-  authorize(ADMIN, INSTRUCTOR),
-  controller.getCoursesDashboard,
-);
-coursesRoute.get(
-  "/:id/dashboard-details",
-  requireAuth,
-  authorize(ADMIN, INSTRUCTOR),
-  controller.getCourseDetailsDashboard,
-);
 
 coursesRoute
-  .route("/:id")
+  .route("/:courseId")
   .get(controller.getCourseDetails)
   .patch(
     requireAuth,
@@ -66,11 +46,18 @@ coursesRoute
     validateResult,
     controller.updateCourse,
   )
-  .delete(requireAuth, authorize(INSTRUCTOR, ADMIN), controller.deleteCourse);
+  .delete(
+    requireAuth,
+    authorize(INSTRUCTOR, ADMIN),
+    courseIdParamValidator,
+    validateResult,
+    controller.deleteCourse,
+  );
 
-coursesRoute.get("/:id/learn", controller.getCourseLearningData);
+coursesRoute.get("/:courseId/curriculum", controller.getCourseLearningData);
+coursesRoute.get("/:courseId/first-lesson", getFirstLesson);
 coursesRoute.get(
-  "/:id/lesson-completions",
+  "/:courseId/completions",
   requireAuth,
   getCourseLessonCompletions,
 );

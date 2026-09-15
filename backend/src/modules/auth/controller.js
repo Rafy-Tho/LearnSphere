@@ -49,16 +49,6 @@ export const logout = asyncHandler(async (req, res) => {
   return sendSuccess(res, null, { message: "User logged out successfully" });
 });
 
-export const getMe = asyncHandler(async (req, res) => {
-  const userId = req.session?.user?.id || null;
-
-  const user = await authService.getMe(userId);
-
-  return sendSuccess(res, user, {
-    message: "User info retrieved successfully",
-  });
-});
-
 export const sendPasswordResetCode = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
@@ -83,13 +73,4 @@ export const resetPassword = asyncHandler(async (req, res) => {
   await authService.resetUserPassword({ email, code, password });
 
   return sendSuccess(res, null, { message: "Password reset successfully" });
-});
-
-export const updatePassword = asyncHandler(async (req, res) => {
-  const userId = req.session.user.id;
-  const { oldPassword, newPassword } = req.body;
-
-  await authService.changePassword({ userId, oldPassword, newPassword });
-
-  return sendSuccess(res, null, { message: "Password updated successfully" });
 });

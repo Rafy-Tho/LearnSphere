@@ -10,12 +10,14 @@ All implementation tasks, grouped by area. **Status lives in the task files**; t
 |---|---|---|
 | Backend module migration | [`backend-modules.md`](./backend-modules.md) | 10 modules + BM-1…BM-5 |
 | Database migrations | [`database-migrations.md`](./database-migrations.md) | 0001+ / DM-1…DM-5 |
+| API refactor | [`api-refactor.md`](./api-refactor.md) | AP-1…AP-6 |
+| Endpoint naming refactor | [`endpoint-refactor.md`](./endpoint-refactor.md) | ER-1…ER-12 |
 
 Decisions that block tasks: [`../decisions.md`](../decisions.md).
 
-> The phase 0–4, API refactor, security verification, performance baseline,
-> frontend, and documentation task files were removed — that work is deferred.
-> Backend module migration and database migrations are the active areas.
+> The phase 0–4, security verification, performance baseline, frontend, and
+> documentation task files were removed — that work is deferred. Backend module
+> migration, database migrations, and the API refactor are the active areas.
 
 ## Plan References
 
@@ -24,7 +26,9 @@ Decisions that block tasks: [`../decisions.md`](../decisions.md).
 - [`../../08-refactoring/architecture-plan.md`](../../08-refactoring/architecture-plan.md) — target architecture
 - [`../../08-refactoring/backend/01-structure.md`](../../08-refactoring/backend/01-structure.md) — target structure
 - [`../../08-refactoring/backend/02-migration-plan.md`](../../08-refactoring/backend/02-migration-plan.md) — DB migrations
-- [`../../08-refactoring/api-refactor-plan.md`](../../08-refactoring/api-refactor-plan.md) — API refactor
+- [`../../08-refactoring/backend/03-api.md`](../../08-refactoring/backend/03-api.md) — API refactor
+- [`../../08-refactoring/backend/04-endpoint-naming.md`](../../08-refactoring/backend/04-endpoint-naming.md) — endpoint naming refactor
+- [`../../08-refactoring/api-refactor-plan.md`](../../08-refactoring/api-refactor-plan.md) — API refactor (origin audit)
 - [`../../08-refactoring/performance-plan.md`](../../08-refactoring/performance-plan.md) — performance
 - [`../../08-refactoring/security-plan.md`](../../08-refactoring/security-plan.md) — security
 
@@ -36,4 +40,4 @@ Decisions that block tasks: [`../decisions.md`](../decisions.md).
 4. Record decisions in [`../decisions.md`](../decisions.md) before dependent work.
 5. Link the commit/PR when a task is ✅.
 
-> Scope note: backend module migration and database migrations are the active areas; all other phases are deferred.
+> Scope note: backend module migration, database migrations, and the API refactor are the active areas; all other phases are deferred.

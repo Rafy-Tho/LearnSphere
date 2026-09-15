@@ -3,39 +3,37 @@ import { ADMIN, INSTRUCTOR } from "../../common/constants/constants.js";
 import authorize from "../../common/middleware/authorize.js";
 import requireAuth from "../../common/middleware/requireAuth.js";
 import { validateResult } from "../../common/middleware/validateResult.js";
-import completionRoute from "../learning/completion.routes.js";
-import lessonContentRoute from "./lessonContent.routes.js";
-import questionRoute from "./question.routes.js";
 import * as controller from "./controller.js";
-import { lessonValidator } from "./validation.js";
+import { lessonIdParamValidator, lessonValidator } from "./validation.js";
 
-const lessonRoute = express.Router({ mergeParams: true });
+// Mounted at /api/v1/chapters/:chapterId/lessons
+export const lessonCollectionRoute = express.Router({ mergeParams: true });
 
-lessonRoute.use("/:id/contents", lessonContentRoute);
-lessonRoute.use("/:id/questions", questionRoute);
-lessonRoute.use("/:id/completions", completionRoute);
+lessonCollectionRoute.post(
+  "/",
+  requireAuth,
+  authorize(INSTRUCTOR, ADMIN),
+  lessonValidator,
+  validateResult,
+  controller.createLesson,
+);
 
-lessonRoute
-  .route("/")
-  .post(
-    requireAuth,
-    authorize(INSTRUCTOR, ADMIN),
-    lessonValidator,
-    validateResult,
-    controller.createLesson,
-  );
+// Mounted at /api/v1/lessons
+export const lessonItemRoute = express.Router();
 
-lessonRoute
-  .route("/:id")
-  .patch(
-    requireAuth,
-    authorize(INSTRUCTOR, ADMIN),
-    lessonValidator,
-    validateResult,
-    controller.updateLesson,
-  )
-  .delete(requireAuth, authorize(INSTRUCTOR, ADMIN), controller.deleteLesson);
-
-lessonRoute.get("/first", controller.getFirstLesson);
-
-export default lessonRoute;
+lessonItemRoute.patch(
+  "/:lessonId",
+  requireAuth,
+  authorize(INSTRUCTOR, ADMIN),
+  lessonValidator,
+  validateResult,
+  controller.updateLesson,
+);
+lessonItemRoute.delete(
+  "/:lessonId",
+  requireAuth,
+  authorize(INSTRUCTOR, ADMIN),
+  lessonIdParamValidator,
+  validateResult,
+  controller.deleteLesson,
+);

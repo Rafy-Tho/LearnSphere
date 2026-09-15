@@ -28,9 +28,8 @@ export default function UsersPage({ filterRole, title, subtitle }) {
   const { createUser, isPending: isCreating } = useCreateUser();
   const { updateUser, isPending: isUpdating } = useUpdateUser();
   const { deleteUser, isPending: isDeleting } = useDeleteUser();
-  const users = data?.data?.users || [];
-  const total = data?.data?.total || 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const users = data?.data || [];
+  const totalPages = data?.pagination?.totalPages || 1;
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({

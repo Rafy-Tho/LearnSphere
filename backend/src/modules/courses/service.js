@@ -119,9 +119,15 @@ export async function getDashboard(query) {
   return Course.getAllCoursesDashboard(query);
 }
 
-export async function getDashboardDetails(courseId) {
+export async function getDashboardDetails(courseId, user) {
   const course = await Course.findById(courseId);
   if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
+
+  assertOwnership({
+    ownerId: course.instructor_id,
+    user,
+    message: "You are not authorized to view this course dashboard",
+  });
 
   // TODO(perf): consolidate these into 1-2 aggregate queries (audit P1-1).
   const objectives = await CourseObjective.getObjectivesByCourseId(courseId);

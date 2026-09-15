@@ -163,6 +163,19 @@ class LessonRepository {
     const result = await pgPool.query(query, [id]);
     return result.rows[0];
   }
+
+  async getCourse(id) {
+    const query = `
+    SELECT c.id AS course_id, c.instructor_id
+    FROM courses c
+    JOIN modules m ON m.course_id = c.id
+    JOIN chapters ch ON ch.module_id = m.id
+    JOIN lessons ls ON ls.chapter_id = ch.id
+    WHERE ls.id = $1
+    `;
+    const result = await pgPool.query(query, [id]);
+    return result.rows[0];
+  }
 }
 const Lesson = new LessonRepository();
 export default Lesson;

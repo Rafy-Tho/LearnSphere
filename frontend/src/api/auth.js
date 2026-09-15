@@ -1,10 +1,11 @@
 import { api } from "./client";
 
 export const authApi = {
-  login: (data) => api.post("/users/login", data),
-  register: (data) => api.post("/users/register", data),
-  logout: () => api.post("/users/logout"),
-  sendResetPasswordCode: (data) => api.post("/users/password-reset-code", data),
-  verifyPasswordResetCode: (data) => api.post("/users/verify-password-reset-code", data),
-  resetPassword: (data) => api.post("/users/reset-password", data),
+  login: (data) => api.post("/auth/login", data),
+  register: (data) => api.post("/auth/register", data),
+  logout: () => api.post("/auth/logout"),
+  sendResetPasswordCode: (data) => api.post("/auth/password-resets", data),
+  verifyPasswordResetCode: (data) =>
+    api.post("/auth/password-resets/verify", data),
+  resetPassword: (data) => api.patch("/auth/password", data),
 };

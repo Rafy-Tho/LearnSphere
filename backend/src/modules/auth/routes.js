@@ -11,8 +11,12 @@ import * as validation from "./validation.js";
 
 const authRoute = express.Router();
 
-// Public
-authRoute.post("/register", validation.validateRegister, validateResult, controller.register);
+authRoute.post(
+  "/register",
+  validation.validateRegister,
+  validateResult,
+  controller.register,
+);
 authRoute.post(
   "/login",
   loginLimiter,
@@ -20,37 +24,27 @@ authRoute.post(
   validateResult,
   controller.login,
 );
-authRoute.get("/me", controller.getMe);
+authRoute.post("/logout", requireAuth, controller.logout);
 authRoute.post(
-  "/password-reset-code",
+  "/password-resets",
   passwordResetLimiter,
   validation.validateEmailResetCode,
   validateResult,
   controller.sendPasswordResetCode,
 );
 authRoute.post(
-  "/verify-password-reset-code",
+  "/password-resets/verify",
   codeAttemptsLimiter,
   validation.validateSendResetPasswordCode,
   validateResult,
   controller.verifyPasswordResetCode,
 );
-authRoute.post(
-  "/reset-password",
+authRoute.patch(
+  "/password",
   codeAttemptsLimiter,
   validation.validateResetPassword,
   validateResult,
   controller.resetPassword,
-);
-
-// Private
-authRoute.post("/logout", requireAuth, controller.logout);
-authRoute.patch(
-  "/update-password",
-  requireAuth,
-  validation.validateUpdatePassword,
-  validateResult,
-  controller.updatePassword,
 );
 
 export default authRoute;

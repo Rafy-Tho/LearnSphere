@@ -14,6 +14,12 @@ export async function getProfile(userId) {
   return user;
 }
 
+export async function getMe(userId) {
+  const user = userId ? await User.findById(userId) : null;
+  if (user) delete user.password;
+  return user;
+}
+
 export async function updateProfile({ userId, data, imageFile }) {
   const user = await User.findById(userId);
   if (!user) throw new ApiError(StatusCode.NOT_FOUND, "User not found");

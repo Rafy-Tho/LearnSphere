@@ -190,6 +190,7 @@ export function useMyCertificates() {
   return useQuery({
     queryKey: ["my-certificates"],
     queryFn: () => coursesApi.getMyCertificates(),
+    select: (result) => (Array.isArray(result) ? result : result?.data ?? []),
   });
 }
 

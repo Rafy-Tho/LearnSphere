@@ -4,11 +4,11 @@ import authorize from "../../common/middleware/authorize.js";
 import { ADMIN, INSTRUCTOR } from "../../common/constants/constants.js";
 import * as controller from "./controller.js";
 
-// Mounted under /api/v1/users
+// Mounted at /api/v1/admin
 const adminRoute = express.Router();
 
 adminRoute.get(
-  "/dashboard-data",
+  "/dashboard",
   requireAuth,
   authorize(INSTRUCTOR, ADMIN),
   controller.getDashboardData,

@@ -18,7 +18,7 @@ class UserApi {
     return result;
   }
   async getProfile() {
-    const res = await fetch(`${this.baseUrl}/profile`, {
+    const res = await fetch(`${this.baseUrl}/me/profile`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -32,7 +32,7 @@ class UserApi {
     return result;
   }
   async updateProfile(data) {
-    const res = await fetch(`${this.baseUrl}/profile`, {
+    const res = await fetch(`${this.baseUrl}/me/profile`, {
       method: "PATCH",
       body: data,
       credentials: "include",
@@ -44,7 +44,7 @@ class UserApi {
     return result;
   }
   async updatePassword(data) {
-    const res = await fetch(`${this.baseUrl}/update-password`, {
+    const res = await fetch(`${this.baseUrl}/me/password`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
@@ -59,13 +59,16 @@ class UserApi {
     return result;
   }
   async getDashboardData() {
-    const res = await fetch(`${this.baseUrl}/dashboard-data`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
+    const res = await fetch(
+      `${import.meta.env.VITE_BASE_URL}/admin/dashboard`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
       },
-      credentials: "include",
-    });
+    );
     const result = await res.json();
     if (!res.ok) {
       throw new Error(result.message || "Failed to fetch dashboard data");

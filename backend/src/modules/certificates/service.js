@@ -1,5 +1,9 @@
 import ApiError from "../../common/errors/ApiError.js";
 import StatusCode from "../../common/constants/StatusCode.js";
+import {
+  buildPagination,
+  parsePagination,
+} from "../../common/query/pagination.js";
 import ENV from "../../config/Env.js";
 import Course from "../courses/repository.js";
 import Enrollment from "../learning/repository.js";
@@ -63,8 +67,18 @@ export async function getCertificate({ courseId, userId }) {
   return Certificate.findByUserAndCourse({ userId, courseId });
 }
 
-export async function getMyCertificates(userId) {
-  return Certificate.findByUser(userId);
+export async function getMyCertificates(userId, query = {}) {
+  const { page, limit, offset } = parsePagination(query, { defaultLimit: 50 });
+
+  const [certificates, total] = await Promise.all([
+    Certificate.findByUser(userId, { limit, offset }),
+    Certificate.countByUser(userId),
+  ]);
+
+  return {
+    data: certificates,
+    pagination: buildPagination({ total, page, limit }),
+  };
 }
 
 export async function getCertificateById(certificateId) {

@@ -17,9 +17,10 @@ export function usePayments() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin-payments"],
-    queryFn: () => subscriptionApi.getPayments(),
+    queryFn: () => subscriptionApi.getPayments("limit=100"),
   });
   const payments = data?.data || [];
+  const pagination = data?.pagination;
 
   const createMutation = useMutation({
     mutationFn: (data) => subscriptionApi.createPayment(data),
@@ -118,6 +119,7 @@ export function usePayments() {
 
   return {
     payments,
+    pagination,
     isLoading,
     modalOpen,
     setModalOpen,

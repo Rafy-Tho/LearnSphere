@@ -23,8 +23,8 @@ export default function SubscriptionsPage() {
   const planHook = usePlans();
   const subHook = useSubscriptions();
   const payHook = usePayments();
-  const { data: learnersData } = useGetUsers({ role: "LEARNER" });
-  const learners = learnersData?.data?.users || [];
+  const { data: learnersData } = useGetUsers({ role: "LEARNER", limit: 100 });
+  const learners = learnersData?.data || [];
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const isLoading = planHook.isLoading || subHook.isLoading || payHook.isLoading;

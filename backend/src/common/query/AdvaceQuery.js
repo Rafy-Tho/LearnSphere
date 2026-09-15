@@ -1,4 +1,5 @@
 import pgPool from "../../config/database.js";
+import { buildPagination, parsePagination } from "./pagination.js";
 
 class AdvancedQuery {
   constructor({
@@ -38,6 +39,12 @@ class AdvancedQuery {
       if (!column) return;
 
       const value = queryObj[key];
+
+      // Ignore nested object values (e.g. from an extended query parser)
+      // instead of passing them to Postgres as a parameter.
+      if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+        return;
+      }
 
       // =========================
       // ✅ HANDLE ARRAY (IN QUERY)
@@ -126,25 +133,10 @@ class AdvancedQuery {
   }
 
   // =========================
-  // 4️⃣ FIELD LIMITING
-  // =========================
-  limitFields() {
-    if (this.queryString.fields) {
-      this.select = this.queryString.fields
-        .split(",")
-        .map((f) => this.sortMap[f] || f)
-        .join(", ");
-    }
-    return this;
-  }
-
-  // =========================
-  // 5️⃣ PAGINATION
+  // 4️⃣ PAGINATION
   // =========================
   async paginate(extraValues = []) {
-    const page = Math.max(1, Number(this.queryString.page) || 1);
-    const limit = Math.max(1, Number(this.queryString.limit) || 10);
-    const offset = (page - 1) * limit;
+    const { page, limit, offset } = parsePagination(this.queryString);
 
     const whereClause = this.where.length
       ? `WHERE ${this.where.join(" AND ")}`
@@ -159,15 +151,7 @@ class AdvancedQuery {
 
     const total = Number(countResult.rows[0].count);
 
-    this.pagination = {
-      totalItems: total,
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-      limit,
-    };
-
-    if (page * limit < total) this.pagination.next = page + 1;
-    if (page > 1) this.pagination.prev = page - 1;
+    this.pagination = buildPagination({ total, page, limit });
 
     this.limit = `LIMIT ${limit}`;
     this.offset = `OFFSET ${offset}`;

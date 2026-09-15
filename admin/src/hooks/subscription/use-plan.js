@@ -12,9 +12,10 @@ export function usePlans() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-plans'],
-    queryFn: () => subscriptionApi.getPlans(),
+    queryFn: () => subscriptionApi.getPlans('limit=100'),
   });
   const plans = data?.data || [];
+  const pagination = data?.pagination;
 
   const createMutation = useMutation({
     mutationFn: (data) => subscriptionApi.createPlan(data),
@@ -77,6 +78,7 @@ export function usePlans() {
 
   return {
     plans,
+    pagination,
     isLoading,
     modalOpen,
     setModalOpen,

@@ -4,7 +4,7 @@ import authorize from "../../common/middleware/authorize.js";
 import { validateResult } from "../../common/middleware/validateResult.js";
 import { ADMIN } from "../../common/constants/constants.js";
 import * as controller from "./controller.js";
-import { categoryValidator } from "./validation.js";
+import { categoryIdParamValidator, categoryValidator } from "./validation.js";
 
 const categoriesRoute = express.Router();
 
@@ -29,6 +29,12 @@ categoriesRoute
     validateResult,
     controller.updateCategory,
   )
-  .delete(requireAuth, authorize(ADMIN), controller.deleteCategory);
+  .delete(
+    requireAuth,
+    authorize(ADMIN),
+    categoryIdParamValidator,
+    validateResult,
+    controller.deleteCategory,
+  );
 
 export default categoriesRoute;

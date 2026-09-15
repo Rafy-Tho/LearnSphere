@@ -1,10 +1,13 @@
 class SubscriptionApi {
   constructor() {
-    this.baseUrl = import.meta.env.VITE_BASE_URL + '/admin/subscriptions';
+    this.baseUrl = import.meta.env.VITE_BASE_URL + '/admin';
   }
 
-  async getPlans() {
-    const response = await fetch(`${this.baseUrl}/plans`, {
+  async getPlans(params) {
+    const url = params
+      ? `${this.baseUrl}/plans?${params}`
+      : `${this.baseUrl}/plans`;
+    const response = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -57,8 +60,11 @@ class SubscriptionApi {
     return result;
   }
 
-  async getUserSubscriptions() {
-    const response = await fetch(`${this.baseUrl}/user-subscriptions`, {
+  async getUserSubscriptions(params) {
+    const url = params
+      ? `${this.baseUrl}/subscriptions?${params}`
+      : `${this.baseUrl}/subscriptions`;
+    const response = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -71,7 +77,7 @@ class SubscriptionApi {
   }
 
   async createUserSubscription(data) {
-    const response = await fetch(`${this.baseUrl}/user-subscriptions`, {
+    const response = await fetch(`${this.baseUrl}/subscriptions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -85,7 +91,7 @@ class SubscriptionApi {
   }
 
   async updateUserSubscription(id, data) {
-    const response = await fetch(`${this.baseUrl}/user-subscriptions/${id}`, {
+    const response = await fetch(`${this.baseUrl}/subscriptions/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -99,7 +105,7 @@ class SubscriptionApi {
   }
 
   async deleteUserSubscription(id) {
-    const response = await fetch(`${this.baseUrl}/user-subscriptions/${id}`, {
+    const response = await fetch(`${this.baseUrl}/subscriptions/${id}`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -111,8 +117,11 @@ class SubscriptionApi {
     return result;
   }
 
-  async getPayments() {
-    const response = await fetch(`${this.baseUrl}/payments`, {
+  async getPayments(params) {
+    const url = params
+      ? `${this.baseUrl}/payments?${params}`
+      : `${this.baseUrl}/payments`;
+    const response = await fetch(url, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

@@ -12,7 +12,7 @@ export const getAllCategories = asyncHandler(async (req, res) => {
 });
 
 export const getCategoryById = asyncHandler(async (req, res) => {
-  const category = await categoriesService.getCategory(req.params.id);
+  const category = await categoriesService.getCategory(req.params.categoryId);
 
   return sendSuccess(res, category, {
     message: "Category retrieved successfully",
@@ -30,7 +30,7 @@ export const createCategory = asyncHandler(async (req, res) => {
 
 export const updateCategory = asyncHandler(async (req, res) => {
   const category = await categoriesService.updateCategory(
-    req.params.id,
+    req.params.categoryId,
     req.body,
   );
 
@@ -40,7 +40,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
 });
 
 export const deleteCategory = asyncHandler(async (req, res) => {
-  await categoriesService.deleteCategory(req.params.id);
+  await categoriesService.deleteCategory(req.params.categoryId);
 
   return sendSuccess(res, null, { message: "Category deleted successfully" });
 });

@@ -19,16 +19,25 @@ class CertificateRepository {
     return result.rows[0];
   }
 
-  async findByUser(userId) {
+  async findByUser(userId, { limit = 50, offset = 0 } = {}) {
     const result = await pgPool.query(
       `SELECT c.*, co.name AS course_name
        FROM certificates c
        JOIN courses co ON co.id = c.course_id
        WHERE c.user_id = $1
-       ORDER BY c.issued_at DESC`,
-      [userId],
+       ORDER BY c.issued_at DESC
+       LIMIT $2 OFFSET $3`,
+      [userId, limit, offset],
     );
     return result.rows;
+  }
+
+  async countByUser(userId) {
+    const result = await pgPool.query(
+      `SELECT COUNT(*) AS total FROM certificates WHERE user_id = $1`,
+      [userId],
+    );
+    return Number(result.rows[0].total);
   }
 
   async findById(id) {

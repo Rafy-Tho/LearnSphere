@@ -1,6 +1,10 @@
 import ApiError from "../../common/errors/ApiError.js";
 import StatusCode from "../../common/constants/StatusCode.js";
 import logger from "../../common/logger.js";
+import {
+  buildPagination,
+  parsePagination,
+} from "../../common/query/pagination.js";
 import emailService from "../../common/services/EmailService.js";
 import stripe from "../../config/stripe.js";
 import ENV from "../../config/Env.js";
@@ -12,22 +16,22 @@ import Subscription from "./repository.js";
 
 // --- Subscriptions (user-facing) ---
 
-export async function getSubscription(subscriptionId) {
-  const subscription = await Subscription.findById(subscriptionId);
-  if (!subscription) {
-    throw new ApiError(StatusCode.BAD_REQUEST, "Subscription not found");
+export async function getPlan(planId) {
+  const plan = await Subscription.findById(planId);
+  if (!plan) {
+    throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
   }
-  return subscription;
+  return plan;
 }
 
 export async function getUserActiveSubscriptions(userId) {
   return Subscription.getActivePaidSubscription(userId);
 }
 
-export async function createStripeSession({ subscriptionId, userId }) {
-  const subscription = await Subscription.findById(subscriptionId);
-  if (!subscription) {
-    throw new ApiError(StatusCode.NOT_FOUND, "Subscription not found");
+export async function createStripeSession({ planId, userId }) {
+  const plan = await Subscription.findById(planId);
+  if (!plan) {
+    throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
   }
 
   const activePlan = await Subscription.getActivePaidSubscription(userId);
@@ -47,15 +51,15 @@ export async function createStripeSession({ subscriptionId, userId }) {
       {
         price_data: {
           currency: "usd",
-          product_data: { name: subscription.name },
-          unit_amount: subscription.price * 100,
+          product_data: { name: plan.name },
+          unit_amount: plan.price * 100,
         },
         quantity: 1,
       },
     ],
-    success_url: `${ENV.CLIENT_URL_1}/payment-success?session_id={CHECKOUT_SESSION_ID}&subscriptionId=${subscriptionId}`,
-    cancel_url: `${ENV.CLIENT_URL_1}/payment-cancel?subscriptionId=${subscriptionId}`,
-    metadata: { userId, subscriptionId },
+    success_url: `${ENV.CLIENT_URL_1}/payment-success?session_id={CHECKOUT_SESSION_ID}&planId=${planId}`,
+    cancel_url: `${ENV.CLIENT_URL_1}/payment-cancel?planId=${planId}`,
+    metadata: { userId, subscriptionId: planId },
   });
 
   return { session_url: session.url };
@@ -125,8 +129,15 @@ export async function handleCheckoutCompleted(session) {
 
 // --- Admin: plans ---
 
-export async function getPlans() {
-  return Subscription.findAllPlans();
+export async function getPlans(query = {}) {
+  const { page, limit, offset } = parsePagination(query, { defaultLimit: 20 });
+
+  const [plans, total] = await Promise.all([
+    Subscription.findAllPlans({ limit, offset }),
+    Subscription.countPlans(),
+  ]);
+
+  return { data: plans, pagination: buildPagination({ total, page, limit }) };
 }
 
 export async function createPlan({ name, duration_days, price }) {
@@ -163,8 +174,18 @@ export async function deletePlan(planId) {
 
 // --- Admin: user subscriptions ---
 
-export async function getUserSubscriptions() {
-  return Subscription.findAllUserSubscriptions();
+export async function getUserSubscriptions(query = {}) {
+  const { page, limit, offset } = parsePagination(query, { defaultLimit: 20 });
+
+  const [subscriptions, total] = await Promise.all([
+    Subscription.findAllUserSubscriptions({ limit, offset }),
+    Subscription.countUserSubscriptions(),
+  ]);
+
+  return {
+    data: subscriptions,
+    pagination: buildPagination({ total, page, limit }),
+  };
 }
 
 export async function createUserSubscription({
@@ -210,8 +231,15 @@ export async function deleteUserSubscription(subscriptionId) {
 
 // --- Admin: payments ---
 
-export async function getPayments() {
-  return Subscription.findAllPayments();
+export async function getPayments(query = {}) {
+  const { page, limit, offset } = parsePagination(query, { defaultLimit: 20 });
+
+  const [payments, total] = await Promise.all([
+    Subscription.findAllPayments({ limit, offset }),
+    Subscription.countPayments(),
+  ]);
+
+  return { data: payments, pagination: buildPagination({ total, page, limit }) };
 }
 
 export async function createPayment({

@@ -7,11 +7,17 @@ import {
   learningProgressValidator,
 } from "./validation.js";
 
+// Mounted at /api/v1/courses/:courseId/progress
 const progressRoute = express.Router({ mergeParams: true });
 
 progressRoute
   .route("/")
-  .post(requireAuth, courseIdParamValidator, validateResult, controller.createLearningProgress)
+  .post(
+    requireAuth,
+    courseIdParamValidator,
+    validateResult,
+    controller.createLearningProgress,
+  )
   .get(requireAuth, controller.getLearningProgress)
   .patch(
     requireAuth,

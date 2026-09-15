@@ -24,8 +24,9 @@ export function ReviewCard({ review }) {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
-    setHelpfulVote((prev) => (prev === voteType ? null : voteType));
-    mutate({ reviewId: review.id, isHelpful: voteType });
+    const next = helpfulVote === voteType ? null : voteType;
+    setHelpfulVote(next);
+    mutate({ reviewId: review.id, isHelpful: next });
   };
 
   return (

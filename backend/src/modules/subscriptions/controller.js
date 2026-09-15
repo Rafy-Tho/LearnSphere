@@ -2,11 +2,11 @@ import asyncHandler from "../../common/http/asyncHandler.js";
 import { sendSuccess } from "../../common/http/response.js";
 import * as subscriptionsService from "./service.js";
 
-export const getSubscription = asyncHandler(async (req, res) => {
-  const subscription = await subscriptionsService.getSubscription(req.params.id);
+export const getPlan = asyncHandler(async (req, res) => {
+  const plan = await subscriptionsService.getPlan(req.params.planId);
 
-  return sendSuccess(res, subscription, {
-    message: "Subscription retrieved successfully",
+  return sendSuccess(res, plan, {
+    message: "Plan retrieved successfully",
   });
 });
 
@@ -16,13 +16,13 @@ export const getUserActiveSubscriptions = asyncHandler(async (req, res) => {
   );
 
   return sendSuccess(res, subscriptions || null, {
-    message: "Subscriptions retrieved successfully",
+    message: "Subscription retrieved successfully",
   });
 });
 
 export const createStripeSession = asyncHandler(async (req, res) => {
   const data = await subscriptionsService.createStripeSession({
-    subscriptionId: req.params.subscriptionId,
+    planId: req.params.planId,
     userId: req.session.user.id,
   });
 

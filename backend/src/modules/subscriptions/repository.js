@@ -92,11 +92,21 @@ class SubscriptRepository {
     return result.rows[0];
   }
 
-  async findAllPlans() {
+  async findAllPlans({ limit = 20, offset = 0 } = {}) {
     const result = await pgPool.query(
-      "SELECT * FROM subscription_plans ORDER BY created_at DESC",
+      `SELECT * FROM subscription_plans
+       ORDER BY created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
     return result.rows;
+  }
+
+  async countPlans() {
+    const result = await pgPool.query(
+      "SELECT COUNT(*) AS total FROM subscription_plans",
+    );
+    return Number(result.rows[0].total);
   }
 
   async createPlan({ name, durationDays, price }) {
@@ -128,15 +138,24 @@ class SubscriptRepository {
     return result.rows[0];
   }
 
-  async findAllUserSubscriptions() {
+  async findAllUserSubscriptions({ limit = 20, offset = 0 } = {}) {
     const result = await pgPool.query(
       `SELECT us.*, u.name AS user_name, u.email AS user_email, sp.name AS plan_name
        FROM user_subscriptions us
        JOIN users u ON us.user_id = u.id
        JOIN subscription_plans sp ON us.plan_id = sp.id
-       ORDER BY us.created_at DESC`,
+       ORDER BY us.created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
     return result.rows;
+  }
+
+  async countUserSubscriptions() {
+    const result = await pgPool.query(
+      "SELECT COUNT(*) AS total FROM user_subscriptions",
+    );
+    return Number(result.rows[0].total);
   }
 
   async AdminCreateUserSubscription({
@@ -177,16 +196,25 @@ class SubscriptRepository {
     return result.rows[0];
   }
 
-  async findAllPayments() {
+  async findAllPayments({ limit = 20, offset = 0 } = {}) {
     const result = await pgPool.query(
       `SELECT sp.*, u.name AS user_name, u.email AS user_email, pl.name AS plan_name
        FROM subscription_payments sp
        JOIN user_subscriptions us ON sp.user_subscription_id = us.id
        JOIN users u ON us.user_id = u.id
        JOIN subscription_plans pl ON us.plan_id = pl.id
-       ORDER BY sp.created_at DESC`,
+       ORDER BY sp.created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
     );
     return result.rows;
+  }
+
+  async countPayments() {
+    const result = await pgPool.query(
+      "SELECT COUNT(*) AS total FROM subscription_payments",
+    );
+    return Number(result.rows[0].total);
   }
 
   async AdminCreatePayment({

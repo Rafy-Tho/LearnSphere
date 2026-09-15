@@ -18,9 +18,10 @@ export function useSubscriptions() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-user-subscriptions'],
-    queryFn: () => subscriptionApi.getUserSubscriptions(),
+    queryFn: () => subscriptionApi.getUserSubscriptions('limit=100'),
   });
   const subscriptions = data?.data || [];
+  const pagination = data?.pagination;
 
   const createMutation = useMutation({
     mutationFn: (data) => subscriptionApi.createUserSubscription(data),
@@ -95,6 +96,7 @@ export function useSubscriptions() {
 
   return {
     subscriptions,
+    pagination,
     isLoading,
     modalOpen,
     setModalOpen,

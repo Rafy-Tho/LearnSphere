@@ -3,13 +3,16 @@ class CourseApi {
     this.baseUrl = import.meta.env.VITE_BASE_URL + '/courses';
   }
   async getAllCourses(params) {
-    const res = await fetch(`${this.baseUrl}/dashboard?${params}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    const res = await fetch(
+      `${import.meta.env.VITE_BASE_URL}/admin/courses?${params}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       },
-      credentials: 'include',
-    });
+    );
     const result = await res.json();
     if (!res.ok) {
       throw new Error(result.message || 'Failed to fetch courses');
@@ -62,13 +65,16 @@ class CourseApi {
     return result;
   }
   async getCourseDetails(id) {
-    const res = await fetch(`${this.baseUrl}/${id}/dashboard-details`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+    const res = await fetch(
+      `${import.meta.env.VITE_BASE_URL}/admin/courses/${id}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
       },
-      credentials: 'include',
-    });
+    );
     const result = await res.json();
     if (!res.ok) {
       throw new Error(result.message || 'Failed to fetch course details');

@@ -5,6 +5,7 @@ import {
   htmlValidator,
   numberValidator,
   textValidator,
+  uuidParamValidator,
 } from "../../common/validation.js";
 import {
   ACCESS_COURSE_TYPE,
@@ -53,4 +54,28 @@ export const answerValidator = checkSchema({
   text: textValidator("Answer", false, 500),
   isCorrect: booleanValidator("Is Correct"),
   position: numberValidator("Position", false),
+});
+
+export const moduleIdParamValidator = checkSchema({
+  moduleId: uuidParamValidator("Module ID"),
+});
+
+export const chapterIdParamValidator = checkSchema({
+  chapterId: uuidParamValidator("Chapter ID"),
+});
+
+export const lessonIdParamValidator = checkSchema({
+  lessonId: uuidParamValidator("Lesson ID"),
+});
+
+export const lessonContentIdParamValidator = checkSchema({
+  contentId: uuidParamValidator("Lesson content ID"),
+});
+
+export const questionIdParamValidator = checkSchema({
+  questionId: uuidParamValidator("Question ID"),
+});
+
+export const answerIdParamValidator = checkSchema({
+  optionId: uuidParamValidator("Option ID"),
 });

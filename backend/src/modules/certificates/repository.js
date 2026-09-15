@@ -1,8 +1,12 @@
 import pgPool from "../../config/database.js";
 
 class CertificateRepository {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
   async create({ userId, courseId, certificateNumber, certificateUrl }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `INSERT INTO certificates (user_id, course_id, certificate_number, certificate_url)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
@@ -12,7 +16,7 @@ class CertificateRepository {
   }
 
   async findByUserAndCourse({ userId, courseId }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT * FROM certificates WHERE user_id = $1 AND course_id = $2`,
       [userId, courseId],
     );
@@ -20,7 +24,7 @@ class CertificateRepository {
   }
 
   async findByUser(userId, { limit = 50, offset = 0 } = {}) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT c.*, co.name AS course_name
        FROM certificates c
        JOIN courses co ON co.id = c.course_id
@@ -33,7 +37,7 @@ class CertificateRepository {
   }
 
   async countByUser(userId) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT COUNT(*) AS total FROM certificates WHERE user_id = $1`,
       [userId],
     );
@@ -41,7 +45,7 @@ class CertificateRepository {
   }
 
   async findById(id) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT c.*, co.name AS course_name, u.name AS user_name
        FROM certificates c
        JOIN courses co ON co.id = c.course_id
@@ -53,7 +57,7 @@ class CertificateRepository {
   }
 
   async checkCourseCompletion({ userId, courseId }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT
          COUNT(DISTINCT l.id) AS total_lessons,
          COUNT(DISTINCT lc.lesson_id) AS completed_lessons
@@ -70,5 +74,5 @@ class CertificateRepository {
   }
 }
 
-const Certificate = new CertificateRepository();
-export default Certificate;
+export { CertificateRepository };
+export default new CertificateRepository();

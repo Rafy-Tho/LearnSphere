@@ -1,30 +1,30 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
+import requireAuth from "../../common/middleware/require-auth.js";
 import { upload } from "../../common/middleware/multer.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
 import { validateUpdatePassword } from "../auth/validation.js";
-import * as controller from "./controller.js";
+import userController from "./controller.js";
 import * as validation from "./validation.js";
 
 const usersRoute = express.Router();
 
-usersRoute.get("/me", controller.getMe);
-usersRoute.get("/me/profile", requireAuth, controller.getProfile);
+usersRoute.get("/me", userController.getMe);
+usersRoute.get("/me/profile", requireAuth, userController.getProfile);
 usersRoute.patch(
   "/me/profile",
   requireAuth,
   upload.single("image"),
   validation.validateUpdateProfile,
   validateResult,
-  controller.updateProfile,
+  userController.updateProfile,
 );
-usersRoute.get("/me/xp", requireAuth, controller.getXpEarning);
+usersRoute.get("/me/xp", requireAuth, userController.getXpEarnings);
 usersRoute.patch(
   "/me/password",
   requireAuth,
   validateUpdatePassword,
   validateResult,
-  controller.updatePassword,
+  userController.updatePassword,
 );
 
 export default usersRoute;

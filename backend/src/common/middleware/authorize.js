@@ -1,5 +1,5 @@
-import StatusCode from "../constants/StatusCode.js";
-import ApiError from "../errors/ApiError.js";
+import StatusCode from "../constants/status-code.js";
+import ApiError from "../errors/api-error.js";
 
 const authorize = (...roles) => {
   return (req, res, next) => {

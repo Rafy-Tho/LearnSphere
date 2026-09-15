@@ -1,8 +1,12 @@
 import pgPool from "../../config/database.js";
 
 class ModuleRepository {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
   async create({ courseId, name, description, position, status }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `INSERT INTO modules (course_id,name,description,position,status)
         VALUES ($1,$2,$3,$4,$5)
         RETURNING *
@@ -12,7 +16,7 @@ class ModuleRepository {
     return result.rows[0];
   }
   async update({ id, name, description, position, status }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `UPDATE modules
         SET name=$1,description=$2,position=$3,status=$4
         WHERE id=$5
@@ -23,7 +27,7 @@ class ModuleRepository {
     return result.rows[0];
   }
   async findById(moduleId) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT *
         FROM modules
         WHERE id = $1
@@ -33,7 +37,7 @@ class ModuleRepository {
     return result.rows[0];
   }
   async delete(moduleId) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `DELETE FROM modules
         WHERE id = $1
         RETURNING *
@@ -43,7 +47,7 @@ class ModuleRepository {
     return result.rows[0];
   }
   async getModulesByCourseId(courseId) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT * 
         FROM modules 
         WHERE course_id = $1
@@ -58,10 +62,10 @@ class ModuleRepository {
     JOIN modules m ON m.course_id = c.id 
     WHERE m.id = $1
     `;
-    const result = await pgPool.query(query, [id]);
+    const result = await this.db.query(query, [id]);
     return result.rows[0];
   }
 }
 
-const Module = new ModuleRepository();
-export default Module;
+export { ModuleRepository };
+export default new ModuleRepository();

@@ -1,7 +1,7 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
-import * as controller from "./controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
+import certificateController from "./controller.js";
 import {
   certificateIdParamValidator,
   courseIdParamValidator,
@@ -13,7 +13,7 @@ export const courseCertificateRoute = express.Router({ mergeParams: true });
 courseCertificateRoute.get(
   "/check",
   requireAuth,
-  controller.checkCertificateEligibility,
+  certificateController.checkCertificateEligibility,
 );
 courseCertificateRoute
   .route("/")
@@ -21,9 +21,9 @@ courseCertificateRoute
     requireAuth,
     courseIdParamValidator,
     validateResult,
-    controller.claimCertificate,
+    certificateController.claimCertificate,
   )
-  .get(requireAuth, controller.getCertificate);
+  .get(requireAuth, certificateController.getCertificate);
 
 // Mounted at /api/v1/certificates
 export const certificateItemRoute = express.Router();
@@ -32,10 +32,14 @@ certificateItemRoute.get(
   "/:certificateId",
   certificateIdParamValidator,
   validateResult,
-  controller.getCertificateById,
+  certificateController.getCertificateById,
 );
 
 // Mounted at /api/v1/users/me/certificates
 export const meCertificatesRoute = express.Router();
 
-meCertificatesRoute.get("/", requireAuth, controller.getMyCertificates);
+meCertificatesRoute.get(
+  "/",
+  requireAuth,
+  certificateController.getMyCertificates,
+);

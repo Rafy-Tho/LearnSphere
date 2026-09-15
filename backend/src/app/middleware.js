@@ -2,9 +2,9 @@ import cors from "cors";
 import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
-import ENV from "../config/Env.js";
-import { globalLimiter } from "../common/middleware/rateLimitMiddlewares.js";
-import sessionMiddleware from "../common/middleware/sessionMiddleware.js";
+import environment from "../config/environment.js";
+import { globalLimiter } from "../common/middleware/rate-limit-middlewares.js";
+import sessionMiddleware from "../common/middleware/session-middleware.js";
 import webhookRoute from "../modules/subscriptions/webhook.routes.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,7 +15,7 @@ export async function registerMiddleware(app) {
 
   // 2. CORS before everything
   app.use(
-    cors({ origin: [ENV.CLIENT_URL_1, ENV.CLIENT_URL_2], credentials: true }),
+    cors({ origin: [environment.CLIENT_URL_1, environment.CLIENT_URL_2], credentials: true }),
   );
 
   // 3. Webhook route (needs raw body, so before json parser)

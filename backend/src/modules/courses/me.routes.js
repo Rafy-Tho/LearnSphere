@@ -1,6 +1,6 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import * as controller from "./controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import courseController from "./course.controller.js";
 
 // Mounted at /api/v1/users/me/courses
 const meCoursesRoute = express.Router();
@@ -8,10 +8,22 @@ const meCoursesRoute = express.Router();
 meCoursesRoute.get(
   "/recently-viewed",
   requireAuth,
-  controller.getRecentlyViewedCourses,
+  courseController.getRecentlyViewedCourses,
 );
-meCoursesRoute.get("/recommended", requireAuth, controller.getRecommendedCourses);
-meCoursesRoute.get("/in-progress", requireAuth, controller.getCourseInprogress);
-meCoursesRoute.get("/completed", requireAuth, controller.getCourseCompleted);
+meCoursesRoute.get(
+  "/recommended",
+  requireAuth,
+  courseController.getRecommendedCourses,
+);
+meCoursesRoute.get(
+  "/in-progress",
+  requireAuth,
+  courseController.getCourseInProgress,
+);
+meCoursesRoute.get(
+  "/completed",
+  requireAuth,
+  courseController.getCourseCompleted,
+);
 
 export default meCoursesRoute;

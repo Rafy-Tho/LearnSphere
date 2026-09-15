@@ -1,9 +1,9 @@
 import express from "express";
 import { ADMIN, INSTRUCTOR } from "../../common/constants/constants.js";
 import authorize from "../../common/middleware/authorize.js";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
-import * as controller from "./controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
+import lessonController from "./lesson.controller.js";
 import { lessonIdParamValidator, lessonValidator } from "./validation.js";
 
 // Mounted at /api/v1/chapters/:chapterId/lessons
@@ -15,7 +15,7 @@ lessonCollectionRoute.post(
   authorize(INSTRUCTOR, ADMIN),
   lessonValidator,
   validateResult,
-  controller.createLesson,
+  lessonController.createLesson,
 );
 
 // Mounted at /api/v1/lessons
@@ -27,7 +27,7 @@ lessonItemRoute.patch(
   authorize(INSTRUCTOR, ADMIN),
   lessonValidator,
   validateResult,
-  controller.updateLesson,
+  lessonController.updateLesson,
 );
 lessonItemRoute.delete(
   "/:lessonId",
@@ -35,5 +35,5 @@ lessonItemRoute.delete(
   authorize(INSTRUCTOR, ADMIN),
   lessonIdParamValidator,
   validateResult,
-  controller.deleteLesson,
+  lessonController.deleteLesson,
 );

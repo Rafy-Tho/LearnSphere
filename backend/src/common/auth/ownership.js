@@ -1,5 +1,5 @@
-import ApiError from "../errors/ApiError.js";
-import StatusCode from "../constants/StatusCode.js";
+import ApiError from "../errors/api-error.js";
+import StatusCode from "../constants/status-code.js";
 
 /**
  * Assert that the current user owns a resource (or is an admin).

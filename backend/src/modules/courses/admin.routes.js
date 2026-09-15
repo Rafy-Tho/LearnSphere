@@ -1,9 +1,9 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
+import requireAuth from "../../common/middleware/require-auth.js";
 import authorize from "../../common/middleware/authorize.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
 import { ADMIN, INSTRUCTOR } from "../../common/constants/constants.js";
-import * as controller from "./controller.js";
+import courseController from "./course.controller.js";
 import { courseIdParamValidator } from "./validation.js";
 
 // Mounted at /api/v1/admin/courses
@@ -13,7 +13,7 @@ adminCoursesRoute.get(
   "/",
   requireAuth,
   authorize(ADMIN, INSTRUCTOR),
-  controller.getCoursesDashboard,
+  courseController.getCoursesDashboard,
 );
 adminCoursesRoute.get(
   "/:courseId",
@@ -21,7 +21,7 @@ adminCoursesRoute.get(
   authorize(ADMIN, INSTRUCTOR),
   courseIdParamValidator,
   validateResult,
-  controller.getCourseDetailsDashboard,
+  courseController.getCourseDetailsDashboard,
 );
 
 export default adminCoursesRoute;

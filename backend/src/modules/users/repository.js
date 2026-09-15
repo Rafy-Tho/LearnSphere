@@ -1,7 +1,11 @@
 import pgPool from "../../config/database.js";
 
 class UserRepository {
-  async create({ email, password, name, imageUrl }, client = pgPool) {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
+  async create({ email, password, name, imageUrl }, client = this.db) {
     const query = `
       INSERT INTO users (email, password, name, image_url)
       VALUES ($1, $2, $3, $4)
@@ -19,7 +23,7 @@ class UserRepository {
       FROM users
       WHERE email = $1
     `;
-    const result = await pgPool.query(query, [email]);
+    const result = await this.db.query(query, [email]);
 
     return result.rows[0];
   }
@@ -32,12 +36,12 @@ class UserRepository {
       RETURNING id, email, name, image_url
     `;
 
-    const result = await pgPool.query(query, [email, name, imageUrl, userId]);
+    const result = await this.db.query(query, [email, name, imageUrl, userId]);
 
     return result.rows[0];
   }
 
-  async createProfile(userId, client = pgPool) {
+  async createProfile(userId, client = this.db) {
     const query = `
       INSERT INTO user_profiles (user_id)
       VALUES ($1)
@@ -61,7 +65,7 @@ class UserRepository {
       RETURNING *
     `;
 
-    const result = await pgPool.query(query, [
+    const result = await this.db.query(query, [
       bio,
       location,
       phone,
@@ -94,12 +98,12 @@ class UserRepository {
       WHERE u.id = $1
     `;
 
-    const result = await pgPool.query(query, [userId]);
+    const result = await this.db.query(query, [userId]);
 
     return result.rows[0];
   }
 
-  async updatePassword({ userId, passwordHash }, client = pgPool) {
+  async updatePassword({ userId, passwordHash }, client = this.db) {
     const query = `
       UPDATE users
       SET password = $1
@@ -116,7 +120,7 @@ class UserRepository {
       FROM users
       WHERE id = $1
     `;
-    const result = await pgPool.query(query, [userId]);
+    const result = await this.db.query(query, [userId]);
     return result.rows[0];
   }
   async updateLastLogin({ userId, lastLogin }) {
@@ -125,7 +129,7 @@ class UserRepository {
       SET last_login = $1
       WHERE id = $2
     `;
-    await pgPool.query(query, [lastLogin, userId]);
+    await this.db.query(query, [lastLogin, userId]);
   }
   async getTotalStudents() {
     const query = `
@@ -133,7 +137,7 @@ class UserRepository {
       FROM users
       WHERE role = 'LEARNER'
     `;
-    const result = await pgPool.query(query);
+    const result = await this.db.query(query);
     return result.rows[0].total_users;
   }
   async getTotalInstructors() {
@@ -142,7 +146,7 @@ class UserRepository {
       FROM users
       WHERE role = 'INSTRUCTOR'
     `;
-    const result = await pgPool.query(query);
+    const result = await this.db.query(query);
     return result.rows[0].total_users;
   }
 
@@ -154,7 +158,7 @@ class UserRepository {
       ORDER BY created_at DESC
       LIMIT $1
     `;
-    const result = await pgPool.query(query, [limit]);
+    const result = await this.db.query(query, [limit]);
     return result.rows;
   }
 
@@ -173,7 +177,7 @@ class UserRepository {
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}
     `;
     params.push(limit, offset);
-    const result = await pgPool.query(query, params);
+    const result = await this.db.query(query, params);
     return result.rows;
   }
 
@@ -185,11 +189,11 @@ class UserRepository {
       params.push(role);
     }
     const query = `SELECT COUNT(*) AS total FROM users ${whereClause}`;
-    const result = await pgPool.query(query, params);
+    const result = await this.db.query(query, params);
     return parseInt(result.rows[0].total);
   }
 
-  async updateById({ id, name, email, role, status }, client = pgPool) {
+  async updateById({ id, name, email, role, status }, client = this.db) {
     const query = `
       UPDATE users
       SET name = $1, email = $2, role = $3, status = $4
@@ -202,9 +206,9 @@ class UserRepository {
 
   async deleteById(id) {
     const query = `DELETE FROM users WHERE id = $1 RETURNING id`;
-    const result = await pgPool.query(query, [id]);
+    const result = await this.db.query(query, [id]);
     return result.rows[0];
   }
 }
-const User = new UserRepository();
-export default User;
+export { UserRepository };
+export default new UserRepository();

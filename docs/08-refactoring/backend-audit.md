@@ -17,14 +17,14 @@ backend/
 ├── uploads/                      multer destination (profile.jpg is committed!)
 └── src/
     ├── app.js                    middleware order + route mounts + error handling
-    ├── configs/                  Env.js, database.js, cloudinary.js, schema.sql
-    ├── constants/                constants.js, StatusCode.js
+    ├── configs/                  environment.js, database.js, cloudinary.js, schema.sql
+    ├── constants/                constants.js, status-code.js
     ├── controllers/              one per domain
     ├── repositories/             one class per table/domain
     ├── services/                 EmailService, HashService, HashCode, SessionService
     ├── middlewares/              requireAuth, authorize, validateResult, rateLimit, session, multer, errorHandler
     ├── validators/               express-validator schemas + common.validator.js
-    ├── helper/createRadomCode.js
+    ├── helper/create-random-code.js
     ├── utils/                    ApiError, asyncHandler, notFoundUrl, AdvaceQuery (typo)
     └── routes/                   domain routers + admin/ + webhookRoute
 ```
@@ -33,7 +33,7 @@ backend/
 - Layering is generally respected, but there is no domain service layer — controllers call repositories directly.
 - `backend/uploads/profile.jpg` is tracked in git and the directory is served statically (`app.js:61`).
 - No migrations, no seed, no tests, no CI.
-- Filename typo `utils/AdvaceQuery.js` (should be `Advance`), consistently imported.
+- Filename typo `utils/advanced-query.js` (should be `Advance`), consistently imported.
 
 ---
 
@@ -46,8 +46,8 @@ Order in `app.js`: `trust proxy` (`:38`) → CORS (`:41-43`) → **webhook (`:46
 | Webhook correctly mounted before body parsers (good) | `app.js:46` | — |
 | No security headers (`helmet` absent) | `app.js`, `package.json` | Confirmed |
 | `trust proxy: 1` can enable IP rate-limit spoofing if not exactly one proxy | `app.js:38` | Confirmed |
-| CORS allowlist may contain `undefined` if env unset | `app.js:42`, `Env.js:14-15` | Possible |
-| Multer errors (`fileFilter`/`MulterError`) become 500, not 400 | `multer.js:26`, `errorHandler.js:33-59` | Confirmed |
+| CORS allowlist may contain `undefined` if env unset | `app.js:42`, `environment.js:14-15` | Possible |
+| Multer errors (`fileFilter`/`MulterError`) become 500, not 400 | `multer.js:26`, `error-handler.js:33-59` | Confirmed |
 | Upload runs **before** validators, orphaning files on validation failure | `userRoute.js:52-56` | Confirmed |
 
 ---
@@ -56,8 +56,8 @@ Order in `app.js`: `trust proxy` (`:38`) → CORS (`:41-43`) → **webhook (`:46
 
 | Finding | Evidence | Severity |
 |---|---|---|
-| bcrypt cost 12 (good) | `HashService.js:5` | — |
-| Session regenerated on login/register (fixation-safe) | `SessionService.js:4-14` | — |
+| bcrypt cost 12 (good) | `hash-service.js:5` | — |
+| Session regenerated on login/register (fixation-safe) | `session-service.js:4-14` | — |
 | Login does not check `users.status` → SUSPENDED/INACTIVE can log in | `userControllers.js:55-79` | Confirmed |
 | Login timing oracle: no dummy bcrypt for unknown users | `userControllers.js:58-65` | Confirmed |
 | Register returns 400 (not 409) and reveals existing email | `userControllers.js:24-26` | Confirmed |
@@ -74,9 +74,9 @@ Order in `app.js`: `trust proxy` (`:38`) → CORS (`:41-43`) → **webhook (`:46
 | `httpOnly`, `secure` in prod, rolling, 30-day, `unset:"destroy"` (good) | `sessionMiddleware.js:25-30` | — |
 | Production `sameSite:"none"` removes default CSRF defense | `sessionMiddleware.js:28` | Confirmed |
 | Sessions not invalidated on password change/reset | `userControllers.js:284-314` | Confirmed |
-| `SessionService.validate` trusts session snapshot; no status/role recheck | `SessionService.js:27-34` | Confirmed |
-| Weak `SESSION_SECRET` (8 chars in local `.env`), no validation | `Env.js:11` | Confirmed |
-| `COOKIE_NAME` has no default | `Env.js:12` | Possible |
+| `SessionService.validate` trusts session snapshot; no status/role recheck | `session-service.js:27-34` | Confirmed |
+| Weak `SESSION_SECRET` (8 chars in local `.env`), no validation | `environment.js:11` | Confirmed |
+| `COOKIE_NAME` has no default | `environment.js:12` | Possible |
 
 ---
 
@@ -116,7 +116,7 @@ Other validation weaknesses:
 - `textValidator` does not escape/sanitize free text → stored-XSS risk if rendered as HTML (`common.validator.js:50-68`).
 - `dateValidator` has `isISO8601` commented out (`common.validator.js:221-223`).
 - `rating` uses `floatValidator` while the DB column is INTEGER (`common.validator.js:124-137`, `schema.sql:368`).
-- `validateResult` returns only the first error (`validateResult.js:8`).
+- `validateResult` returns only the first error (`validate-result.js:8`).
 
 ---
 
@@ -124,19 +124,19 @@ Other validation weaknesses:
 
 | Finding | Evidence | Severity |
 |---|---|---|
-| `errorHandler` never logs → 500s invisible server-side | `errorHandler.js:29-70` | Confirmed |
+| `errorHandler` never logs → 500s invisible server-side | `error-handler.js:29-70` | Confirmed |
 | No prod access log (morgan dev only) | `app.js:53-56` | Confirmed |
 | No process-level handlers / graceful shutdown | `server.js:6-21` | Confirmed |
-| PG codes mapped `23505→409`, `23503/23502/22P02→400` (good) | `errorHandler.js:33-59` | — |
+| PG codes mapped `23505→409`, `23503/23502/22P02→400` (good) | `error-handler.js:33-59` | — |
 | `getInstructor` may return `undefined`; controllers dereference → possible TypeError 500 | `moduleControllers.js:66-67`, etc. | Possible |
-| Scattered `console.*`, no levels/request-ids | `database.js:12,16`; `EmailService.js:30,33`; `webhookRoute.js:73,80`; `userControllers.js:43,157` | Confirmed |
+| Scattered `console.*`, no levels/request-ids | `database.js:12,16`; `email-service.js:30,33`; `webhookRoute.js:73,80`; `userControllers.js:43,157` | Confirmed |
 
 ---
 
 ## 8. Data Access & SQL
 
 ### 8.1 Parameterization
-All repository queries use placeholders (`$1`, `$2`). No string concatenation of user values was found. `AdvancedQuery` uses whitelists for `filter`, `search`, `sort`, and coerces pagination numbers (`AdvaceQuery.js:34-176`). **Latent risk:** `limitFields()` joins raw field names without a whitelist and is never called (`AdvaceQuery.js:131-139`). **Possible/Low.**
+All repository queries use placeholders (`$1`, `$2`). No string concatenation of user values was found. `AdvancedQuery` uses whitelists for `filter`, `search`, `sort`, and coerces pagination numbers (`advanced-query.js:34-176`). **Latent risk:** `limitFields()` joins raw field names without a whitelist and is never called (`advanced-query.js:131-139`). **Possible/Low.**
 
 ### 8.2 Duplicated SQL
 - Duration/lesson-count aggregate subquery repeated ~8× in `CourseRepository.js` (see `codebase-audit.md` §3.3).
@@ -203,8 +203,8 @@ No per-account lockout. IP limits depend on `trust proxy` correctness.
 
 | Finding | Evidence | Severity |
 |---|---|---|
-| No env validation; missing vars fail late/undefined | `Env.js:5-26` | Confirmed |
-| `CLIENT_URL_1`/`CLIENT_URL_2` naming opaque; certificate links use `CLIENT_URL_1` | `Env.js:14-15`, `certificateControllers.js:52,55` | Confirmed |
+| No env validation; missing vars fail late/undefined | `environment.js:5-26` | Confirmed |
+| `CLIENT_URL_1`/`CLIENT_URL_2` naming opaque; certificate links use `CLIENT_URL_1` | `environment.js:14-15`, `certificateControllers.js:52,55` | Confirmed |
 | No `.env.example` | repo | Confirmed |
 | Hardcoded default avatar in two controllers | `userControllers.js:30`, `adminUserControllers.js:40` | Confirmed |
 | `connectCloudinary()` async but config is sync and unawaited | `app.js:33`, `cloudinary.js:3-9` | Possible |
@@ -260,9 +260,9 @@ Detailed traces for the highest-risk endpoints; a summary table follows.
 
 ### 12.8 `GET /api/v1/courses`
 - Route: `courseRoute.js:41-43` → `getAllCourses` (public)
-- Controller: `courseControllers.js:55-66`; repo `CourseRepository.getAllCourses` (`:99-171`) + `AdvancedQuery.paginate` (`AdvaceQuery.js:144-176`)
+- Controller: `courseControllers.js:55-66`; repo `CourseRepository.getAllCourses` (`:99-171`) + `AdvancedQuery.paginate` (`advanced-query.js:144-176`)
 - Consumer: `frontend/src/api/courses.js:4` → `hooks/queries/useCourses.js:8-15`
-- Problems: **2 queries/request** (count re-runs aggregate base); alias filters (`rating`/`duration`) placed in `WHERE` → **500** if used (`AdvaceQuery.js:74`); no `deleted_at`; uncapped `limit`; `SELECT c.*` leaks internal columns; echoes `query` in body.
+- Problems: **2 queries/request** (count re-runs aggregate base); alias filters (`rating`/`duration`) placed in `WHERE` → **500** if used (`advanced-query.js:74`); no `deleted_at`; uncapped `limit`; `SELECT c.*` leaks internal columns; echoes `query` in body.
 
 ### 12.9 `GET /api/v1/courses/:id`
 - Route: `courseRoute.js:70-72` → `getCourseDetails` (`courseControllers.js:179-191`)
@@ -321,7 +321,7 @@ Detailed traces for the highest-risk endpoints; a summary table follows.
 ### 12.19 `POST /api/v1/stripe-webhook`
 - Route: `webhookRoute.js:12-15`; mounted `app.js:46`; `express.raw`.
 - Handler inline (`webhookRoute.js:15-84`): verify signature → 4 sequential writes → email.
-- Problems: **no idempotency** (retries duplicate/500-loop); **no transaction** (subscription without payment); **amount unit bug** (stores dollars `webhookRoute.js:59`, email divides by 100 `EmailService.js:42`); ignores refunds/failures; business logic + SQL + email inline (violates layering).
+- Problems: **no idempotency** (retries duplicate/500-loop); **no transaction** (subscription without payment); **amount unit bug** (stores dollars `webhookRoute.js:59`, email divides by 100 `email-service.js:42`); ignores refunds/failures; business logic + SQL + email inline (violates layering).
 
 ### 12.20 Trace Summary (remaining endpoints)
 
@@ -345,11 +345,11 @@ Detailed traces for the highest-risk endpoints; a summary table follows.
 Format: location · current behavior · why slow · severity · evidence · improvement · impact · risk.
 
 ### PERF-1 — `getAllCourses` double aggregate + count re-run
-- **Location:** `CourseRepository.js:99-171`; `AdvaceQuery.js:144-176`
+- **Location:** `CourseRepository.js:99-171`; `advanced-query.js:144-176`
 - **Current behavior:** page query joins two aggregate subqueries; `paginate()` runs a separate `COUNT(*)` over the same aggregate base.
 - **Why slow:** aggregates computed for all courses twice per request; `%term%` search unindexed.
 - **Severity:** Confirmed (shape) / Likely (impact)
-- **Evidence:** `:103-123` (subqueries), `AdvaceQuery.js:154-160` (count).
+- **Evidence:** `:103-123` (subqueries), `advanced-query.js:154-160` (count).
 - **Improvement:** pre-aggregate stats into a view/summary table; count with a simple filtered `COUNT(*)` when filters don't touch joined columns; add `pg_trgm` GIN.
 - **Impact:** large latency reduction on the primary public endpoint.
 - **Risk:** Medium (cache invalidation).
@@ -409,21 +409,21 @@ Areas audited with severity and evidence:
 | Authorization | Options POST/PATCH/DELETE lack role+ownership | `answerRoute.js:15-21` | High |
 | Authorization | Dashboard-details no ownership | `courseRoute.js:63-68` | Medium |
 | Sessions | `sameSite:"none"` + no CSRF | `sessionMiddleware.js:28` | High |
-| Sessions | No invalidation on password change/reset; suspended users persist | `userControllers.js:284-314`, `SessionService.js:27-34` | Medium |
+| Sessions | No invalidation on password change/reset; suspended users persist | `userControllers.js:284-314`, `session-service.js:27-34` | Medium |
 | CSRF | No token; urlencoded simple requests not preflighted | `app.js:49-50` | High |
 | CORS | Explicit allowlist (good); `undefined` if unset | `app.js:42` | Low |
 | Validation | Missing validators (see §6); text not escaped | multiple | Medium |
 | Output handling | `is_correct` exposed publicly | `LessonRepository.js:129` | Critical |
 | Output handling | Password hashes returned (dashboard, admin update) | `UserRepository.js:149-157,191-200` | High |
 | Rate limiting | `loginLimiter` unused; no lockout | `rateLimitMiddlewares.js:19-23` | High |
-| Password handling | `Math.random` code, unsalted SHA-256, `VARCHAR(6)` | `HashCode.js`, `createRadomCode.js`, `schema.sql:80` | High |
+| Password handling | `Math.random` code, unsalted SHA-256, `VARCHAR(6)` | `hash-code.js`, `create-random-code.js`, `schema.sql:80` | High |
 | Sensitive exposure | `/users/me` public role/status; certificate PII | `userControllers.js:105`, `certificateRoute.js:23` | Low |
 | Headers | No helmet/HSTS/CSP/nosniff | `app.js` | Medium |
 | Uploads | MIME/extension only; static `/uploads`; committed file | `multer.js:17-28`, `app.js:61` | Low/Medium |
-| SQL | Parameterized (good); `limitFields` latent | `AdvaceQuery.js:131-139` | Low |
-| Error responses | Stack only in dev (good); reflected `originalUrl` | `errorHandler.js:60-68`, `notFoundUrl.js:5` | Low |
+| SQL | Parameterized (good); `limitFields` latent | `advanced-query.js:131-139` | Low |
+| Error responses | Stack only in dev (good); reflected `originalUrl` | `error-handler.js:60-68`, `notFoundUrl.js:5` | Low |
 | Logging | No sensitive data logged (good); no structured logging | `console.*` | Low |
-| Secrets | `.env` untracked (good); weak secret; no env validation | `Env.js`, `.env` | High/Medium |
+| Secrets | `.env` untracked (good); weak secret; no env validation | `environment.js`, `.env` | High/Medium |
 | Enumeration | Register/reset reveal existence | `userControllers.js:24-26,197-199` | Medium |
 | IDOR/BOLA | Enrollment/completion/review bypass; options; progress cross-course | multiple | High |
 | Stripe | No idempotency/replay; `Origin` redirect; amount unit | `webhookRoute.js`, `userControllers.js:380-381` | Medium |

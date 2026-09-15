@@ -1,49 +1,61 @@
-import asyncHandler from "../../common/http/asyncHandler.js";
+import asyncHandler from "../../common/http/async-handler.js";
 import { sendSuccess } from "../../common/http/response.js";
-import * as authService from "../auth/service.js";
-import * as usersService from "./service.js";
+import authService from "../auth/service.js";
+import userService from "./service.js";
 
-export const getMe = asyncHandler(async (req, res) => {
-  const userId = req.session?.user?.id || null;
+class UserController {
+  constructor({ userService, authService }) {
+    this.userService = userService;
+    this.authService = authService;
+  }
 
-  const user = await usersService.getMe(userId);
+  getMe = asyncHandler(async (req, res) => {
+    const userId = req.session?.user?.id || null;
 
-  return sendSuccess(res, user, {
-    message: "User info retrieved successfully",
-  });
-});
+    const user = await this.userService.getMe(userId);
 
-export const getProfile = asyncHandler(async (req, res) => {
-  const user = await usersService.getProfile(req.session.user.id);
-
-  return sendSuccess(res, user, {
-    message: "User info retrieved successfully",
-  });
-});
-
-export const updateProfile = asyncHandler(async (req, res) => {
-  const data = await usersService.updateProfile({
-    userId: req.session.user.id,
-    data: req.body,
-    imageFile: req.file,
+    return sendSuccess(res, user, {
+      message: "User info retrieved successfully",
+    });
   });
 
-  return sendSuccess(res, data, { message: "User info updated successfully" });
-});
+  getProfile = asyncHandler(async (req, res) => {
+    const user = await this.userService.getProfile(req.session.user.id);
 
-export const getXpEarning = asyncHandler(async (req, res) => {
-  const earning = await usersService.getXpEarning(req.session.user.id);
-
-  return sendSuccess(res, earning, {
-    message: "Earning retrieved successfully",
+    return sendSuccess(res, user, {
+      message: "User info retrieved successfully",
+    });
   });
-});
 
-export const updatePassword = asyncHandler(async (req, res) => {
-  const userId = req.session.user.id;
-  const { oldPassword, newPassword } = req.body;
+  updateProfile = asyncHandler(async (req, res) => {
+    const updatedProfile = await this.userService.updateProfile({
+      userId: req.session.user.id,
+      profileData: req.body,
+      imageFile: req.file,
+    });
 
-  await authService.changePassword({ userId, oldPassword, newPassword });
+    return sendSuccess(res, updatedProfile, {
+      message: "User info updated successfully",
+    });
+  });
 
-  return sendSuccess(res, null, { message: "Password updated successfully" });
-});
+  getXpEarnings = asyncHandler(async (req, res) => {
+    const earnings = await this.userService.getXpEarnings(req.session.user.id);
+
+    return sendSuccess(res, earnings, {
+      message: "Earning retrieved successfully",
+    });
+  });
+
+  updatePassword = asyncHandler(async (req, res) => {
+    const userId = req.session.user.id;
+    const { oldPassword, newPassword } = req.body;
+
+    await this.authService.changePassword({ userId, oldPassword, newPassword });
+
+    return sendSuccess(res, null, { message: "Password updated successfully" });
+  });
+}
+
+export { UserController };
+export default new UserController({ userService, authService });

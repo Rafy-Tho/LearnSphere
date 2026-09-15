@@ -30,12 +30,12 @@ API contract, validation, pagination, and ownership standardization. See
 
 | # | Task | Status | Evidence / files |
 |---|---|---|---|
-| AP-3.1 | Cap `limit` and reject `Infinity` in `AdvancedQuery.paginate()`; guard object/plain-key filter values | ✅ | `common/query/pagination.js` (new), `common/query/AdvaceQuery.js` |
+| AP-3.1 | Cap `limit` and reject `Infinity` in `AdvancedQuery.paginate()`; guard object/plain-key filter values | ✅ | `common/query/pagination.js` (new), `common/query/advanced-query.js` |
 | AP-3.2 | Fix admin users `parseInt` `NaN`/negative page + cap `limit` | ✅ | `admin/users.service.js`, `users/repository.js` |
 | AP-3.3 | Add pagination envelope to `GET /admin/users` + update admin consumer in same change | ✅ | `admin/users.controller.js`, `admin/src/pages/UsersPage.jsx`, `SubscriptionsPage.jsx` |
 | AP-3.4 | Add pagination to admin plans/user-subscriptions/payments + update admin hooks/pages | ✅ | backend envelope + `limit=100` hooks; UI pagination controls deferred (bounded at 100) |
 | AP-3.5 | Add pagination to `GET /certificates/mine` + update learner consumer | ✅ | `certificates/repository.js|service.js|controller.js`, `frontend/src/hooks/queries/useCourses.js` |
-| AP-3.6 | Remove or whitelist dead `limitFields()` (SQL-injection surface) | ✅ | removed from `common/query/AdvaceQuery.js` (was never called) |
+| AP-3.6 | Remove or whitelist dead `limitFields()` (SQL-injection surface) | ✅ | removed from `common/query/advanced-query.js` (was never called) |
 | AP-3.7 | Regression-check course alias filters (`rating[gte]`, `duration`) under the Express 5 query parser | ✅ | bracketed keys stay flat strings; object values now skipped instead of 500 |
 
 ## AP-4 — Authorization / ownership

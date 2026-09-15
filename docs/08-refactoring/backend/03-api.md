@@ -116,7 +116,7 @@ Rules:
 ```
 
 - Services throw `ApiError`; controllers never hand-craft errors.
-- The central handler maps SQLSTATE codes (`errorHandler.js`) and hides stacks outside development.
+- The central handler maps SQLSTATE codes (`error-handler.js`) and hides stacks outside development.
 - 5xx responses are logged; 4xx are not.
 
 ### 2.7 Null semantics (intentional)
@@ -142,7 +142,7 @@ and must not be double-wrapped (`data: { data: null }`) or turned into `404` (D-
 
 Use pagination, filtering, and sorting where appropriate.
 
-- Lists use `AdvancedQuery` (`common/query/AdvaceQuery.js`) with **field whitelists only** (`filterMap`/`sortMap`).
+- Lists use `AdvancedQuery` (`common/query/advanced-query.js`) with **field whitelists only** (`filterMap`/`sortMap`).
 - Params: `page`, `limit` (capped), `sort` (`-field` desc), `search`, domain filters with `[gte]/[gt]/[lte]/[lt]`.
 - `limit` must be capped and must reject non-finite values (`NaN`, `Infinity`).
 - Alias filters must resolve to valid SQL in both `WHERE` and `ORDER BY` (e.g. course `rating`/`duration`).
@@ -186,10 +186,10 @@ No controller hand-writes the success envelope; `status` vs `statusCode` is reso
 
 | Issue | Location |
 |---|---|
-| `limit` uncapped; `Infinity` → invalid SQL | `common/query/AdvaceQuery.js:144-176` |
+| `limit` uncapped; `Infinity` → invalid SQL | `common/query/advanced-query.js:144-176` |
 | `parseInt` `NaN`/negative page → 500 | `admin/users.service.js:15-16` → `users/repository.js:159-177` |
-| Alias filter guard absent (object/plain-key values) | `AdvaceQuery.js:34-76`, `courses/repository.js:130-131` |
-| Dead `limitFields()` raw-concatenation injection surface | `AdvaceQuery.js:131-139` (never called) |
+| Alias filter guard absent (object/plain-key values) | `advanced-query.js:34-76`, `courses/repository.js:130-131` |
+| Dead `limitFields()` raw-concatenation injection surface | `advanced-query.js:131-139` (never called) |
 | Hardcoded `LIMIT`, no page metadata | `courses/repository.js:326-436` (`recently-viewed`/`recommended`/`popular`) |
 
 ### 4.4 Authorization / ownership

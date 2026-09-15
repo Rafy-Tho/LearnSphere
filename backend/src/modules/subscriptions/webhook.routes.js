@@ -1,8 +1,8 @@
 import express from "express";
 import stripe from "../../config/stripe.js";
-import ENV from "../../config/Env.js";
+import environment from "../../config/environment.js";
 import logger from "../../common/logger.js";
-import * as subscriptionsService from "./service.js";
+import stripeWebhookService from "./webhook.service.js";
 
 const webhookRoute = express.Router();
 
@@ -18,7 +18,7 @@ webhookRoute.post(
       event = stripe.webhooks.constructEvent(
         req.body,
         sig,
-        ENV.STRIPE_WEBHOOK_SECRET,
+        environment.STRIPE_WEBHOOK_SECRET,
       );
     } catch (err) {
       return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -26,7 +26,7 @@ webhookRoute.post(
 
     try {
       if (event.type === "checkout.session.completed") {
-        await subscriptionsService.handleCheckoutCompleted(event.data.object);
+        await stripeWebhookService.handleCheckoutCompleted(event.data.object);
       }
       return res.status(200).json({ received: true });
     } catch (err) {

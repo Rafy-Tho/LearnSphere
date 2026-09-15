@@ -1,7 +1,11 @@
 import pgPool from "../../config/database.js";
-import AdvancedQuery from "../../common/query/AdvaceQuery.js";
+import AdvancedQuery from "../../common/query/advanced-query.js";
 
 class ReviewRepository {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
   async getReviews(queryString, courseId, userId) {
     const baseQuery = `
    FROM course_reviews cr
@@ -48,10 +52,10 @@ class ReviewRepository {
 
     const { sql, values, pagination } = features.build();
 
-    const result = await pgPool.query(sql, [userId, ...values]);
+    const result = await this.db.query(sql, [userId, ...values]);
 
     return {
-      data: result.rows,
+      reviews: result.rows,
       pagination,
     };
   }
@@ -71,7 +75,7 @@ class ReviewRepository {
    FROM course_reviews
    WHERE course_id = $1;
     `;
-    const result = await pgPool.query(query, [courseId]);
+    const result = await this.db.query(query, [courseId]);
     return result.rows[0];
   }
 
@@ -81,7 +85,7 @@ class ReviewRepository {
     VALUES ($1, $2, $3, $4)
     RETURNING id, user_id, course_id, rating, review, created_at;
     `;
-    const result = await pgPool.query(query, [
+    const result = await this.db.query(query, [
       userId,
       courseId,
       rating,
@@ -96,7 +100,7 @@ class ReviewRepository {
     VALUES ($1, $2, $3)
     RETURNING id, user_id, review_id, is_helpful, created_at;
     `;
-    const result = await pgPool.query(query, [userId, reviewId, isHelpful]);
+    const result = await this.db.query(query, [userId, reviewId, isHelpful]);
     return result.rows[0];
   }
 
@@ -107,7 +111,7 @@ class ReviewRepository {
     WHERE user_id = $2 AND review_id = $3
     RETURNING is_helpful;
     `;
-    const result = await pgPool.query(query, [isHelpful, userId, reviewId]);
+    const result = await this.db.query(query, [isHelpful, userId, reviewId]);
     return result.rows[0];
   }
 
@@ -117,7 +121,7 @@ class ReviewRepository {
     FROM review_helpful_votes
     WHERE user_id = $1 AND review_id = $2
     `;
-    const result = await pgPool.query(query, [userId, reviewId]);
+    const result = await this.db.query(query, [userId, reviewId]);
     return result.rows[0];
   }
   async deleteReviewHelpfulVote({ userId, reviewId }) {
@@ -126,7 +130,7 @@ class ReviewRepository {
     WHERE user_id = $1 AND review_id = $2
     RETURNING id, user_id, review_id, is_helpful, created_at;
     `;
-    const result = await pgPool.query(query, [userId, reviewId]);
+    const result = await this.db.query(query, [userId, reviewId]);
     return result.rows[0];
   }
   async findById(id) {
@@ -135,7 +139,7 @@ class ReviewRepository {
     FROM course_reviews
     WHERE id = $1
     `;
-    const result = await pgPool.query(query, [id]);
+    const result = await this.db.query(query, [id]);
     return result.rows[0];
   }
 
@@ -145,7 +149,7 @@ class ReviewRepository {
     VALUES ($1, $2, $3, $4)
     RETURNING id, user_id, review_id, reason, description, created_at;
     `;
-    const result = await pgPool.query(query, [
+    const result = await this.db.query(query, [
       userId,
       reviewId,
       reason,
@@ -160,7 +164,7 @@ class ReviewRepository {
     FROM review_reports
     WHERE user_id = $1 AND review_id = $2
     `;
-    const result = await pgPool.query(query, [userId, reviewId]);
+    const result = await this.db.query(query, [userId, reviewId]);
     return result.rows[0];
   }
   async getReview({ userId, courseId }) {
@@ -169,11 +173,11 @@ class ReviewRepository {
     FROM course_reviews
     WHERE user_id = $1 AND course_id = $2
     `;
-    const result = await pgPool.query(query, [userId, courseId]);
+    const result = await this.db.query(query, [userId, courseId]);
     return result.rows[0];
   }
 }
 
-const Review = new ReviewRepository();
+export { ReviewRepository };
 
-export default Review;
+export default new ReviewRepository();

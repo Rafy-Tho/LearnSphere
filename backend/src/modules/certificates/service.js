@@ -1,107 +1,132 @@
-import ApiError from "../../common/errors/ApiError.js";
-import StatusCode from "../../common/constants/StatusCode.js";
+import ApiError from "../../common/errors/api-error.js";
+import StatusCode from "../../common/constants/status-code.js";
 import {
   buildPagination,
   parsePagination,
 } from "../../common/query/pagination.js";
-import ENV from "../../config/Env.js";
-import Course from "../courses/repository.js";
-import Enrollment from "../learning/repository.js";
-import Certificate from "./repository.js";
+import environment from "../../config/environment.js";
+import courseRepository from "../courses/repository.js";
+import enrollmentRepository from "../learning/enrollment.repository.js";
+import certificateRepository from "./repository.js";
 
-// TODO(refactor): course/enrollment cross-module calls should go through their services.
+const CERTIFICATE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 function generateCertificateNumber() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let result = "CERT-";
-  for (let i = 0; i < 10; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-export async function claimCertificate({ courseId, userId }) {
-  const course = await Course.findById(courseId);
-  if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
-
-  const enrollment = await Enrollment.findOne({ courseId, userId });
-  if (!enrollment) {
-    throw new ApiError(
-      StatusCode.BAD_REQUEST,
-      "You are not enrolled in this course",
+  let certificateNumber = "CERT-";
+  for (let index = 0; index < 10; index++) {
+    certificateNumber += CERTIFICATE_ALPHABET.charAt(
+      Math.floor(Math.random() * CERTIFICATE_ALPHABET.length),
     );
   }
+  return certificateNumber;
+}
 
-  const existing = await Certificate.findByUserAndCourse({ userId, courseId });
-  if (existing) {
-    return { alreadyClaimed: true, certificate: existing };
+class CertificateService {
+  constructor({ certificateRepository, courseRepository, enrollmentRepository }) {
+    this.certificateRepository = certificateRepository;
+    this.courseRepository = courseRepository;
+    this.enrollmentRepository = enrollmentRepository;
   }
 
-  const { isComplete } = await Certificate.checkCourseCompletion({
-    userId,
-    courseId,
-  });
-  if (!isComplete) {
-    throw new ApiError(
-      StatusCode.BAD_REQUEST,
-      "You have not completed all lessons in this course",
+  async claimCertificate({ courseId, userId }) {
+    const course = await this.courseRepository.findById(courseId);
+    if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
+
+    const enrollment = await this.enrollmentRepository.findOne({
+      courseId,
+      userId,
+    });
+    if (!enrollment) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        "You are not enrolled in this course",
+      );
+    }
+
+    const existingCertificate =
+      await this.certificateRepository.findByUserAndCourse({ userId, courseId });
+    if (existingCertificate) {
+      return { isAlreadyClaimed: true, certificate: existingCertificate };
+    }
+
+    const { isComplete } = await this.certificateRepository.checkCourseCompletion(
+      { userId, courseId },
     );
+    if (!isComplete) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        "You have not completed all lessons in this course",
+      );
+    }
+
+    const certificateNumber = generateCertificateNumber();
+
+    const certificate = await this.certificateRepository.create({
+      userId,
+      courseId,
+      certificateNumber,
+      certificateUrl: `${environment.CLIENT_URL_1}/certificates/{id}`,
+    });
+
+    certificate.certificate_url = `${environment.CLIENT_URL_1}/certificates/${certificate.id}`;
+    certificate.course_name = course.name;
+
+    return { isAlreadyClaimed: false, certificate };
   }
 
-  const certificateNumber = generateCertificateNumber();
-
-  const certificate = await Certificate.create({
-    userId,
-    courseId,
-    certificateNumber,
-    certificateUrl: `${ENV.CLIENT_URL_1}/certificates/{id}`,
-  });
-
-  certificate.certificate_url = `${ENV.CLIENT_URL_1}/certificates/${certificate.id}`;
-  certificate.course_name = course.name;
-
-  return { alreadyClaimed: false, certificate };
-}
-
-export async function getCertificate({ courseId, userId }) {
-  return Certificate.findByUserAndCourse({ userId, courseId });
-}
-
-export async function getMyCertificates(userId, query = {}) {
-  const { page, limit, offset } = parsePagination(query, { defaultLimit: 50 });
-
-  const [certificates, total] = await Promise.all([
-    Certificate.findByUser(userId, { limit, offset }),
-    Certificate.countByUser(userId),
-  ]);
-
-  return {
-    data: certificates,
-    pagination: buildPagination({ total, page, limit }),
-  };
-}
-
-export async function getCertificateById(certificateId) {
-  const certificate = await Certificate.findById(certificateId);
-  if (!certificate) {
-    throw new ApiError(StatusCode.NOT_FOUND, "Certificate not found");
+  async getCertificate({ courseId, userId }) {
+    return this.certificateRepository.findByUserAndCourse({ userId, courseId });
   }
-  return certificate;
+
+  async getMyCertificates(userId, query = {}) {
+    const { page, limit, offset } = parsePagination(query, {
+      defaultLimit: 50,
+    });
+
+    const [certificates, total] = await Promise.all([
+      this.certificateRepository.findByUser(userId, { limit, offset }),
+      this.certificateRepository.countByUser(userId),
+    ]);
+
+    return {
+      certificates,
+      pagination: buildPagination({ total, page, limit }),
+    };
+  }
+
+  async getCertificateById(certificateId) {
+    const certificate = await this.certificateRepository.findById(certificateId);
+    if (!certificate) {
+      throw new ApiError(StatusCode.NOT_FOUND, "Certificate not found");
+    }
+    return certificate;
+  }
+
+  async checkCertificateEligibility({ courseId, userId }) {
+    const course = await this.courseRepository.findById(courseId);
+    if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
+
+    const existingCertificate =
+      await this.certificateRepository.findByUserAndCourse({ userId, courseId });
+    const { isComplete, total, completed } =
+      await this.certificateRepository.checkCourseCompletion({
+        userId,
+        courseId,
+      });
+
+    return {
+      isComplete,
+      totalLessons: Number(total),
+      completedLessons: Number(completed),
+      hasCertificate: !!existingCertificate,
+      certificate: existingCertificate || null,
+    };
+  }
 }
 
-export async function checkEligibility({ courseId, userId }) {
-  const course = await Course.findById(courseId);
-  if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
-
-  const existing = await Certificate.findByUserAndCourse({ userId, courseId });
-  const { isComplete, total, completed } =
-    await Certificate.checkCourseCompletion({ userId, courseId });
-
-  return {
-    isComplete,
-    totalLessons: Number(total),
-    completedLessons: Number(completed),
-    hasCertificate: !!existing,
-    certificate: existing || null,
-  };
-}
+export { CertificateService };
+export default new CertificateService({
+  certificateRepository,
+  courseRepository,
+  enrollmentRepository,
+});

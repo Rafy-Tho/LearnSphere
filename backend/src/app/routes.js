@@ -1,7 +1,7 @@
 import authRoute from "../modules/auth/routes.js";
 import usersRoute from "../modules/users/routes.js";
 import adminRoute from "../modules/admin/routes.js";
-import adminUsersRoute from "../modules/admin/users.routes.js";
+import adminUsersRoute from "../modules/admin/admin-user.routes.js";
 import categoriesRoute from "../modules/categories/routes.js";
 import coursesRoute from "../modules/courses/routes.js";
 import { objectivesItemRoute } from "../modules/courses/objectives.routes.js";
@@ -13,9 +13,9 @@ import { lessonCollectionRoute, lessonItemRoute } from "../modules/content/lesso
 import {
   lessonContentCollectionRoute,
   lessonContentItemRoute,
-} from "../modules/content/lessonContent.routes.js";
+} from "../modules/content/lesson-content.routes.js";
 import { questionCollectionRoute, questionItemRoute } from "../modules/content/question.routes.js";
-import { optionCollectionRoute, optionItemRoute } from "../modules/content/answer.routes.js";
+import { optionCollectionRoute, optionItemRoute } from "../modules/content/option.routes.js";
 import { reviewsItemRoute } from "../modules/reviews/routes.js";
 import {
   certificateItemRoute,

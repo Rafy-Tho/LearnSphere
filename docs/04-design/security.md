@@ -6,7 +6,7 @@ This document describes the security controls currently implemented, the threat 
 
 | Control | Implementation |
 |---|---|
-| Password storage | bcrypt with 12 salt rounds (`backend/src/common/services/HashService.js`) |
+| Password storage | bcrypt with 12 salt rounds (`backend/src/common/services/hash-service.js`) |
 | Session mechanism | `express-session` + `connect-pg-simple` (PostgreSQL store) |
 | Session cookie | `httpOnly`, `secure` in production, `sameSite: "none"` prod / `"lax"` dev, 30-day rolling `maxAge` |
 | Session lifecycle | Regenerated on login; destroyed on logout (`unset: "destroy"`) |
@@ -53,7 +53,7 @@ Rate-limit exhaustion returns HTTP 429.
 
 ## 5. Secrets & Configuration
 
-- All secrets come from environment variables via `backend/src/config/Env.js`.
+- All secrets come from environment variables via `backend/src/config/environment.js`.
 - `.env` files are gitignored at the repo root; no env files are tracked.
 - Required variables: `PORT`, `NODE_ENV`, `DATABASE_URL`, `SESSION_SECRET`, `COOKIE_NAME`, `CLIENT_URL_1`, `CLIENT_URL_2`, `BREVO_API_KEY`, `SENDER_EMAIL`, `CLOUDINARY_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_SECRET_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
 - Frontends only receive `VITE_BASE_URL` (public).
@@ -69,7 +69,7 @@ Rate-limit exhaustion returns HTTP 429.
 ## 7. Password Reset Security
 
 - Codes are 6 numeric digits generated randomly.
-- Only the SHA-256 hash is stored (`backend/src/common/services/HashCode.js`).
+- Only the SHA-256 hash is stored (`backend/src/common/services/hash-code.js`).
 - Codes expire after 10 minutes and have an attempt counter (max 5).
 - Reset-code requests and attempts are rate-limited.
 

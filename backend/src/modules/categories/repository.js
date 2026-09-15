@@ -1,11 +1,15 @@
 import pgPool from "../../config/database.js";
 
 class CategoryRepository {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
   async findAll() {
     const query = `SELECT *
       FROM categories
     `;
-    const result = await pgPool.query(query);
+    const result = await this.db.query(query);
     return result.rows;
   }
   async create({ name, slug, description }) {
@@ -13,7 +17,7 @@ class CategoryRepository {
       VALUES ($1,$2,$3)
       RETURNING *
     `;
-    const result = await pgPool.query(query, [name, slug, description]);
+    const result = await this.db.query(query, [name, slug, description]);
     return result.rows[0];
   }
   async findById(categoryId) {
@@ -21,7 +25,7 @@ class CategoryRepository {
       FROM categories
       WHERE id = $1
     `;
-    const result = await pgPool.query(query, [categoryId]);
+    const result = await this.db.query(query, [categoryId]);
     return result.rows[0];
   }
   async findBySlug(slug) {
@@ -29,7 +33,7 @@ class CategoryRepository {
       FROM categories
       WHERE slug = $1
     `;
-    const result = await pgPool.query(query, [slug]);
+    const result = await this.db.query(query, [slug]);
     return result.rows[0];
   }
   async update({ categoryId, name, slug, description }) {
@@ -38,7 +42,7 @@ class CategoryRepository {
       WHERE id = $4
       RETURNING *
     `;
-    const result = await pgPool.query(query, [
+    const result = await this.db.query(query, [
       name,
       slug,
       description,
@@ -50,8 +54,8 @@ class CategoryRepository {
     const query = `DELETE FROM categories
       WHERE id = $1
     `;
-    await pgPool.query(query, [categoryId]);
+    await this.db.query(query, [categoryId]);
   }
 }
-const Category = new CategoryRepository();
-export default Category;
+export { CategoryRepository };
+export default new CategoryRepository();

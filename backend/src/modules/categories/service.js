@@ -1,44 +1,53 @@
-import ApiError from "../../common/errors/ApiError.js";
-import StatusCode from "../../common/constants/StatusCode.js";
-import Category from "./repository.js";
+import ApiError from "../../common/errors/api-error.js";
+import StatusCode from "../../common/constants/status-code.js";
+import categoryRepository from "./repository.js";
 
-export async function listCategories() {
-  return Category.findAll();
-}
-
-export async function getCategory(categoryId) {
-  const category = await Category.findById(categoryId);
-  if (!category) {
-    throw new ApiError(StatusCode.NOT_FOUND, "Category not found");
-  }
-  return category;
-}
-
-export async function createCategory({ name, slug, description }) {
-  return Category.create({ name, slug, description });
-}
-
-export async function updateCategory(categoryId, data) {
-  const category = await Category.findById(categoryId);
-  if (!category) {
-    throw new ApiError(StatusCode.NOT_FOUND, "Category not found");
+class CategoryService {
+  constructor({ categoryRepository }) {
+    this.categoryRepository = categoryRepository;
   }
 
-  await Category.update({
-    categoryId,
-    name: data.name || category.name,
-    slug: data.slug || category.slug,
-    description: data.description || category.description,
-  });
-
-  return Category.findById(categoryId);
-}
-
-export async function deleteCategory(categoryId) {
-  const category = await Category.findById(categoryId);
-  if (!category) {
-    throw new ApiError(StatusCode.NOT_FOUND, "Category not found");
+  async listCategories() {
+    return this.categoryRepository.findAll();
   }
 
-  await Category.delete(categoryId);
+  async getCategory(categoryId) {
+    const category = await this.categoryRepository.findById(categoryId);
+    if (!category) {
+      throw new ApiError(StatusCode.NOT_FOUND, "Category not found");
+    }
+    return category;
+  }
+
+  async createCategory({ name, slug, description }) {
+    return this.categoryRepository.create({ name, slug, description });
+  }
+
+  async updateCategory(categoryId, categoryData) {
+    const category = await this.categoryRepository.findById(categoryId);
+    if (!category) {
+      throw new ApiError(StatusCode.NOT_FOUND, "Category not found");
+    }
+
+    await this.categoryRepository.update({
+      categoryId,
+      name: categoryData.name || category.name,
+      slug: categoryData.slug || category.slug,
+      description: categoryData.description || category.description,
+    });
+
+    return this.categoryRepository.findById(categoryId);
+  }
+
+  async deleteCategory(categoryId) {
+    const category = await this.categoryRepository.findById(categoryId);
+    if (!category) {
+      throw new ApiError(StatusCode.NOT_FOUND, "Category not found");
+    }
+
+    await this.categoryRepository.delete(categoryId);
+  }
 }
+
+export { CategoryService };
+export default new CategoryService({ categoryRepository });

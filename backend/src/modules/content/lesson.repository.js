@@ -1,6 +1,10 @@
 import pgPool from "../../config/database.js";
 
 class LessonRepository {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
   async create({
     chapterId,
     position,
@@ -36,7 +40,7 @@ class LessonRepository {
       accessType,
       durationMinutes,
     ];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows[0];
   }
   async update({
@@ -78,25 +82,25 @@ class LessonRepository {
       accessType,
       lessonId,
     ];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows[0];
   }
   async delete(id) {
     const query = `DELETE FROM lessons WHERE id = $1 RETURNING *`;
     const values = [id];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows[0];
   }
   async findById(id) {
     const query = `SELECT * FROM lessons WHERE id = $1`;
     const values = [id];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows[0];
   }
   async findByChapterId(chapter_id) {
     const query = `SELECT * FROM lessons WHERE chapter_id = $1`;
     const values = [chapter_id];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows;
   }
 
@@ -113,7 +117,7 @@ class LessonRepository {
      l.position ASC
      LIMIT 1`;
     const values = [courseId];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows[0];
   }
 
@@ -136,7 +140,7 @@ class LessonRepository {
   GROUP BY q.id
   ORDER BY q.position;`;
     const values = [lessonId];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows;
   }
 
@@ -149,7 +153,7 @@ class LessonRepository {
     WHERE m.course_id = $1
     `;
     const value = [id];
-    const result = await pgPool.query(query, value);
+    const result = await this.db.query(query, value);
     return result.rows;
   }
   async getInstructor(id) {
@@ -160,7 +164,7 @@ class LessonRepository {
     JOIN lessons ls ON ls.chapter_id = ch.id
     WHERE ls.id = $1
     `;
-    const result = await pgPool.query(query, [id]);
+    const result = await this.db.query(query, [id]);
     return result.rows[0];
   }
 
@@ -173,9 +177,9 @@ class LessonRepository {
     JOIN lessons ls ON ls.chapter_id = ch.id
     WHERE ls.id = $1
     `;
-    const result = await pgPool.query(query, [id]);
+    const result = await this.db.query(query, [id]);
     return result.rows[0];
   }
 }
-const Lesson = new LessonRepository();
-export default Lesson;
+export { LessonRepository };
+export default new LessonRepository();

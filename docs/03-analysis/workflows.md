@@ -4,7 +4,7 @@ End-to-end workflows showing how requests flow through the frontend, backend, an
 
 ## 1. Authentication Workflow
 
-**Participants:** `frontend/src/services/auth.js`, `frontend/src/api/client.js`, `backend/src/modules/auth/routes.js`, `backend/src/modules/auth/controller.js`, `backend/src/modules/auth/service.js`, `backend/src/common/services/HashService.js`, `backend/src/common/services/SessionService.js`, `backend/src/common/middleware/sessionMiddleware.js`.
+**Participants:** `frontend/src/services/auth.js`, `frontend/src/api/client.js`, `backend/src/modules/auth/routes.js`, `backend/src/modules/auth/controller.js`, `backend/src/modules/auth/service.js`, `backend/src/common/services/hash-service.js`, `backend/src/common/services/session-service.js`, `backend/src/common/middleware/sessionMiddleware.js`.
 
 ```mermaid
 sequenceDiagram
@@ -40,7 +40,7 @@ Steps:
 
 ## 2. Session Validation Workflow
 
-**Participants:** `backend/src/common/middleware/requireAuth.js`, `backend/src/common/middleware/authorize.js`, `backend/src/common/services/SessionService.js`.
+**Participants:** `backend/src/common/middleware/require-auth.js`, `backend/src/common/middleware/authorize.js`, `backend/src/common/services/session-service.js`.
 
 ```mermaid
 flowchart TD
@@ -56,7 +56,7 @@ flowchart TD
 
 ## 3. Course Discovery Workflow
 
-**Participants:** `frontend/src/pages/CourseScreen.jsx`, `frontend/src/hooks/queries/useCourses.js`, `frontend/src/services/courses.js`, `backend/src/modules/courses/routes.js`, `backend/src/modules/courses/service.js`, `backend/src/modules/courses/repository.js`, `backend/src/common/query/AdvaceQuery.js`.
+**Participants:** `frontend/src/pages/CourseScreen.jsx`, `frontend/src/hooks/queries/useCourses.js`, `frontend/src/services/courses.js`, `backend/src/modules/courses/routes.js`, `backend/src/modules/courses/service.js`, `backend/src/modules/courses/repository.js`, `backend/src/common/query/advanced-query.js`.
 
 ```mermaid
 sequenceDiagram
@@ -80,7 +80,7 @@ Filters supported by `CourseRepository` include `level`, `category`, `skill` (ma
 
 ## 4. Enrollment Workflow
 
-**Participants:** `frontend/src/hooks/mutations/useCourseMutations.js`, `backend/src/modules/learning/enrollment.routes.js`, `backend/src/modules/learning/service.js`, `backend/src/modules/learning/repository.js`, `backend/src/modules/learning/progress.repository.js`.
+**Participants:** `frontend/src/hooks/mutations/useCourseMutations.js`, `backend/src/modules/learning/enrollment.routes.js`, `backend/src/modules/learning/service.js`, `backend/src/modules/learning/enrollment.repository.js`, `backend/src/modules/learning/progress.repository.js`.
 
 ```mermaid
 sequenceDiagram
@@ -164,7 +164,7 @@ Helpful votes toggle via `POST /reviews/:id/helpful-votes`; reports via `POST /r
 
 ## 8. Subscription & Payment Workflow
 
-**Participants:** `frontend/src/components/pricing/PricingCard.jsx`, `frontend/src/hooks/mutations/useUserMutations.js`, `backend/src/modules/subscriptions/service.js` (`createStripeSession`), `backend/src/modules/subscriptions/webhook.routes.js`, `backend/src/common/services/EmailService.js`.
+**Participants:** `frontend/src/components/pricing/PricingCard.jsx`, `frontend/src/hooks/mutations/useUserMutations.js`, `backend/src/modules/subscriptions/service.js` (`createStripeSession`), `backend/src/modules/subscriptions/webhook.routes.js`, `backend/src/common/services/email-service.js`.
 
 ```mermaid
 sequenceDiagram
@@ -220,7 +220,7 @@ Each mutation invalidates the `['course-details', courseId]` query key, triggeri
 
 ## 10. Error Handling Workflow
 
-**Participants:** `backend/src/common/middleware/errorHandler.js`, `backend/src/common/errors/ApiError.js`, `backend/src/common/middleware/validateResult.js`.
+**Participants:** `backend/src/common/middleware/error-handler.js`, `backend/src/common/errors/api-error.js`, `backend/src/common/middleware/validate-result.js`.
 
 ```mermaid
 flowchart TD

@@ -1,61 +1,75 @@
-import StatusCode from "../../common/constants/StatusCode.js";
-import asyncHandler from "../../common/http/asyncHandler.js";
+import StatusCode from "../../common/constants/status-code.js";
+import asyncHandler from "../../common/http/async-handler.js";
 import { sendSuccess } from "../../common/http/response.js";
-import * as certificatesService from "./service.js";
+import certificateService from "./service.js";
 
-export const claimCertificate = asyncHandler(async (req, res) => {
-  const { alreadyClaimed, certificate } =
-    await certificatesService.claimCertificate({
+class CertificateController {
+  constructor({ certificateService }) {
+    this.certificateService = certificateService;
+  }
+
+  claimCertificate = asyncHandler(async (req, res) => {
+    const { isAlreadyClaimed, certificate } =
+      await this.certificateService.claimCertificate({
+        courseId: req.params.courseId,
+        userId: req.session.user.id,
+      });
+
+    return sendSuccess(res, certificate, {
+      statusCode: isAlreadyClaimed ? StatusCode.OK : StatusCode.CREATED,
+      message: isAlreadyClaimed
+        ? "Certificate already claimed"
+        : "Certificate claimed successfully",
+    });
+  });
+
+  getCertificate = asyncHandler(async (req, res) => {
+    const certificate = await this.certificateService.getCertificate({
       courseId: req.params.courseId,
       userId: req.session.user.id,
     });
 
-  return sendSuccess(res, certificate, {
-    statusCode: alreadyClaimed ? StatusCode.OK : StatusCode.CREATED,
-    message: alreadyClaimed
-      ? "Certificate already claimed"
-      : "Certificate claimed successfully",
-  });
-});
-
-export const getCertificate = asyncHandler(async (req, res) => {
-  const certificate = await certificatesService.getCertificate({
-    courseId: req.params.courseId,
-    userId: req.session.user.id,
+    return sendSuccess(res, certificate || null, {
+      message: "Certificate retrieved successfully",
+    });
   });
 
-  return sendSuccess(res, certificate || null, {
-    message: "Certificate retrieved successfully",
-  });
-});
+  getMyCertificates = asyncHandler(async (req, res) => {
+    const { certificates, pagination } =
+      await this.certificateService.getMyCertificates(
+        req.session.user.id,
+        req.query,
+      );
 
-export const getMyCertificates = asyncHandler(async (req, res) => {
-  const { data, pagination } = await certificatesService.getMyCertificates(
-    req.session.user.id,
-    req.query,
-  );
-
-  return sendSuccess(res, data, {
-    message: "Certificates retrieved successfully",
-    pagination,
-  });
-});
-
-export const getCertificateById = asyncHandler(async (req, res) => {
-  const certificate = await certificatesService.getCertificateById(
-    req.params.certificateId,
-  );
-
-  return sendSuccess(res, certificate, {
-    message: "Certificate retrieved successfully",
-  });
-});
-
-export const checkCertificateEligibility = asyncHandler(async (req, res) => {
-  const data = await certificatesService.checkEligibility({
-    courseId: req.params.courseId,
-    userId: req.session.user.id,
+    return sendSuccess(res, certificates, {
+      message: "Certificates retrieved successfully",
+      pagination,
+    });
   });
 
-  return sendSuccess(res, data, { message: "Eligibility check completed" });
-});
+  getCertificateById = asyncHandler(async (req, res) => {
+    const certificate = await this.certificateService.getCertificateById(
+      req.params.certificateId,
+    );
+
+    return sendSuccess(res, certificate, {
+      message: "Certificate retrieved successfully",
+    });
+  });
+
+  checkCertificateEligibility = asyncHandler(async (req, res) => {
+    const eligibility = await this.certificateService.checkCertificateEligibility(
+      {
+        courseId: req.params.courseId,
+        userId: req.session.user.id,
+      },
+    );
+
+    return sendSuccess(res, eligibility, {
+      message: "Eligibility check completed",
+    });
+  });
+}
+
+export { CertificateController };
+export default new CertificateController({ certificateService });

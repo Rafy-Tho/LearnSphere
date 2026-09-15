@@ -1,7 +1,11 @@
 import pgPool from "../../config/database.js";
-import AdvancedQuery from "../../common/query/AdvaceQuery.js";
+import AdvancedQuery from "../../common/query/advanced-query.js";
 
 class CourseRepository {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
   async create({
     instructorId,
     categoryId,
@@ -38,7 +42,7 @@ class CourseRepository {
       level,
       accessType,
     ];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows[0];
   }
   async update({
@@ -76,7 +80,7 @@ class CourseRepository {
       accessType,
       id,
     ];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows[0];
   }
   async delete(id) {
@@ -86,14 +90,14 @@ class CourseRepository {
       RETURNING *
     `;
     const values = [id];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows[0];
   }
   async findById(id) {
     const query = `SELECT * FROM courses
       WHERE id = $1 AND deleted_at IS NULL`;
     const values = [id];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows[0];
   }
 
@@ -164,7 +168,7 @@ class CourseRepository {
 
     const { sql, values, pagination } = features.build();
 
-    const result = await pgPool.query(sql, values);
+    const result = await this.db.query(sql, values);
 
     return {
       data: result.rows,
@@ -177,7 +181,7 @@ class CourseRepository {
       AND deleted_at IS NULL
     `;
     const values = [category_id];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows;
   }
   async findByInstructorId(instructorId) {
@@ -186,7 +190,7 @@ class CourseRepository {
       AND deleted_at IS NULL
     `;
     const values = [instructorId];
-    const result = await pgPool.query(query, values);
+    const result = await this.db.query(query, values);
     return result.rows;
   }
 
@@ -232,7 +236,7 @@ class CourseRepository {
     -- 🎯 specific course
     WHERE c.id = $1 AND c.deleted_at IS NULL;
   `;
-    const { rows } = await pgPool.query(query, [courseId]);
+    const { rows } = await this.db.query(query, [courseId]);
     return rows[0] || null;
   }
   async getLearningData(courseId) {
@@ -304,11 +308,11 @@ class CourseRepository {
       WHERE c.id = $1 AND c.deleted_at IS NULL;
     `;
 
-    const result = await pgPool.query(query, [courseId]);
+    const result = await this.db.query(query, [courseId]);
     return result.rows[0];
   }
   async getCourseIdByLessonId(lessonId) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `
       SELECT c.id AS course_id
       FROM lessons l
@@ -359,7 +363,7 @@ class CourseRepository {
       ORDER BY lp.updated_at DESC
       LIMIT 20;
     `;
-    const result = await pgPool.query(query, [userId]);
+    const result = await this.db.query(query, [userId]);
     return result.rows;
   }
   async getRecommended(userId) {
@@ -398,7 +402,7 @@ class CourseRepository {
       LIMIT 10;
     `;
 
-    const result = await pgPool.query(query, [userId]);
+    const result = await this.db.query(query, [userId]);
     return result.rows;
   }
   async getPopular() {
@@ -431,7 +435,7 @@ class CourseRepository {
       LIMIT 10;
     `;
 
-    const result = await pgPool.query(query);
+    const result = await this.db.query(query);
     return result.rows;
   }
   async getHighlyRated() {
@@ -467,7 +471,7 @@ class CourseRepository {
       LIMIT 10;
     `;
 
-    const result = await pgPool.query(query);
+    const result = await this.db.query(query);
     return result.rows;
   }
   async getXpEarning(userId) {
@@ -486,7 +490,7 @@ class CourseRepository {
     FROM lesson_completion
     WHERE user_id = $1;
       `;
-    const result = await pgPool.query(query, [userId]);
+    const result = await this.db.query(query, [userId]);
     return result.rows[0];
   }
   async getCourseInProgress({ userId, queryString }) {
@@ -522,7 +526,7 @@ class CourseRepository {
       ) sub;
     `;
 
-    const countResult = await pgPool.query(countQuery, [userId]);
+    const countResult = await this.db.query(countQuery, [userId]);
     const totalItems = Number(countResult.rows[0].total);
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -563,7 +567,7 @@ class CourseRepository {
       LIMIT $2 OFFSET $3;
     `;
 
-    const result = await pgPool.query(query, [userId, limit, offset]);
+    const result = await this.db.query(query, [userId, limit, offset]);
 
     return {
       data: result.rows,
@@ -605,7 +609,7 @@ class CourseRepository {
       ) sub;
     `;
 
-    const countResult = await pgPool.query(countQuery, [userId]);
+    const countResult = await this.db.query(countQuery, [userId]);
     const totalItems = Number(countResult.rows[0].total);
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -652,7 +656,7 @@ class CourseRepository {
       LIMIT $2 OFFSET $3;
     `;
 
-    const result = await pgPool.query(query, [userId, limit, offset]);
+    const result = await this.db.query(query, [userId, limit, offset]);
 
     return {
       data: result.rows,
@@ -668,13 +672,13 @@ class CourseRepository {
   }
   async getTotalCourse() {
     const query = `SELECT COUNT(*) FROM courses WHERE deleted_at IS NULL`;
-    const result = await pgPool.query(query);
+    const result = await this.db.query(query);
     return parseInt(result.rows[0].count);
   }
 
   async getRecentCourses() {
     const query = `SELECT * FROM courses WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 5`;
-    const result = await pgPool.query(query);
+    const result = await this.db.query(query);
     return result.rows;
   }
   async getAllCoursesDashboard(queryString) {
@@ -721,7 +725,7 @@ class CourseRepository {
 
     const { sql, values, pagination } = features.build();
 
-    const result = await pgPool.query(sql, values);
+    const result = await this.db.query(sql, values);
 
     return {
       data: result.rows,
@@ -730,5 +734,5 @@ class CourseRepository {
   }
 }
 
-const Course = new CourseRepository();
-export default Course;
+export { CourseRepository };
+export default new CourseRepository();

@@ -34,19 +34,19 @@ backend/
     │   ├── middleware.js        Global middleware pipeline (order preserved)
     │   └── routes.js            Mounts module routers under /api/v1
     ├── config/                  Configuration + infrastructure (migrated)
-    │   ├── Env.js               Loads dotenv, exports ENV
+    │   ├── environment.js               Loads dotenv, exports ENV
     │   ├── database.js          pg Pool + withTransaction()
     │   └── cloudinary.js        connectCloudinary()
     ├── db/
     │   └── schema.sql           Authoritative DDL baseline (migrations pending)
     ├── common/                  Shared infrastructure (migrated)
-    │   ├── errors/ApiError.js
-    │   ├── http/                asyncHandler.js, notFoundUrl.js, response.js
+    │   ├── errors/api-error.js
+    │   ├── http/                async-handler.js, notFoundUrl.js, response.js
     │   ├── middleware/          requireAuth, authorize, validateResult, rateLimitMiddlewares, sessionMiddleware, multer, errorHandler
     │   ├── auth/ownership.js    assertOwnership()
-    │   ├── query/AdvaceQuery.js AdvancedQuery builder (filename typo)
-    │   ├── constants/           constants.js, StatusCode.js
-    │   ├── helper/createRadomCode.js
+    │   ├── query/advanced-query.js AdvancedQuery builder (filename typo)
+    │   ├── constants/           constants.js, status-code.js
+    │   ├── helper/create-random-code.js
     │   ├── services/            EmailService, HashService, HashCode, SessionService
     │   ├── validation.js        express-validator builders
     │   └── logger.js            Structured logger
@@ -75,15 +75,15 @@ backend/
     │   │   ├── controller.js
     │   │   ├── service.js
     │   │   ├── repository.js    CourseRepository
-    │   │   ├── objectives.repository.js
+    │   │   ├── objective.repository.js
     │   │   └── validation.js
     │   ├── content/             Modules/chapters/lessons/contents/quizzes/options
     │   │   ├── module.routes.js, chapter.routes.js, lesson.routes.js
-    │   │   ├── lessonContent.routes.js, question.routes.js, answer.routes.js
+    │   │   ├── lesson-content.routes.js, question.routes.js, option.routes.js
     │   │   ├── controller.js
     │   │   ├── service.js
     │   │   ├── module.repository.js, chapter.repository.js, lesson.repository.js
-    │   │   ├── lessonContent.repository.js, question.repository.js, answer.repository.js
+    │   │   ├── lesson-content.repository.js, question.repository.js, option.repository.js
     │   │   └── validation.js
     │   ├── learning/            Enrollments/progress/lesson completion
     │   │   ├── enrollment.routes.js, progress.routes.js, completion.routes.js

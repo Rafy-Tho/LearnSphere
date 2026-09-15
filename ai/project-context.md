@@ -37,8 +37,8 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 | Middleware | `backend/src/common/middleware/` |
 | App wiring | `backend/src/app/app.js` |
 | DB schema | `backend/src/db/schema.sql` |
-| Env config | `backend/src/config/Env.js` |
-| Query builder | `backend/src/common/query/AdvaceQuery.js` |
+| Env config | `backend/src/config/environment.js` |
+| Query builder | `backend/src/common/query/advanced-query.js` |
 | Learner routes | `frontend/src/App.jsx` |
 | Learner data hooks | `frontend/src/hooks/queries`, `hooks/mutations` |
 | Learner API client | `frontend/src/api/client.js` |

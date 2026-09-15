@@ -1,7 +1,7 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
-import * as controller from "./controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
+import reviewController from "./controller.js";
 import {
   helpfulVoteValidator,
   reportValidator,
@@ -13,11 +13,11 @@ export const reviewsCollectionRoute = express.Router({ mergeParams: true });
 
 reviewsCollectionRoute
   .route("/")
-  .get(controller.getReviews)
-  .post(requireAuth, reviewValidator, validateResult, controller.createReview);
+  .get(reviewController.getReviews)
+  .post(requireAuth, reviewValidator, validateResult, reviewController.createReview);
 
-reviewsCollectionRoute.get("/summary", controller.getReviewDetail);
-reviewsCollectionRoute.get("/me", requireAuth, controller.getReview);
+reviewsCollectionRoute.get("/summary", reviewController.getReviewDetail);
+reviewsCollectionRoute.get("/me", requireAuth, reviewController.getReview);
 
 // Mounted at /api/v1/reviews
 export const reviewsItemRoute = express.Router();
@@ -27,17 +27,17 @@ reviewsItemRoute.put(
   requireAuth,
   helpfulVoteValidator,
   validateResult,
-  controller.setHelpfulVote,
+  reviewController.setHelpfulVote,
 );
 reviewsItemRoute.delete(
   "/:reviewId/helpful-vote",
   requireAuth,
-  controller.removeHelpfulVote,
+  reviewController.removeHelpfulVote,
 );
 reviewsItemRoute.post(
   "/:reviewId/reports",
   requireAuth,
   reportValidator,
   validateResult,
-  controller.createReviewReport,
+  reviewController.createReviewReport,
 );

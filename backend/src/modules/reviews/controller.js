@@ -1,82 +1,93 @@
-import asyncHandler from "../../common/http/asyncHandler.js";
+import asyncHandler from "../../common/http/async-handler.js";
 import { sendSuccess } from "../../common/http/response.js";
-import * as reviewsService from "./service.js";
+import reviewService from "./service.js";
 
-export const getReviews = asyncHandler(async (req, res) => {
-  const { data, pagination } = await reviewsService.getReviews({
-    courseId: req.params.courseId,
-    userId: req.session?.user?.id || null,
-    query: req.query,
+class ReviewController {
+  constructor({ reviewService }) {
+    this.reviewService = reviewService;
+  }
+
+  getReviews = asyncHandler(async (req, res) => {
+    const { reviews, pagination } = await this.reviewService.getReviews({
+      courseId: req.params.courseId,
+      userId: req.session?.user?.id || null,
+      query: req.query,
+    });
+
+    return sendSuccess(res, reviews, {
+      message: "Reviews retrieved successfully",
+      pagination,
+    });
   });
 
-  return sendSuccess(res, data, {
-    message: "Reviews retrieved successfully",
-    pagination,
-  });
-});
+  getReviewDetail = asyncHandler(async (req, res) => {
+    const review = await this.reviewService.getReviewDetail(
+      req.params.courseId,
+    );
 
-export const getReviewDetail = asyncHandler(async (req, res) => {
-  const review = await reviewsService.getReviewDetail(req.params.courseId);
-
-  return sendSuccess(res, review, {
-    message: "Review retrieved successfully",
-  });
-});
-
-export const createReview = asyncHandler(async (req, res) => {
-  const review = await reviewsService.createReview({
-    userId: req.session.user.id,
-    courseId: req.params.courseId,
-    rating: req.body.rating,
-    description: req.body.description,
+    return sendSuccess(res, review, {
+      message: "Review retrieved successfully",
+    });
   });
 
-  return sendSuccess(res, review, { message: "Review created successfully" });
-});
+  createReview = asyncHandler(async (req, res) => {
+    const review = await this.reviewService.createReview({
+      userId: req.session.user.id,
+      courseId: req.params.courseId,
+      rating: req.body.rating,
+      description: req.body.description,
+    });
 
-export const getReview = asyncHandler(async (req, res) => {
-  const review = await reviewsService.getReview({
-    userId: req.session.user.id,
-    courseId: req.params.courseId,
+    return sendSuccess(res, review, { message: "Review created successfully" });
   });
 
-  return sendSuccess(res, review || null, {
-    message: "Review retrieved successfully",
-  });
-});
+  getReview = asyncHandler(async (req, res) => {
+    const review = await this.reviewService.getReview({
+      userId: req.session.user.id,
+      courseId: req.params.courseId,
+    });
 
-export const setHelpfulVote = asyncHandler(async (req, res) => {
-  await reviewsService.setHelpfulVote({
-    userId: req.session.user.id,
-    reviewId: req.params.reviewId,
-    isHelpful: req.body.isHelpful,
-  });
-
-  return sendSuccess(res, null, {
-    message: "Review helpful vote saved successfully",
-  });
-});
-
-export const removeHelpfulVote = asyncHandler(async (req, res) => {
-  await reviewsService.removeHelpfulVote({
-    userId: req.session.user.id,
-    reviewId: req.params.reviewId,
+    return sendSuccess(res, review || null, {
+      message: "Review retrieved successfully",
+    });
   });
 
-  return sendSuccess(res, null, {
-    message: "Review helpful vote removed successfully",
-  });
-});
+  setHelpfulVote = asyncHandler(async (req, res) => {
+    await this.reviewService.setHelpfulVote({
+      userId: req.session.user.id,
+      reviewId: req.params.reviewId,
+      isHelpful: req.body.isHelpful,
+    });
 
-export const createReviewReport = asyncHandler(async (req, res) => {
-  const report = await reviewsService.createReviewReport({
-    userId: req.session.user.id,
-    reviewId: req.params.reviewId,
-    reason: req.body.reason,
-    description: req.body.description,
+    return sendSuccess(res, null, {
+      message: "Review helpful vote saved successfully",
+    });
   });
 
-  return sendSuccess(res, report, {
-    message: "Review report created successfully",
+  removeHelpfulVote = asyncHandler(async (req, res) => {
+    await this.reviewService.removeHelpfulVote({
+      userId: req.session.user.id,
+      reviewId: req.params.reviewId,
+    });
+
+    return sendSuccess(res, null, {
+      message: "Review helpful vote removed successfully",
+    });
   });
-});
+
+  createReviewReport = asyncHandler(async (req, res) => {
+    const report = await this.reviewService.createReviewReport({
+      userId: req.session.user.id,
+      reviewId: req.params.reviewId,
+      reason: req.body.reason,
+      description: req.body.description,
+    });
+
+    return sendSuccess(res, report, {
+      message: "Review report created successfully",
+    });
+  });
+}
+
+export { ReviewController };
+export default new ReviewController({ reviewService });

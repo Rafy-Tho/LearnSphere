@@ -35,7 +35,7 @@ Security is non-negotiable. Apply these rules to every change.
 ## 5. Secrets & Configuration
 
 - Never commit `.env` or secrets. They are gitignored.
-- Read secrets only via `backend/src/config/Env.js` (backend) or `import.meta.env.VITE_*` (frontend).
+- Read secrets only via `backend/src/config/environment.js` (backend) or `import.meta.env.VITE_*` (frontend).
 - Never expose server-only keys to the frontend.
 - Never hardcode keys, tokens, webhook secrets, or credentials.
 - If a secret leaks, rotate it immediately and report.

@@ -87,9 +87,9 @@ Review:
 | B9 | Add `withTransaction` and wrap multi-step writes (correctness under load) | `backend-audit.md` §9 | Confirmed |
 
 ### 3.2 Query-shape notes (Confirmed)
-- `getAllCourses` (`CourseRepository.js:99-171`) joins two aggregate subqueries; `paginate()` (`AdvaceQuery.js:144-176`) reruns the aggregate base for `COUNT(*)`.
+- `getAllCourses` (`CourseRepository.js:99-171`) joins two aggregate subqueries; `paginate()` (`advanced-query.js:144-176`) reruns the aggregate base for `COUNT(*)`.
 - `getPopular` (`:401-432`) aggregates all `lesson_completion` rows per request; `getRecommended` uses correlated `IN`/`NOT IN`; in-progress/completed run count+data aggregate passes.
-- `%term%` search (`AdvaceQuery.js:83-96`) has no trigram index → sequential scan.
+- `%term%` search (`advanced-query.js:83-96`) has no trigram index → sequential scan.
 - Missing `deleted_at IS NULL` on most reads can inflate result sets.
 
 ---

@@ -1,7 +1,7 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
-import * as controller from "./controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
+import subscriptionController from "./subscription.controller.js";
 import { planIdParamValidator } from "./validation.js";
 
 const subscriptionsRoute = express.Router();
@@ -11,7 +11,7 @@ subscriptionsRoute.post(
   requireAuth,
   planIdParamValidator,
   validateResult,
-  controller.createStripeSession,
+  subscriptionController.createStripeSession,
 );
 
 export default subscriptionsRoute;

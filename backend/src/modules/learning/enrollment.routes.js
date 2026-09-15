@@ -1,7 +1,7 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
-import * as controller from "./controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
+import enrollmentController from "./enrollment.controller.js";
 import { courseIdParamValidator } from "./validation.js";
 
 // Mounted at /api/v1/courses/:courseId/enrollments
@@ -13,8 +13,8 @@ enrollmentRoute
     requireAuth,
     courseIdParamValidator,
     validateResult,
-    controller.enrollCourse,
+    enrollmentController.enrollCourse,
   )
-  .get(requireAuth, controller.getEnrollment);
+  .get(requireAuth, enrollmentController.getEnrollment);
 
 export default enrollmentRoute;

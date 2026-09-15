@@ -1,76 +1,87 @@
-import ENV from "../../config/Env.js";
-import ApiError from "../../common/errors/ApiError.js";
-import StatusCode from "../../common/constants/StatusCode.js";
-import asyncHandler from "../../common/http/asyncHandler.js";
+import environment from "../../config/environment.js";
+import ApiError from "../../common/errors/api-error.js";
+import StatusCode from "../../common/constants/status-code.js";
+import asyncHandler from "../../common/http/async-handler.js";
 import { sendSuccess } from "../../common/http/response.js";
 import logger from "../../common/logger.js";
-import emailService from "../../common/services/EmailService.js";
-import sessionService from "../../common/services/SessionService.js";
-import * as authService from "./service.js";
+import emailService from "../../common/services/email-service.js";
+import sessionService from "../../common/services/session-service.js";
+import authService from "./service.js";
 
-export const register = asyncHandler(async (req, res) => {
-  const { email, password, name } = req.body;
-
-  const user = await authService.registerUser({ name, email, password });
-  await sessionService.create(req, user);
-
-  emailService
-    .sendWelcome(email, name)
-    .catch((err) =>
-      logger.error("Failed to send welcome email", { message: err.message }),
-    );
-
-  return sendSuccess(res, user, {
-    statusCode: StatusCode.CREATED,
-    message: "User registered successfully",
-  });
-});
-
-export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-
-  const user = await authService.authenticate({ email, password });
-  await sessionService.create(req, user);
-
-  return sendSuccess(res, user, { message: "User logged in successfully" });
-});
-
-export const logout = asyncHandler(async (req, res) => {
-  const userId = req.session.user.id;
-
-  const user = await authService.getUserById(userId);
-  if (!user) {
-    throw new ApiError(StatusCode.NOT_FOUND, "User Doesn't Exist");
+class AuthController {
+  constructor({ authService, sessionService, emailService }) {
+    this.authService = authService;
+    this.sessionService = sessionService;
+    this.emailService = emailService;
   }
 
-  await sessionService.destroy(req);
-  res.clearCookie(ENV.COOKIE_NAME);
+  register = asyncHandler(async (req, res) => {
+    const { email, password, name } = req.body;
 
-  return sendSuccess(res, null, { message: "User logged out successfully" });
-});
+    const user = await this.authService.registerUser({ name, email, password });
+    await this.sessionService.create(req, user);
 
-export const sendPasswordResetCode = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+    this.emailService
+      .sendWelcome(email, name)
+      .catch((error) =>
+        logger.error("Failed to send welcome email", { message: error.message }),
+      );
 
-  await authService.sendResetCode(email);
-
-  return sendSuccess(res, null, {
-    message: "Password reset code sent successfully",
+    return sendSuccess(res, user, {
+      statusCode: StatusCode.CREATED,
+      message: "User registered successfully",
+    });
   });
-});
 
-export const verifyPasswordResetCode = asyncHandler(async (req, res) => {
-  const { email, code } = req.body;
+  login = asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
 
-  await authService.assertValidResetCode({ email, code });
+    const user = await this.authService.authenticate({ email, password });
+    await this.sessionService.create(req, user);
 
-  return sendSuccess(res, null, { message: "Verification successful" });
-});
+    return sendSuccess(res, user, { message: "User logged in successfully" });
+  });
 
-export const resetPassword = asyncHandler(async (req, res) => {
-  const { email, code, password } = req.body;
+  logout = asyncHandler(async (req, res) => {
+    const userId = req.session.user.id;
 
-  await authService.resetUserPassword({ email, code, password });
+    const user = await this.authService.getUserById(userId);
+    if (!user) {
+      throw new ApiError(StatusCode.NOT_FOUND, "User Doesn't Exist");
+    }
 
-  return sendSuccess(res, null, { message: "Password reset successfully" });
-});
+    await this.sessionService.destroy(req);
+    res.clearCookie(environment.COOKIE_NAME);
+
+    return sendSuccess(res, null, { message: "User logged out successfully" });
+  });
+
+  sendPasswordResetCode = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    await this.authService.sendResetCode(email);
+
+    return sendSuccess(res, null, {
+      message: "Password reset code sent successfully",
+    });
+  });
+
+  verifyPasswordResetCode = asyncHandler(async (req, res) => {
+    const { email, code } = req.body;
+
+    await this.authService.assertValidResetCode({ email, code });
+
+    return sendSuccess(res, null, { message: "Verification successful" });
+  });
+
+  resetPassword = asyncHandler(async (req, res) => {
+    const { email, code, password } = req.body;
+
+    await this.authService.resetUserPassword({ email, code, password });
+
+    return sendSuccess(res, null, { message: "Password reset successfully" });
+  });
+}
+
+export { AuthController };
+export default new AuthController({ authService, sessionService, emailService });

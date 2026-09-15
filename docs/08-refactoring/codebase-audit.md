@@ -73,7 +73,7 @@ There is no `BEGIN`/`COMMIT`/`ROLLBACK` and no client checkout helper anywhere i
 - Update/delete return `201` "created" (`answerControllers.js:43-64`).
 
 ### 3.6 Observability is near-zero in production (Confirmed)
-- `errorHandler` never logs (`errorHandler.js:29-70`).
+- `errorHandler` never logs (`error-handler.js:29-70`).
 - Morgan access logging only in development (`app.js:53-56`).
 - No `unhandledRejection`/`uncaughtException`/`SIGTERM` handling (`server.js`).
 
@@ -86,19 +86,19 @@ There is no `BEGIN`/`COMMIT`/`ROLLBACK` and no client checkout helper anywhere i
 | ID | Finding | Evidence | Severity |
 |---|---|---|---|
 | P0-1 | Public quiz endpoint exposes `is_correct` answer key + explanations | `LessonRepository.js:120-141`, `questionRoute.js:19` | Confirmed |
-| P0-2 | Password reset broken & weak: `Math.random` 6-digit, unsalted SHA-256, `VARCHAR(6)` | `HashCode.js:3-5`, `createRadomCode.js:2-3`, `schema.sql:80` | Confirmed |
+| P0-2 | Password reset broken & weak: `Math.random` 6-digit, unsalted SHA-256, `VARCHAR(6)` | `hash-code.js:3-5`, `create-random-code.js:2-3`, `schema.sql:80` | Confirmed |
 | P0-3 | Instructor dashboard returns bcrypt password hashes of all instructors | `UserRepository.js:149-157`, `adminControllers.js:29`, `userRoute.js:97-99` | Confirmed |
 | P0-4 | Missing authorization/ownership on quiz options POST/PATCH/DELETE | `answerRoute.js:15-21`, `answerControllers.js:9-64` | Confirmed |
-| P0-5 | Stripe webhook: no idempotency, no transaction, expires subscriptions pre-payment, amount unit bug | `webhookRoute.js:31-83`, `userControllers.js:363`, `EmailService.js:42` | Confirmed |
+| P0-5 | Stripe webhook: no idempotency, no transaction, expires subscriptions pre-payment, amount unit bug | `webhookRoute.js:31-83`, `userControllers.js:363`, `email-service.js:42` | Confirmed |
 | P0-6 | Subscription/enrollment bypass; lesson completion & review without enrollment | `enrollmentControllers.js:12-49`, `lessonCompletionControllers.js:11-37`, `ReviewControllers.js:53-73` | Confirmed |
-| P0-7 | No session invalidation on password change/reset; no status check (suspended users keep access) | `SessionService.js:27-34`, `userControllers.js:284-314` | Confirmed |
+| P0-7 | No session invalidation on password change/reset; no status check (suspended users keep access) | `session-service.js:27-34`, `userControllers.js:284-314` | Confirmed |
 | P0-8 | Multi-step writes not transactional (register, enroll, admin create user, reset) | `userControllers.js:32-39`, `enrollmentControllers.js:32-41`, `adminUserControllers.js:42-60` | Confirmed |
 | P0-9 | Password hashes returned by admin user update/create; hardcoded temp password | `UserRepository.js:191-200`, `adminUserControllers.js:39` | Confirmed |
 | P0-10 | Missing validators on many write endpoints | options, enrollment, completions, payment, all admin routes | Confirmed |
 | P0-11 | Account enumeration (register 400 vs 409, reset 404) + login timing oracle | `userControllers.js:24-26,197-199,57-65` | Confirmed |
 | P0-12 | `loginLimiter` unused; no brute-force/account lockout | `rateLimitMiddlewares.js:19-23`, `userRoute.js:41` | Confirmed |
 | P0-13 | No CSRF protection + production `sameSite:"none"`; no security headers | `sessionMiddleware.js:28`, `app.js` (no helmet) | Confirmed |
-| P0-14 | Weak `SESSION_SECRET`, no env validation, `Origin`-header open redirect in Stripe session | `Env.js:5-26`, `userControllers.js:345,380-381` | Confirmed |
+| P0-14 | Weak `SESSION_SECRET`, no env validation, `Origin`-header open redirect in Stripe session | `environment.js:5-26`, `userControllers.js:345,380-381` | Confirmed |
 | P0-15 | Schema drift breaks learn/content/reset flows (D1–D4 above) | see §3.1 | Confirmed |
 
 ### P1 — High-impact architectural / performance
@@ -106,7 +106,7 @@ There is no `BEGIN`/`COMMIT`/`ROLLBACK` and no client checkout helper anywhere i
 | ID | Finding | Evidence | Severity |
 |---|---|---|---|
 | P1-1 | `getCourseDetailsDashboard`: 8 sequential queries, no ownership check, unbounded | `courseControllers.js:332-361` | Confirmed/Likely |
-| P1-2 | `getAllCourses`: count re-runs aggregate base; alias filters in `WHERE` → 500; no `deleted_at`; uncapped `limit` | `CourseRepository.js:99-171`, `AdvaceQuery.js:74,154-160` | Confirmed/Likely |
+| P1-2 | `getAllCourses`: count re-runs aggregate base; alias filters in `WHERE` → 500; no `deleted_at`; uncapped `limit` | `CourseRepository.js:99-171`, `advanced-query.js:74,154-160` | Confirmed/Likely |
 | P1-3 | Heavy aggregates: `getPopular` (counts completions, not enrollments), `getRecommended`, `getCourseInProgress`/`getCompletedCourses` | `CourseRepository.js:363-663` | Confirmed/Likely |
 | P1-4 | Duplicated duration subquery (8×) and ownership SQL (5×) | `CourseRepository.js`, 5 repositories | Confirmed |
 | P1-5 | Missing indexes: `courses(category_id/instructor_id/status/deleted_at)`, `lesson_completion(user_id,course_id)`, `password_reset_codes(user_id)`, trigram search | `schema.sql` | Confirmed |
@@ -129,7 +129,7 @@ There is no `BEGIN`/`COMMIT`/`ROLLBACK` and no client checkout helper anywhere i
 | P2-5 | Dead code: ~32 files + unused deps (`nodemailer`, `resend`, `@react-oauth/google`, 23 unused UI files) | see `frontend-audit.md` |
 | P2-6 | Two incompatible API clients (frontend class vs admin per-service classes); admin lacks 401 handling | `frontend/src/api/client.js`, `admin/src/services/*` |
 | P2-7 | Admin forms all manual vs frontend RHF+zod; RHF/form deps dead in admin | admin pages, `components/ui/form.jsx` |
-| P2-8 | No logging in `errorHandler`; no structured logging/prod access logs | `errorHandler.js`, `app.js` |
+| P2-8 | No logging in `errorHandler`; no structured logging/prod access logs | `error-handler.js`, `app.js` |
 | P2-9 | No tests, no TypeScript/JSDoc checking | all apps |
 | P2-10 | Misnamed files/hooks (`useReviews.js` exports `useCategories`; option/question hook filenames) | frontend/admin hooks |
 | P2-11 | Three sources of truth for auth; admin theme state fragmented | `AuthContext`, `ThemeContext`, `use-theme.js` |
@@ -143,8 +143,8 @@ There is no `BEGIN`/`COMMIT`/`ROLLBACK` and no client checkout helper anywhere i
 | P3-2 | Dead assets: `frontend/src/assets/profile.jpg` (2 MB), Font Awesome CDN, `date-fns` for one helper | `frontend` |
 | P3-3 | Leftover `console.log` in components | `LearningRoadMap.jsx:105`, `CourseRating.jsx:29` |
 | P3-4 | `package.json` name collision (both `"frontend"`) | both apps |
-| P3-5 | Comment/route drift; filename typo `AdvaceQuery.js` | backend |
-| P3-6 | `AdvancedQuery.limitFields()` latent SQL injection if ever called | `AdvaceQuery.js:131-139` |
+| P3-5 | Comment/route drift; filename typo `advanced-query.js` | backend |
+| P3-6 | `AdvancedQuery.limitFields()` latent SQL injection if ever called | `advanced-query.js:131-139` |
 | P3-7 | Unused schema columns (`course_reviews.helpful_count`, `certificates.confirm`) | `schema.sql` |
 | P3-8 | `@tanstack/react-query-devtools` shipped as prod dependency | both apps |
 

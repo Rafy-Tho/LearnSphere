@@ -8,7 +8,7 @@ Conventions derived from the existing codebase. New code should match these patt
 - Backend is ESM (`"type": "module"`); use `import`/`export`, not `require`.
 - No comments unless they add real value; the codebase is written to be self-explanatory.
 - Keep functions small and single-purpose; controllers orchestrate, repositories query.
-- Never hardcode secrets or environment-specific values; use `Env.js` / `import.meta.env`.
+- Never hardcode secrets or environment-specific values; use `environment.js` / `import.meta.env`.
 
 ## 2. Naming
 
@@ -43,7 +43,7 @@ Conventions derived from the existing codebase. New code should match these patt
 
 - Always return the envelope: `{ success, statusCode, message, data }`.
 - List endpoints include `pagination`.
-- Use status constants from `backend/src/common/constants/StatusCode.js`.
+- Use status constants from `backend/src/common/constants/status-code.js`.
 
 ### 3.4 SQL
 

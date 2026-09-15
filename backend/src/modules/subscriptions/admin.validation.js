@@ -1,7 +1,7 @@
 import { checkSchema } from "express-validator";
 import {
   dateValidator,
-  EnumValidator,
+  enumValidator,
   floatValidator,
   numberValidator,
   textValidator,
@@ -29,7 +29,7 @@ export const createUserSubscriptionValidator = checkSchema({
   plan_id: uuidValidator("Plan ID"),
   start_date: dateValidator("Start date", true),
   end_date: dateValidator("End date", true),
-  status: EnumValidator("Status", SUBSCRIPTION_STATUSES, true),
+  status: enumValidator("Status", SUBSCRIPTION_STATUSES, true),
 });
 
 export const updateUserSubscriptionValidator = checkSchema({
@@ -37,19 +37,19 @@ export const updateUserSubscriptionValidator = checkSchema({
   plan_id: uuidValidator("Plan ID", true),
   start_date: dateValidator("Start date", true),
   end_date: dateValidator("End date", true),
-  status: EnumValidator("Status", SUBSCRIPTION_STATUSES, true),
+  status: enumValidator("Status", SUBSCRIPTION_STATUSES, true),
 });
 
 export const createPaymentValidator = checkSchema({
   user_subscription_id: uuidValidator("User subscription ID"),
   amount: floatValidator("Amount"),
-  payment_status: EnumValidator("Payment status", PAYMENT_STATUSES, true),
+  payment_status: enumValidator("Payment status", PAYMENT_STATUSES, true),
   stripe_payment_intent_id: textValidator("Stripe payment intent ID", true, 255),
 });
 
 export const updatePaymentValidator = checkSchema({
   amount: floatValidator("Amount", true),
-  payment_status: EnumValidator("Payment status", PAYMENT_STATUSES, true),
+  payment_status: enumValidator("Payment status", PAYMENT_STATUSES, true),
   stripe_payment_intent_id: textValidator("Stripe payment intent ID", true, 255),
 });
 

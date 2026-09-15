@@ -1,7 +1,7 @@
 import { checkSchema } from "express-validator";
 import {
   emailValidator,
-  EnumValidator,
+  enumValidator,
   textValidator,
   uuidParamValidator,
 } from "../../common/validation.js";
@@ -12,15 +12,15 @@ const STATUSES = ["ACTIVE", "INACTIVE", "SUSPENDED"];
 export const createUserValidator = checkSchema({
   name: textValidator("Name"),
   email: emailValidator("Email"),
-  role: EnumValidator("Role", ROLES, true),
-  status: EnumValidator("Status", STATUSES, true),
+  role: enumValidator("Role", ROLES, true),
+  status: enumValidator("Status", STATUSES, true),
 });
 
 export const updateUserValidator = checkSchema({
   name: textValidator("Name", true),
   email: emailValidator("Email", true),
-  role: EnumValidator("Role", ROLES, true),
-  status: EnumValidator("Status", STATUSES, true),
+  role: enumValidator("Role", ROLES, true),
+  status: enumValidator("Status", STATUSES, true),
 });
 
 export const userIdParamValidator = checkSchema({

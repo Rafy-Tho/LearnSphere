@@ -1,7 +1,7 @@
 import { checkSchema } from "express-validator";
 import {
   booleanValidator,
-  EnumValidator,
+  enumValidator,
   htmlValidator,
   numberValidator,
   textValidator,
@@ -17,24 +17,24 @@ export const moduleValidators = checkSchema({
   name: textValidator("Module name"),
   description: textValidator("Module description", true),
   position: numberValidator("Module position"),
-  status: EnumValidator("Module status", CONTENT_STATUS),
+  status: enumValidator("Module status", CONTENT_STATUS),
 });
 
 export const chapterValidators = checkSchema({
   name: textValidator("Chapter name"),
   description: textValidator("Chapter description", true),
   position: numberValidator("Chapter position"),
-  status: EnumValidator("Chapter status", CONTENT_STATUS, true),
+  status: enumValidator("Chapter status", CONTENT_STATUS, true),
 });
 
 export const lessonValidator = checkSchema({
   name: textValidator("Name"),
-  status: EnumValidator("Status", CONTENT_STATUS),
+  status: enumValidator("Status", CONTENT_STATUS),
   description: textValidator("Description", true, 500),
-  type: EnumValidator("Type", LESSON_TYPE),
+  type: enumValidator("Type", LESSON_TYPE),
   xpPoints: numberValidator("Xp point"),
   position: numberValidator("Position"),
-  accessType: EnumValidator("Access type", ACCESS_COURSE_TYPE),
+  accessType: enumValidator("Access type", ACCESS_COURSE_TYPE),
   durationMinutes: numberValidator("Durations"),
 });
 
@@ -50,7 +50,7 @@ export const questionValidator = checkSchema({
   position: numberValidator("Position", false),
 });
 
-export const answerValidator = checkSchema({
+export const optionValidator = checkSchema({
   text: textValidator("Answer", false, 500),
   isCorrect: booleanValidator("Is Correct"),
   position: numberValidator("Position", false),
@@ -76,6 +76,6 @@ export const questionIdParamValidator = checkSchema({
   questionId: uuidParamValidator("Question ID"),
 });
 
-export const answerIdParamValidator = checkSchema({
+export const optionIdParamValidator = checkSchema({
   optionId: uuidParamValidator("Option ID"),
 });

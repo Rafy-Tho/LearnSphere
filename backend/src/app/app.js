@@ -1,7 +1,7 @@
 import express from "express";
 import connectCloudinary from "../config/cloudinary.js";
-import errorHandler from "../common/middleware/errorHandler.js";
-import notFoundUrl from "../common/http/notFoundUrl.js";
+import errorHandler from "../common/middleware/error-handler.js";
+import notFoundUrl from "../common/http/not-found-url.js";
 import { registerMiddleware } from "./middleware.js";
 import { registerRoutes } from "./routes.js";
 

@@ -66,132 +66,131 @@ export const textValidator = (field, optional = false, maxLength = 50) => ({
     errorMessage: `${field} must be between 3 and ${maxLength} characters`,
   },
 });
-// validateUrl
 
-export const codeValidator = (fieldName) => ({
+export const codeValidator = (field) => ({
   in: ["body"],
   trim: true,
   escape: true,
   notEmpty: {
-    errorMessage: `${fieldName} is required`,
+    errorMessage: `${field} is required`,
     bail: true,
   },
   isNumeric: {
-    errorMessage: `${fieldName} must be a number`,
+    errorMessage: `${field} must be a number`,
     bail: true,
   },
   isLength: {
     options: { min: 6, max: 6 },
-    errorMessage: `${fieldName} must be 6 characters long`,
+    errorMessage: `${field} must be 6 characters long`,
   },
 });
 
-export const uuidValidator = (fieldName, option = false) => ({
+export const uuidValidator = (field, optional = false) => ({
   in: ["body"],
   trim: true,
   escape: true,
-  ...(option && {
+  ...(optional && {
     optional: {
       options: { nullable: true, checkFalsy: true },
     },
   }),
-  ...(!option && {
+  ...(!optional && {
     notEmpty: {
-      errorMessage: `${fieldName} is required`,
+      errorMessage: `${field} is required`,
       bail: true,
     },
   }),
   isUUID: {
-    errorMessage: `${fieldName} must be a valid UUID`,
+    errorMessage: `${field} must be a valid UUID`,
   },
 });
 
-export const uuidParamValidator = (fieldName) => ({
+export const uuidParamValidator = (field) => ({
   in: ["params"],
   trim: true,
   notEmpty: {
-    errorMessage: `${fieldName} is required`,
+    errorMessage: `${field} is required`,
     bail: true,
   },
   isUUID: {
-    errorMessage: `${fieldName} must be a valid UUID`,
+    errorMessage: `${field} must be a valid UUID`,
   },
 });
 
-export const numberValidator = (fieldName, option = false) => ({
+export const numberValidator = (field, optional = false) => ({
   in: ["body"],
   trim: true,
   escape: true,
   toInt: true,
-  ...(option && {
+  ...(optional && {
     optional: {
       options: { nullable: true, checkFalsy: true },
     },
   }),
-  ...(!option && {
+  ...(!optional && {
     notEmpty: {
-      errorMessage: `${fieldName} is required`,
+      errorMessage: `${field} is required`,
       bail: true,
     },
   }),
   isInt: {
     options: { min: 0, max: 1_000_000_000 },
-    errorMessage: `${fieldName} must be between 0 and 1000,000,000`,
+    errorMessage: `${field} must be between 0 and 1000,000,000`,
   },
 });
 
-export const floatValidator = (fieldName, option = false) => ({
+export const floatValidator = (field, optional = false) => ({
   in: ["body"],
   trim: true,
   escape: true,
   toFloat: true,
-  ...(option && {
+  ...(optional && {
     optional: {
       options: { nullable: true, checkFalsy: true },
     },
   }),
-  ...(!option && {
+  ...(!optional && {
     notEmpty: {
-      errorMessage: `${fieldName} is required`,
+      errorMessage: `${field} is required`,
       bail: true,
     },
   }),
   isFloat: {
     options: { min: 0, max: 1_000_000_000 },
-    errorMessage: `${fieldName} must be between 0 and 1000,000,000`,
+    errorMessage: `${field} must be between 0 and 1000,000,000`,
   },
 });
 
-export const EnumValidator = (fieldName, values, option = false) => ({
+export const enumValidator = (field, values, optional = false) => ({
   in: ["body"],
   trim: true,
   escape: true,
-  ...(option && {
+  ...(optional && {
     optional: {
       options: { nullable: true, checkFalsy: true },
     },
   }),
-  ...(!option && {
+  ...(!optional && {
     notEmpty: {
-      errorMessage: `${fieldName} is required`,
+      errorMessage: `${field} is required`,
       bail: true,
     },
   }),
   isIn: {
     options: [values],
-    errorMessage: `${fieldName} must be either ${values.join(" or ")}`,
+    errorMessage: `${field} must be either ${values.join(" or ")}`,
   },
   isLength: {
     options: { min: 1, max: 100 },
-    errorMessage: `${fieldName} must be between 1 and 100 characters`,
+    errorMessage: `${field} must be between 1 and 100 characters`,
   },
 });
 
-export const htmlValidator = (fieldName) => ({
+export const htmlValidator = (field) => ({
   in: ["body"],
   trim: true,
   notEmpty: {
-    errorMessage: `${fieldName} is required`,
+    errorMessage: `${field} is required`,
     bail: true,
   },
   custom: {
@@ -199,54 +198,50 @@ export const htmlValidator = (fieldName) => ({
       const hasTag = /<\/?[a-z][\s\S]*>/i.test(value);
 
       if (!hasTag) {
-        throw new Error(`${fieldName} must contain valid HTML`);
+        throw new Error(`${field} must contain valid HTML`);
       }
 
       // sanitize and attach to request
-      req.body[fieldName] = DOMPurify.sanitize(value);
+      req.body[field] = DOMPurify.sanitize(value);
 
       return true;
     },
   },
   isLength: {
     options: { max: 1_000_000 },
-    errorMessage: `${fieldName} must be at most 1,000,000 characters`,
+    errorMessage: `${field} must be at most 1,000,000 characters`,
   },
 });
 
-export const booleanValidator = (fieldName) => ({
+export const booleanValidator = (field) => ({
   in: ["body"],
   trim: true,
   escape: true,
   notEmpty: {
-    errorMessage: `${fieldName} is required`,
+    errorMessage: `${field} is required`,
     bail: true,
   },
   isBoolean: {
-    errorMessage: `${fieldName} must be a boolean`,
+    errorMessage: `${field} must be a boolean`,
   },
 });
 
-export const dateValidator = (fieldName, option = false) => ({
+export const dateValidator = (field, optional = false) => ({
   in: ["body"],
   trim: true,
 
-  ...(option && {
+  ...(optional && {
     optional: {
       options: { nullable: true, checkFalsy: true },
     },
   }),
 
-  ...(!option && {
+  ...(!optional && {
     notEmpty: {
-      errorMessage: `${fieldName} is required`,
+      errorMessage: `${field} is required`,
       bail: true,
     },
   }),
-
-  // isISO8601: {
-  //   errorMessage: `${fieldName} must be a valid date`,
-  // },
 
   toDate: true,
 });

@@ -1,8 +1,12 @@
 import pgPool from "../../config/database.js";
 
 class QuestionRepository {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
   async createQuestion({ lessonId, question, explanation, position }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `INSERT INTO quizzes (
         lesson_id,
         question,
@@ -17,7 +21,7 @@ class QuestionRepository {
     return result.rows[0];
   }
   async updateQuestion({ questionId, question, explanation, position }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `UPDATE quizzes
       SET question = $1,
           explanation = $2,
@@ -30,7 +34,7 @@ class QuestionRepository {
     return result.rows[0];
   }
   async deleteQuestion({ questionId }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `DELETE FROM quizzes
       WHERE id = $1
       RETURNING *
@@ -40,7 +44,7 @@ class QuestionRepository {
     return result.rows[0];
   }
   async findById(questionId) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT * FROM quizzes
       WHERE id = $1
       `,
@@ -58,7 +62,7 @@ class QuestionRepository {
     WHERE m.course_id = $1
     `;
     const value = [id];
-    const result = await pgPool.query(query, value);
+    const result = await this.db.query(query, value);
     return result.rows;
   }
   async getInstructor(id) {
@@ -70,7 +74,7 @@ class QuestionRepository {
     JOIN quizzes qz ON qz.lesson_id = ls.id
     WHERE qz.id = $1
     `;
-    const result = await pgPool.query(query, [id]);
+    const result = await this.db.query(query, [id]);
     return result.rows[0];
   }
 }

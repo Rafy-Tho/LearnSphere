@@ -77,7 +77,7 @@ Both frontends talk to the same backend API and share the same cookie-based sess
 
 - PostgreSQL with UUID primary keys (`pgcrypto` / `gen_random_uuid()`)
 - SQL schema defined in `backend/src/db/schema.sql`
-- Environment-variable configuration via `backend/src/config/Env.js`
+- Environment-variable configuration via `backend/src/config/environment.js`
 
 ## 5. High-Level Architecture
 

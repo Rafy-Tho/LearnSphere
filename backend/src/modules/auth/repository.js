@@ -1,8 +1,12 @@
 import pgPool from "../../config/database.js";
 
 class PasswordResetCodeRepository {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
   async create({ code, userId, expiresAt }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `INSERT INTO password_reset_codes (code, user_id, expires_at)
        VALUES ($1, $2, $3)
        RETURNING *
@@ -14,7 +18,7 @@ class PasswordResetCodeRepository {
   }
 
   async findCode({ code, userId }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT *
        FROM password_reset_codes
        WHERE
@@ -27,7 +31,7 @@ class PasswordResetCodeRepository {
   }
 
   async incrementAttempt(userId) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `UPDATE password_reset_codes
        SET attempts = attempts + 1
        WHERE user_id = $1
@@ -38,7 +42,7 @@ class PasswordResetCodeRepository {
     return result.rows[0]?.attempts;
   }
 
-  async delete(userId, client = pgPool) {
+  async delete(userId, client = this.db) {
     const result = await client.query(
       `DELETE FROM password_reset_codes
        WHERE user_id = $1
@@ -51,5 +55,5 @@ class PasswordResetCodeRepository {
   }
 }
 
-const PasswordResetCode = new PasswordResetCodeRepository();
-export default PasswordResetCode;
+export { PasswordResetCodeRepository };
+export default new PasswordResetCodeRepository();

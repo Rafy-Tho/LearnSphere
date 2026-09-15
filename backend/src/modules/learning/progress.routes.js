@@ -1,7 +1,7 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
-import * as controller from "./controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
+import progressController from "./progress.controller.js";
 import {
   courseIdParamValidator,
   learningProgressValidator,
@@ -16,15 +16,15 @@ progressRoute
     requireAuth,
     courseIdParamValidator,
     validateResult,
-    controller.createLearningProgress,
+    progressController.createProgress,
   )
-  .get(requireAuth, controller.getLearningProgress)
+  .get(requireAuth, progressController.getProgress)
   .patch(
     requireAuth,
     courseIdParamValidator,
     learningProgressValidator,
     validateResult,
-    controller.updateLearningProgress,
+    progressController.updateProgress,
   );
 
 export default progressRoute;

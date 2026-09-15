@@ -2,7 +2,7 @@ import { checkSchema } from "express-validator";
 import {
   dateValidator,
   emailValidator,
-  EnumValidator,
+  enumValidator,
   numberValidator,
   textValidator,
 } from "../../common/validation.js";
@@ -14,5 +14,5 @@ export const validateUpdateProfile = checkSchema({
   location: textValidator("Location", true, 200),
   dateBirth: dateValidator("Date of birth", true),
   phone: numberValidator("Phone", true),
-  gender: EnumValidator("Gender", ["Male", "Female"], true),
+  gender: enumValidator("Gender", ["Male", "Female"], true),
 });

@@ -5,7 +5,7 @@ import {
   COURSE_LEVEL,
 } from "../../common/constants/constants.js";
 import {
-  EnumValidator,
+  enumValidator,
   numberValidator,
   textValidator,
   uuidParamValidator,
@@ -17,10 +17,10 @@ export const courseValidator = checkSchema({
   name: textValidator("Course Name"),
   slug: textValidator("Course Slug"),
   description: textValidator("Course Description", false, 500),
-  status: EnumValidator("Course Status", CONTENT_STATUS),
+  status: enumValidator("Course Status", CONTENT_STATUS),
   position: numberValidator("Course Position"),
-  level: EnumValidator("Course Level", COURSE_LEVEL),
-  accessType: EnumValidator("Course Access Type", ACCESS_COURSE_TYPE),
+  level: enumValidator("Course Level", COURSE_LEVEL),
+  accessType: enumValidator("Course Access Type", ACCESS_COURSE_TYPE),
 });
 
 export const courseObjectiveValidator = checkSchema({

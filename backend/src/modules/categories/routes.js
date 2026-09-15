@@ -1,40 +1,40 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
+import requireAuth from "../../common/middleware/require-auth.js";
 import authorize from "../../common/middleware/authorize.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
 import { ADMIN } from "../../common/constants/constants.js";
-import * as controller from "./controller.js";
+import categoryController from "./controller.js";
 import { categoryIdParamValidator, categoryValidator } from "./validation.js";
 
 const categoriesRoute = express.Router();
 
 categoriesRoute
   .route("/")
-  .get(controller.getAllCategories)
+  .get(categoryController.listCategories)
   .post(
     requireAuth,
     authorize(ADMIN),
     categoryValidator,
     validateResult,
-    controller.createCategory,
+    categoryController.createCategory,
   );
 
 categoriesRoute
-  .route("/:id")
-  .get(controller.getCategoryById)
+  .route("/:categoryId")
+  .get(categoryController.getCategory)
   .patch(
     requireAuth,
     authorize(ADMIN),
     categoryValidator,
     validateResult,
-    controller.updateCategory,
+    categoryController.updateCategory,
   )
   .delete(
     requireAuth,
     authorize(ADMIN),
     categoryIdParamValidator,
     validateResult,
-    controller.deleteCategory,
+    categoryController.deleteCategory,
   );
 
 export default categoriesRoute;

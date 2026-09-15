@@ -12,6 +12,7 @@ All implementation tasks, grouped by area. **Status lives in the task files**; t
 | Database migrations | [`database-migrations.md`](./database-migrations.md) | 0001+ / DM-1…DM-5 |
 | API refactor | [`api-refactor.md`](./api-refactor.md) | AP-1…AP-6 |
 | Endpoint naming refactor | [`endpoint-refactor.md`](./endpoint-refactor.md) | ER-1…ER-12 |
+| Backend naming & OOP refactor | [`naming-oop-refactor.md`](./naming-oop-refactor.md) | NO-1…NO-5 |
 
 Decisions that block tasks: [`../decisions.md`](../decisions.md).
 

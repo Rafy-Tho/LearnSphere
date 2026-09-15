@@ -1,8 +1,8 @@
 import PG from "pg";
-import ENV from "./Env.js";
+import environment from "./environment.js";
 
 const pgPool = new PG.Pool({
-  connectionString: ENV.DATABASE_URL,
+  connectionString: environment.DATABASE_URL,
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 10000,

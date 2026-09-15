@@ -13,24 +13,29 @@ Follow these when writing or modifying code.
 
 | Element | Convention |
 |---|---|
-| Backend files | `camelCase.js` for controllers/routes, `PascalCase.js` for repositories/classes |
+| Backend files | `kebab-case.js` (e.g. `advanced-query.js`, `email-service.js`); role-suffixed module files use `<domain>.<role>.js` (e.g. `lesson-content.repository.js`) |
+| Classes | `PascalCase` (e.g. `UserService`, `UserRepository`) |
 | React components | `PascalCase.jsx` |
 | Admin hooks | `kebab-case.js` (e.g. `use-get-courses.js`) |
 | Frontend hooks | `camelCase.js` (e.g. `useCourses.js`) |
 | Functions/variables | `camelCase` |
+| Booleans | `is`/`has`/`can`/`should` prefix (e.g. `isAuthenticated`) |
+| Identifiers | descriptive (`userId`, `courseId`); no `data`/`temp`/`obj`/`flag` locals |
 | Constants | `UPPER_SNAKE_CASE` |
 | DB identifiers | `snake_case` |
 | React Query keys | arrays, kebab/domain (`['course-details', courseId]`) |
 
 ## 3. Backend
 
-- Wrap async controllers in `asyncHandler`.
+- Controllers, services, and repositories are classes with constructor-based dependency injection. Each file exports the class **and** a pre-wired default singleton; routes import the singleton.
+- Controller handlers are class arrow fields wrapped in `asyncHandler` (keeps `this` bound when passed to Express).
 - Throw `ApiError(statusCode, message)`; do not hand-craft error responses.
 - Return the envelope `{ success, statusCode, message, data }`.
 - Use `StatusCode` constants.
-- Put validators in `backend/src/validators/*` using shared builders; always follow with `validateResult`.
-- Apply `requireAuth` before `authorize`; verify ownership in the controller.
+- Put validators in `backend/src/modules/<module>/validation.js` using shared builders; always follow with `validateResult`.
+- Apply `requireAuth` before `authorize`; verify ownership in the service via `assertOwnership`.
 - Repository methods: `create`, `update`, `delete`, `findById`, `findBy<Parent>Id`, `get<Thing>By<Parent>Id`, `getInstructor`.
+- Repositories receive the pg pool via `constructor({ db = pgPool } = {})`; transaction methods accept a `client` override.
 - Use `RETURNING` on writes.
 - Never interpolate SQL; use placeholders.
 

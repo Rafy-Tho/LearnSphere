@@ -49,7 +49,7 @@ backend/src/
 
 | File | Responsibility |
 |---|---|
-| `env.js` | Load and **validate** environment variables; fail fast on missing values. |
+| `environment.js` | Load and **validate** environment variables; fail fast on missing values. |
 | `database.js` | PostgreSQL pool + `withTransaction` helper. |
 | `cloudinary.js` | Cloudinary configuration. |
 | `stripe.js` | Stripe client and webhook secret wiring. |
@@ -111,7 +111,9 @@ module/
 └── validation.js
 ```
 
-Add `constants.js` only when the module needs feature-specific constants.
+Add `constants.js` only when the module needs feature-specific constants. Large modules split
+one responsibility per file using the `<domain>.<role>.js` form (e.g. `course.controller.js`,
+`lesson-content.service.js`, `option.repository.js`).
 
 ### 2.1 Layer responsibilities inside a module
 
@@ -123,6 +125,10 @@ Add `constants.js` only when the module needs feature-specific constants.
 | `repository.js` | Parameterized SQL only. Returns application-level data. No HTTP/Express. |
 | `validation.js` | `express-validator` schemas for the module's endpoints. |
 | `constants.js` | Optional module-local constants. |
+
+Controllers, services, and repositories are **classes with constructor-based dependency
+injection**. Each exports the class and a pre-wired default singleton; routes import the
+singleton. Repositories accept the pool via `constructor({ db = pgPool } = {})`.
 
 ### 2.2 Example: `categories/`
 
@@ -137,21 +143,37 @@ modules/categories/
 
 ```js
 // routes.js
-router.get("/", controller.getAll);
-router.post("/", requireAuth, authorize(ADMIN), validation.create, validateResult, controller.create);
+import categoryController from "./controller.js";
+router.get("/", categoryController.list);
+router.post("/", requireAuth, authorize(ADMIN), validation.create, validateResult, categoryController.create);
 
 // controller.js
-export const create = asyncHandler(async (req, res) => {
-  const category = await service.create(req.body);
-  return sendSuccess(res, category, { statusCode: 201, message: "Category created" });
-});
+class CategoryController {
+  constructor({ categoryService }) { this.categoryService = categoryService; }
+  create = asyncHandler(async (req, res) => {
+    const category = await this.categoryService.create(req.body);
+    return sendSuccess(res, category, { statusCode: 201, message: "Category created" });
+  });
+}
+export default new CategoryController({ categoryService });
 
 // service.js
-export const create = async (payload) => {
-  const existing = await repository.findBySlug(payload.slug);
-  if (existing) throw new ApiError(409, "Category already exists");
-  return repository.create(payload);
-};
+class CategoryService {
+  constructor({ categoryRepository }) { this.categoryRepository = categoryRepository; }
+  async create(payload) {
+    const existingCategory = await this.categoryRepository.findBySlug(payload.slug);
+    if (existingCategory) throw new ApiError(409, "Category already exists");
+    return this.categoryRepository.create(payload);
+  }
+}
+export default new CategoryService({ categoryRepository });
+
+// repository.js
+class CategoryRepository {
+  constructor({ db = pgPool } = {}) { this.db = db; }
+  async create(payload) { /* parameterized SQL */ }
+}
+export default new CategoryRepository();
 ```
 
 ---
@@ -189,7 +211,7 @@ Additional rules for this project:
 | Current | Target |
 |---|---|
 | `src/app.js` | `src/app/app.js` + `src/app/routes.js` + `src/app/middleware.js` |
-| `src/configs/Env.js` | `src/config/env.js` |
+| `src/config/environment.js` | `src/config/environment.js` |
 | `src/configs/database.js` | `src/config/database.js` (+ `withTransaction`) |
 | `src/configs/cloudinary.js` | `src/config/cloudinary.js` |
 | `src/controllers/*.js` | `src/modules/<feature>/controller.js` |
@@ -200,7 +222,7 @@ Additional rules for this project:
 | `src/middlewares/*.js` | `src/common/` (shared) |
 | `src/utils/*.js` | `src/common/` (shared) |
 | `src/constants/*.js` | `src/common/` or module-local `constants.js` |
-| `src/helper/createRadomCode.js` | `src/common/` |
+| `src/helper/create-random-code.js` | `src/common/` |
 | `src/configs/schema.sql` | `src/db/schema.sql` (+ `src/db/migrations/`) |
 
 ### Suggested migration order

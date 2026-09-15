@@ -48,10 +48,11 @@ routes → validators → middlewares → controllers → services / repositorie
 ## 5. Data Access
 
 - Parameterized SQL only (`$1`, `$2`). Never string-concatenate user input.
-- Repositories are singletons exported as default.
+- Repositories are classes with constructor-based pool injection, exported as default singletons.
+- Controllers and services are classes with constructor DI, exported as default singletons.
 - Map camelCase inputs to snake_case columns explicitly.
 - Filter soft-deleted courses (`deleted_at IS NULL`).
-- Use `AdvancedQuery` (`backend/src/common/query/AdvaceQuery.js`) for paginated/filtered/sorted lists.
+- Use `AdvancedQuery` (`backend/src/common/query/advanced-query.js`) for paginated/filtered/sorted lists.
 - Keep SQL in repositories even when it spans multiple tables.
 
 ## 6. Schema

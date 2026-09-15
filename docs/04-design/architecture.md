@@ -109,7 +109,7 @@ Errors:
 
 ### 2.5 Data Access
 
-Repositories are singleton classes holding raw parameterized SQL. List endpoints use `backend/src/common/query/AdvaceQuery.js` (`AdvancedQuery`), which builds filtered, searched, sorted, and paginated queries with `filterMap`/`sortMap` and `COUNT` metadata.
+Repositories are singleton classes holding raw parameterized SQL. List endpoints use `backend/src/common/query/advanced-query.js` (`AdvancedQuery`), which builds filtered, searched, sorted, and paginated queries with `filterMap`/`sortMap` and `COUNT` metadata.
 
 ## 3. Frontend Architecture (Learner)
 
@@ -167,7 +167,7 @@ Repositories are singleton classes holding raw parameterized SQL. List endpoints
 | PostgreSQL | Primary data + sessions | `DATABASE_URL` | `configs/database.js` |
 | Stripe | Checkout + webhook | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `userControllers.js`, `webhookRoute.js` |
 | Cloudinary | Image hosting | `CLOUDINARY_*` | `configs/cloudinary.js`, `userControllers.js` |
-| Brevo | Transactional email | `BREVO_API_KEY`, `SENDER_EMAIL` | `services/EmailService.js` |
+| Brevo | Transactional email | `BREVO_API_KEY`, `SENDER_EMAIL` | `services/email-service.js` |
 
 > Note: `nodemailer` and `resend` are listed as dependencies but are not used; email is sent via the Brevo REST API.
 

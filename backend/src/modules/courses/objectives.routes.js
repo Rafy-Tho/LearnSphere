@@ -1,9 +1,9 @@
 import express from "express";
 import { ADMIN, INSTRUCTOR } from "../../common/constants/constants.js";
 import authorize from "../../common/middleware/authorize.js";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
-import * as controller from "./controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
+import courseObjectiveController from "./objective.controller.js";
 import {
   courseObjectiveIdParamValidator,
   courseObjectiveValidator,
@@ -12,14 +12,17 @@ import {
 // Mounted at /api/v1/courses/:courseId/objectives
 export const objectivesCollectionRoute = express.Router({ mergeParams: true });
 
-objectivesCollectionRoute.get("/", controller.getCourseObjectives);
+objectivesCollectionRoute.get(
+  "/",
+  courseObjectiveController.getCourseObjectives,
+);
 objectivesCollectionRoute.post(
   "/",
   requireAuth,
   authorize(INSTRUCTOR, ADMIN),
   courseObjectiveValidator,
   validateResult,
-  controller.createCourseObjective,
+  courseObjectiveController.createCourseObjective,
 );
 
 // Mounted at /api/v1/objectives
@@ -31,7 +34,7 @@ objectivesItemRoute.patch(
   authorize(INSTRUCTOR, ADMIN),
   courseObjectiveValidator,
   validateResult,
-  controller.updateCourseObjective,
+  courseObjectiveController.updateCourseObjective,
 );
 objectivesItemRoute.delete(
   "/:objectiveId",
@@ -39,5 +42,5 @@ objectivesItemRoute.delete(
   authorize(INSTRUCTOR, ADMIN),
   courseObjectiveIdParamValidator,
   validateResult,
-  controller.deleteCourseObjective,
+  courseObjectiveController.deleteCourseObjective,
 );

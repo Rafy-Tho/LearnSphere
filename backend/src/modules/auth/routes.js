@@ -1,12 +1,12 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
 import {
   codeAttemptsLimiter,
   loginLimiter,
   passwordResetLimiter,
-} from "../../common/middleware/rateLimitMiddlewares.js";
-import * as controller from "./controller.js";
+} from "../../common/middleware/rate-limit-middlewares.js";
+import authController from "./controller.js";
 import * as validation from "./validation.js";
 
 const authRoute = express.Router();
@@ -15,36 +15,36 @@ authRoute.post(
   "/register",
   validation.validateRegister,
   validateResult,
-  controller.register,
+  authController.register,
 );
 authRoute.post(
   "/login",
   loginLimiter,
   validation.validateLogin,
   validateResult,
-  controller.login,
+  authController.login,
 );
-authRoute.post("/logout", requireAuth, controller.logout);
+authRoute.post("/logout", requireAuth, authController.logout);
 authRoute.post(
   "/password-resets",
   passwordResetLimiter,
   validation.validateEmailResetCode,
   validateResult,
-  controller.sendPasswordResetCode,
+  authController.sendPasswordResetCode,
 );
 authRoute.post(
   "/password-resets/verify",
   codeAttemptsLimiter,
   validation.validateSendResetPasswordCode,
   validateResult,
-  controller.verifyPasswordResetCode,
+  authController.verifyPasswordResetCode,
 );
 authRoute.patch(
   "/password",
   codeAttemptsLimiter,
   validation.validateResetPassword,
   validateResult,
-  controller.resetPassword,
+  authController.resetPassword,
 );
 
 export default authRoute;

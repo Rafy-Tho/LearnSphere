@@ -1,7 +1,7 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
-import * as controller from "./controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
+import completionController from "./completion.controller.js";
 import { lessonIdParamValidator } from "./validation.js";
 
 // Mounted at /api/v1/lessons/:lessonId/completions
@@ -13,8 +13,8 @@ completionRoute
     requireAuth,
     lessonIdParamValidator,
     validateResult,
-    controller.createLessonCompletion,
+    completionController.createCompletion,
   )
-  .get(requireAuth, controller.getLessonCompletion);
+  .get(requireAuth, completionController.getCompletion);
 
 export default completionRoute;

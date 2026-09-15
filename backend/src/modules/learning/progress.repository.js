@@ -1,7 +1,11 @@
 import pgPool from "../../config/database.js";
 
 class LearningProgressRepository {
-  async create({ courseId, userId, lessonId }, client = pgPool) {
+  constructor({ db = pgPool } = {}) {
+    this.db = db;
+  }
+
+  async create({ courseId, userId, lessonId }, client = this.db) {
     const result = await client.query(
       `INSERT INTO learn_progress 
       (course_id, user_id, lesson_id) 
@@ -12,7 +16,7 @@ class LearningProgressRepository {
     return result.rows[0];
   }
   async update({ courseId, userId, lessonId }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `UPDATE learn_progress 
       SET lesson_id = $3
       WHERE course_id = $1 AND user_id = $2
@@ -22,7 +26,7 @@ class LearningProgressRepository {
     return result.rows[0];
   }
   async findOne({ courseId, userId }) {
-    const result = await pgPool.query(
+    const result = await this.db.query(
       `SELECT * FROM learn_progress WHERE course_id = $1 AND user_id = $2`,
       [courseId, userId],
     );
@@ -30,6 +34,6 @@ class LearningProgressRepository {
   }
 }
 
-const LearningProgress = new LearningProgressRepository();
+export { LearningProgressRepository };
 
-export default LearningProgress;
+export default new LearningProgressRepository();

@@ -1,9 +1,11 @@
 import express from "express";
-import requireAuth from "../../common/middleware/requireAuth.js";
+import requireAuth from "../../common/middleware/require-auth.js";
 import authorize from "../../common/middleware/authorize.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
 import { ADMIN } from "../../common/constants/constants.js";
-import * as controller from "./admin.controller.js";
+import planController from "./plan.controller.js";
+import subscriptionController from "./subscription.controller.js";
+import paymentController from "./payment.controller.js";
 import {
   createPaymentValidator,
   createPlanValidator,
@@ -22,23 +24,23 @@ const guard = [requireAuth, authorize(ADMIN)];
 export const adminPlansRoute = express.Router();
 adminPlansRoute
   .route("/")
-  .get(...guard, controller.getPlans)
-  .post(...guard, createPlanValidator, validateResult, controller.createPlan);
+  .get(...guard, planController.getPlans)
+  .post(...guard, createPlanValidator, validateResult, planController.createPlan);
 adminPlansRoute
   .route("/:planId")
-  .patch(...guard, updatePlanValidator, validateResult, controller.updatePlan)
-  .delete(...guard, planIdParamValidator, validateResult, controller.deletePlan);
+  .patch(...guard, updatePlanValidator, validateResult, planController.updatePlan)
+  .delete(...guard, planIdParamValidator, validateResult, planController.deletePlan);
 
 // Mounted at /api/v1/admin/subscriptions
 export const adminSubscriptionsRoute = express.Router();
 adminSubscriptionsRoute
   .route("/")
-  .get(...guard, controller.getUserSubscriptions)
+  .get(...guard, subscriptionController.getUserSubscriptions)
   .post(
     ...guard,
     createUserSubscriptionValidator,
     validateResult,
-    controller.createUserSubscription,
+    subscriptionController.createUserSubscription,
   );
 adminSubscriptionsRoute
   .route("/:subscriptionId")
@@ -46,25 +48,25 @@ adminSubscriptionsRoute
     ...guard,
     updateUserSubscriptionValidator,
     validateResult,
-    controller.updateUserSubscription,
+    subscriptionController.updateUserSubscription,
   )
   .delete(
     ...guard,
     userSubscriptionIdParamValidator,
     validateResult,
-    controller.deleteUserSubscription,
+    subscriptionController.deleteUserSubscription,
   );
 
 // Mounted at /api/v1/admin/payments
 export const adminPaymentsRoute = express.Router();
 adminPaymentsRoute
   .route("/")
-  .get(...guard, controller.getPayments)
+  .get(...guard, paymentController.getPayments)
   .post(
     ...guard,
     createPaymentValidator,
     validateResult,
-    controller.createPayment,
+    paymentController.createPayment,
   );
 adminPaymentsRoute
   .route("/:paymentId")
@@ -72,11 +74,11 @@ adminPaymentsRoute
     ...guard,
     updatePaymentValidator,
     validateResult,
-    controller.updatePayment,
+    paymentController.updatePayment,
   )
   .delete(
     ...guard,
     paymentIdParamValidator,
     validateResult,
-    controller.deletePayment,
+    paymentController.deletePayment,
   );

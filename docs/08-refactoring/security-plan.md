@@ -39,9 +39,9 @@ Review:
 | Registration | User + profile writes are not transactional | `userControllers.js:32-39` | Medium |
 | Sessions/cookies | `httpOnly`, `secure` prod, rolling 30-day (good) | `sessionMiddleware.js:25-30` | — |
 | Sessions/cookies | No invalidation on password change/reset | `userControllers.js:284-314` | Medium |
-| Sessions/cookies | `validate` trusts session snapshot; no status/role recheck | `SessionService.js:27-34` | Medium |
-| Password handling | bcrypt 12 rounds (good) | `HashService.js:5` | — |
-| Password reset | `Math.random` 6-digit code, unsalted SHA-256, `VARCHAR(6)` → broken & weak | `createRadomCode.js:2-3`, `HashCode.js:3-5`, `schema.sql:80` | High |
+| Sessions/cookies | `validate` trusts session snapshot; no status/role recheck | `session-service.js:27-34` | Medium |
+| Password handling | bcrypt 12 rounds (good) | `hash-service.js:5` | — |
+| Password reset | `Math.random` 6-digit code, unsalted SHA-256, `VARCHAR(6)` → broken & weak | `create-random-code.js:2-3`, `hash-code.js:3-5`, `schema.sql:80` | High |
 | Password reset | Account enumeration via distinct 404 messages | `userControllers.js:197-199,230-232,264-266` | Medium |
 | Email verification | **Not implemented** | — | — |
 | OAuth / account linking | **Not implemented** (frontend social buttons are inert) | `frontend/components/SocialButtons.jsx` | — |
@@ -113,9 +113,9 @@ Review:
 | Admin user update returns password hash | `UserRepository.js:191-200` | Medium |
 | Missing validators on many write endpoints | options, enrollment, progresses, completions, certificates, payment, all admin routes | Medium |
 | Free text not escaped (`textValidator`) → stored-XSS risk if rendered as HTML | `common.validator.js:50-68` | Medium |
-| SQL is parameterized (good); `AdvancedQuery.limitFields()` latent injection | `AdvaceQuery.js:131-139` | Low |
+| SQL is parameterized (good); `AdvancedQuery.limitFields()` latent injection | `advanced-query.js:131-139` | Low |
 | Upload validates extension/MIME only; `/uploads` served publicly; file committed | `multer.js:17-28`, `app.js:61` | Low/Medium |
-| Error stacks only in development (good); reflected `originalUrl` in 404 | `errorHandler.js:60-68`, `notFoundUrl.js:5` | Low |
+| Error stacks only in development (good); reflected `originalUrl` in 404 | `error-handler.js:60-68`, `notFoundUrl.js:5` | Low |
 
 ### 4.2 Actions
 
@@ -179,12 +179,12 @@ Use environment variables for secrets.
 | Finding | Evidence | Severity |
 |---|---|---|
 | `.env` untracked (good) | `.gitignore` | — |
-| Weak `SESSION_SECRET` (8 chars locally); no env validation | `Env.js:5-26` | High/Medium |
+| Weak `SESSION_SECRET` (8 chars locally); no env validation | `environment.js:5-26` | High/Medium |
 | No `.env.example` | repo | Low |
 | Stripe `Origin`-header open redirect in success/cancel URLs | `userControllers.js:345,380-381` | Medium |
 | No sensitive data logged (good); no structured logging/redaction | `console.*` | Low |
 | Hardcoded default avatar in two controllers | `userControllers.js:30`, `adminUserControllers.js:40` | Low |
-| Webhook amount unit inconsistency (dollars stored, email divides by 100) | `webhookRoute.js:59`, `EmailService.js:42` | Medium |
+| Webhook amount unit inconsistency (dollars stored, email divides by 100) | `webhookRoute.js:59`, `email-service.js:42` | Medium |
 | Webhook lacks idempotency/transaction → retries/partial state | `webhookRoute.js:31-83` | Medium |
 
 ### 6.2 Actions

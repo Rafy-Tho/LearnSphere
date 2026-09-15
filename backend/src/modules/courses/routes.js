@@ -1,15 +1,15 @@
 import express from "express";
 import { ADMIN, INSTRUCTOR } from "../../common/constants/constants.js";
 import authorize from "../../common/middleware/authorize.js";
-import requireAuth from "../../common/middleware/requireAuth.js";
-import { validateResult } from "../../common/middleware/validateResult.js";
-import { getFirstLesson } from "../content/controller.js";
-import { getCourseLessonCompletions } from "../learning/controller.js";
+import requireAuth from "../../common/middleware/require-auth.js";
+import { validateResult } from "../../common/middleware/validate-result.js";
+import lessonController from "../content/lesson.controller.js";
+import completionController from "../learning/completion.controller.js";
 import enrollmentRoute from "../learning/enrollment.routes.js";
 import progressRoute from "../learning/progress.routes.js";
 import { courseCertificateRoute } from "../certificates/routes.js";
 import { reviewsCollectionRoute } from "../reviews/routes.js";
-import * as controller from "./controller.js";
+import courseController from "./course.controller.js";
 import { objectivesCollectionRoute } from "./objectives.routes.js";
 import { courseIdParamValidator, courseValidator } from "./validation.js";
 
@@ -25,41 +25,44 @@ coursesRoute.use("/:courseId/certificates", courseCertificateRoute);
 // Courses
 coursesRoute
   .route("/")
-  .get(controller.getAllCourses)
+  .get(courseController.listCourses)
   .post(
     requireAuth,
     authorize(INSTRUCTOR, ADMIN),
     courseValidator,
     validateResult,
-    controller.createCourse,
+    courseController.createCourse,
   );
 
-coursesRoute.get("/popular", controller.getPopularCourses);
+coursesRoute.get("/popular", courseController.getPopularCourses);
 
 coursesRoute
   .route("/:courseId")
-  .get(controller.getCourseDetails)
+  .get(courseController.getCourseDetails)
   .patch(
     requireAuth,
     authorize(INSTRUCTOR, ADMIN),
     courseValidator,
     validateResult,
-    controller.updateCourse,
+    courseController.updateCourse,
   )
   .delete(
     requireAuth,
     authorize(INSTRUCTOR, ADMIN),
     courseIdParamValidator,
     validateResult,
-    controller.deleteCourse,
+    courseController.deleteCourse,
   );
 
-coursesRoute.get("/:courseId/curriculum", controller.getCourseLearningData);
-coursesRoute.get("/:courseId/first-lesson", getFirstLesson);
+coursesRoute.get(
+  "/:courseId/curriculum",
+  courseController.getCourseLearningData,
+);
+coursesRoute.get("/:courseId/first-lesson", lessonController.getFirstLesson);
 coursesRoute.get(
   "/:courseId/completions",
   requireAuth,
-  getCourseLessonCompletions,
+  completionController.getCourseLessonCompletions,
 );
 
 export default coursesRoute;

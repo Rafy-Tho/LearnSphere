@@ -1,11 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "src/server.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch server.js",
-    "pro": "cross-env NODE_ENV=production node server.js"
+    "dev": "node --watch src/server.js",
+    "pro": "cross-env NODE_ENV=production node src/server.js"
   },
   "keywords": [],
   "author": "",

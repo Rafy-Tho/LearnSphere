@@ -3,6 +3,7 @@ import globals from "globals";
 import { defineConfig } from "eslint/config";
 
 export default defineConfig([
+  js.configs.recommended,
   {
     files: ["**/*.{js,mjs}"],
     languageOptions: {
@@ -16,5 +17,4 @@ export default defineConfig([
       "no-undef": "error",
     },
   },
-  js.configs.recommended,
 ]);

@@ -2,6 +2,8 @@
 
 Learning Online Platform is a full-stack web application for delivering structured online courses with authentication, enrollment, progress tracking, quizzes, reviews, and subscription payments.
 
+> **Backend refactor (structure complete):** the backend now follows a module-based structure (`app/`, `config/`, `db/`, `common/`, `modules/`). Audits and plans live in [`docs/08-refactoring/`](./docs/08-refactoring/); status in [`docs/09-implement/progress-tracking.md`](./docs/09-implement/progress-tracking.md).
+
 ## Project Purpose
 
 This project is built to provide an end-to-end e-learning experience where:
@@ -50,8 +52,8 @@ The main goal is to combine a clean learning UI with a scalable backend/domain m
 ### Database / Infrastructure
 
 - PostgreSQL (UUID-based primary keys via `pgcrypto`)
-- SQL schema defined in `backend/src/configs/schema.sql`
-- Environment-variable based configuration in `backend/src/configs/Env.js`
+- SQL schema defined in `backend/src/db/schema.sql`
+- Environment-variable based configuration in `backend/src/config/Env.js`
 
 ## Backend Explanation
 
@@ -63,7 +65,7 @@ The backend follows a layered modular pattern:
 - **Middlewares** (`backend/src/middlewares`): Auth, authorization, validation, rate limiting, sessions, and error handling.
 - **Configs** (`backend/src/configs`): Environment loading, DB pool, Cloudinary setup, SQL schema.
 
-Core API domains exposed from `backend/src/app.js`:
+Core API domains exposed from `backend/src/app/app.js`:
 
 - `/api/v1/users`
 - `/api/v1/categories`
@@ -84,7 +86,7 @@ Core API domains exposed from `backend/src/app.js`:
 
 ### Backend Request Lifecycle
 
-1. Request enters Express app (`backend/src/app.js`).
+1. Request enters Express app (`backend/src/app/app.js`).
 2. CORS, JSON parsing, rate limiting, and session middleware are applied.
 3. Route-specific validators and auth middleware run.
 4. Controller executes business logic.
@@ -111,9 +113,40 @@ Main user-facing flows include:
 - review creation and summary display,
 - subscription checkout success/cancel states.
 
+## Admin Dashboard
+
+The `admin/` directory is a separate React SPA (Vite + Tailwind + shadcn-style UI components) used by platform administrators to manage users, courses, and subscriptions. It talks to the same backend API as the learner frontend.
+
+### Admin Auth Flow
+
+1. Admin opens `/login`; `AuthContext` calls `useGetMe` (`GET /users/me`) to restore any existing session.
+2. Unauthenticated users are redirected to `/login` by `ProtectedRoutes` in `admin/src/App.jsx`.
+3. Login form submits email/password to `POST /users/login` (via `services/AuthApi.js`, `credentials: include`).
+4. On success, `AuthContext.login()` stores the user and the app redirects to the dashboard.
+5. Logout posts to `/users/logout`, clears the query cache, and returns to `/login`.
+
+### Layout & Navigation
+
+- `AdminLayout` wraps all protected routes with a collapsible sidebar (`AdminSidebar`).
+- Sidebar links: Dashboard, Categories, Courses, Subscriptions, Instructors, Users, plus profile, dark/light theme toggle, and logout.
+
+### Page Flows
+
+- **Dashboard** (`/`) — Shows stat cards (total courses, users, instructors, enrollments) and lists of recent courses and instructors, fetched via `useGetDashboardData`. Cards link to the relevant management pages.
+- **Categories** (`/categories`) — DataTable of categories with create/edit modal (name, auto-generated slug, description) and delete with confirmation.
+- **Courses** (`/courses`) — Paginated list with status/level/access badges and enrollment counts. Supports create/edit via modal (name, slug, description, position, category, status DRAFT/PUBLISHED, level, access type) and delete via confirm dialog. Row click navigates to course detail.
+- **Course Detail** (`/courses/:courseId`) — Full course content builder. Manage objectives and the course -> module -> chapter -> lesson -> content/quiz hierarchy using expandable `ModuleCard` trees and CRUD modals (`ModuleModal`, `ChapterModal`, `LessonModal`, `ContentModal`, `QuizModal`). All deletes go through a shared `DeleteConfirmDialog`.
+- **Users / Instructors** (`/users`, `/instructors`) — The same `UsersPage` component filtered by role. Paginated table with create/edit modal (name, email, role, status ACTIVE/INACTIVE/SUSPENDED) and delete.
+- **Subscriptions** (`/subscriptions`) — Three tabs: Plans, User Subscriptions, and Payments, backed by `usePlans`, `useSubscriptions`, and `usePayments` hooks. Header stats show plan count, active subscriptions, and total revenue (sum of completed payments). Each tab supports CRUD modals and delete confirmation.
+- **Profile** (`/profile`) — View account info (avatar, role, status, join date, last login), edit name/email, and change password.
+
+### Data Access Pattern
+
+Every page uses TanStack React Query hooks (`admin/src/hooks`) that wrap centralized API services (`admin/src/services/*Api.js`). Forms are validated before submit, and success/error feedback is shown via toast/sonner notifications.
+
 ## Database Design (Table List)
 
-Defined in `backend/src/configs/schema.sql`.
+Defined in `backend/src/db/schema.sql`.
 
 ### Identity & User
 
@@ -249,7 +282,7 @@ Create environment files for backend and frontend.
 
 ### 3. Run database schema
 
-Execute `backend/src/configs/schema.sql` against your PostgreSQL database.
+Execute `backend/src/db/schema.sql` against your PostgreSQL database.
 
 ### 4. Start development servers
 

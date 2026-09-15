@@ -2,7 +2,7 @@
 
 Plan to introduce versioned migrations and migrate **all 22 tables** from the current single-file schema. Part of the backend refactor series under `docs/08-refactoring/backend/`. See also [`./01-structure.md`](./01-structure.md) and [`../backend-audit.md`](../backend-audit.md) §8.
 
-> **Status:** Proposed. No migration applied. Current database is a manual `schema.sql` run.
+> **Status:** Implemented (2026-09-15). Baseline suite `0001`–`0010` + `0011_drift_fixes.sql` live in `backend/src/db/migrations/`; `db/schema.sql` is kept in sync. Not yet applied to the live database.
 
 ---
 
@@ -99,7 +99,7 @@ The baseline reproduces the current intended schema. Table inventory (22 declare
 | `modules` | `courses` |
 | `chapters` | `modules` |
 | `lessons` | `chapters` |
-| `lesson_content` | `lessons` |
+| `lesson_contents` | `lessons` |
 | `quizzes` | `lessons` |
 | `quiz_options` | `quizzes` |
 
@@ -148,10 +148,10 @@ Resolve each drift item explicitly. Decide and record the canonical choice befor
 | D2 | `lessons.access_type` referenced by code, absent | Add column or remove code usage | If adding: `ALTER TABLE lessons ADD COLUMN access_type access_course_type DEFAULT 'FREE'` |
 | D3 | `password_reset_codes.code VARCHAR(6)` stores 64-char hash | Widen column | `ALTER TABLE password_reset_codes ALTER COLUMN code TYPE VARCHAR(255)` (and hash with salt/HMAC in code) |
 | D4 | `quizzes.lesson_id UNIQUE` blocks many questions | Drop unique constraint | `ALTER TABLE quizzes DROP CONSTRAINT <name>`; keep `(lesson_id, position)` unique |
-| D5 | `modules.icon_name` used by code, absent | Add column or remove code | If adding: `ALTER TABLE modules ADD COLUMN icon_name VARCHAR(255)` |
-| D6 | `course_reviews.helpful_count` never maintained | Maintain or drop | Maintain via trigger/service, or drop the column |
-| D7 | Missing indexes (audit PERF-4) | Add indexes | `courses(category_id,instructor_id,status,deleted_at)`, `lesson_completion(user_id,course_id)`, `password_reset_codes(user_id)`, `pg_trgm` GIN on course name/description |
-| D8 | Hard delete vs `courses.deleted_at` soft delete | Choose semantics | Make `delete` soft or drop the column; ensure reads filter consistently |
+| D5 | `modules.icon_name` used by code, absent | Add column or remove code | **Obsolete** — no reference in code or schema; no action |
+| D6 | `course_reviews.helpful_count` never maintained | Maintain or drop | **Drop** (D-08): `ALTER TABLE course_reviews DROP COLUMN IF EXISTS helpful_count` |
+| D7 | Missing indexes (audit PERF-4) | Add indexes | Applied in `0009_indexes.sql`: `courses(category_id)`, `courses(instructor_id)`, `courses(category_id,instructor_id,status,deleted_at)`, partial `courses(created_at)`, `lesson_completion(user_id,course_id)`, `password_reset_codes(user_id)`, `pg_trgm` GIN on course name/description |
+| D8 | Hard delete vs `courses.deleted_at` soft delete | Choose semantics | **Soft delete** (D-01): `Course.delete` sets `deleted_at`; reads filter `deleted_at IS NULL` |
 
 > D1–D4 currently break features (password reset, learn, content, multi-question quizzes). Fixing them is a **P0** item (see [`../codebase-audit.md`](../codebase-audit.md) §3.1).
 

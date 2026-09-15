@@ -6,14 +6,14 @@ Decisions that block or shape dependent work. Record a decision here **before** 
 
 | # | Decision | Options | Status | Chosen | Date | Notes |
 |---|---|---|---|---|---|---|
-| D-01 | Course delete semantics | Hard delete vs soft delete (`deleted_at`) | ⬜ | | | Blocks P1-7 |
+| D-01 | Course delete semantics | Hard delete vs soft delete (`deleted_at`) | ✅ | Soft delete | 2026-09-15 | `deleted_at` kept; reads filter; `Course.delete` sets it (P1-7) |
 | D-02 | Canonical lesson-content table name | `lesson_content` vs `lesson_contents` | ✅ | `lesson_contents` | 2026-09-15 | Matches code; schema.sql + migration 0001 |
 | D-03 | `lessons.access_type` | Add column vs remove code usage | ✅ | Add column | 2026-09-15 | `access_course_type DEFAULT 'FREE'` |
 | D-04 | `quizzes.lesson_id` unique | Drop constraint vs keep one-question model | ✅ | Drop constraint | 2026-09-15 | Keep `(lesson_id, position)` unique |
 | D-05 | Reset-code hashing | bcrypt vs HMAC-SHA256 + pepper | ✅ | HMAC-SHA256 + pepper | 2026-09-15 | Pepper = `SESSION_SECRET`; code via `crypto.randomInt` |
 | D-06 | CSRF strategy | Same-site + `sameSite=lax` vs CSRF tokens | ⬜ | | | Blocks P0-13 |
-| D-07 | Migration tooling | Plain SQL runner vs `node-pg-migrate` | ⬜ | | | Needs dependency approval |
-| D-08 | `course_reviews.helpful_count` | Maintain vs drop | ⬜ | | | Schema drift D6 |
+| D-07 | Migration tooling | Plain SQL runner vs `node-pg-migrate` | ✅ | Plain SQL runner | 2026-09-15 | No new deps; `db/migrate.js` + `schema_migrations` |
+| D-08 | `course_reviews.helpful_count` | Maintain vs drop | ✅ | Drop column | 2026-09-15 | Never maintained; count derives from `review_helpful_votes` |
 | D-09 | Admin temp password | Email invite vs keep | ⬜ | | | Blocks P0-9 |
 
 ## Related

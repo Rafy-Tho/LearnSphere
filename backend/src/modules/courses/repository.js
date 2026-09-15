@@ -80,8 +80,9 @@ class CourseRepository {
     return result.rows[0];
   }
   async delete(id) {
-    const query = `DELETE FROM courses
-      WHERE id = $1
+    const query = `UPDATE courses
+      SET deleted_at = CURRENT_TIMESTAMP
+      WHERE id = $1 AND deleted_at IS NULL
       RETURNING *
     `;
     const values = [id];
@@ -90,7 +91,7 @@ class CourseRepository {
   }
   async findById(id) {
     const query = `SELECT * FROM courses
-      WHERE id = $1`;
+      WHERE id = $1 AND deleted_at IS NULL`;
     const values = [id];
     const result = await pgPool.query(query, values);
     return result.rows[0];
@@ -155,6 +156,7 @@ class CourseRepository {
 
     await features
       .addCondition(`c.status != 'DRAFT'`)
+      .addCondition(`c.deleted_at IS NULL`)
       .filter()
       .search(["c.name", "c.description"])
       .sort()
@@ -228,7 +230,7 @@ class CourseRepository {
     ) AS rv ON rv.course_id = c.id
 
     -- 🎯 specific course
-    WHERE c.id = $1;
+    WHERE c.id = $1 AND c.deleted_at IS NULL;
   `;
     const { rows } = await pgPool.query(query, [courseId]);
     return rows[0] || null;
@@ -299,7 +301,7 @@ class CourseRepository {
       LEFT JOIN module_data md ON md.course_id = c.id 
       LEFT JOIN duration_data d ON d.course_id = c.id
   
-      WHERE c.id = $1;
+      WHERE c.id = $1 AND c.deleted_at IS NULL;
     `;
 
     const result = await pgPool.query(query, [courseId]);
@@ -347,7 +349,7 @@ class CourseRepository {
       LEFT JOIN lessons l 
            ON l.chapter_id = ch.id
 
-      WHERE lp.user_id = $1
+      WHERE lp.user_id = $1 AND c.deleted_at IS NULL
 
       GROUP BY 
           c.id,
@@ -391,6 +393,7 @@ class CourseRepository {
         WHERE user_id = $1
       )
       AND c.status = 'PUBLISHED'
+      AND c.deleted_at IS NULL
   
       LIMIT 10;
     `;
@@ -421,6 +424,7 @@ class CourseRepository {
       ) d ON d.course_id = c.id
   
       WHERE c.status = 'PUBLISHED'
+      AND c.deleted_at IS NULL
   
       GROUP BY c.id, d.total_duration
       ORDER BY enroll_count DESC
@@ -454,6 +458,7 @@ class CourseRepository {
       ) d ON d.course_id = c.id
   
       WHERE c.status = 'PUBLISHED'
+      AND c.deleted_at IS NULL
   
       GROUP BY c.id, d.total_duration
       ORDER BY 
@@ -662,13 +667,13 @@ class CourseRepository {
     };
   }
   async getTotalCourse() {
-    const query = `SELECT COUNT(*) FROM courses`;
+    const query = `SELECT COUNT(*) FROM courses WHERE deleted_at IS NULL`;
     const result = await pgPool.query(query);
     return parseInt(result.rows[0].count);
   }
 
   async getRecentCourses() {
-    const query = `SELECT * FROM courses ORDER BY created_at DESC LIMIT 5`;
+    const query = `SELECT * FROM courses WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 5`;
     const result = await pgPool.query(query);
     return result.rows;
   }
@@ -708,6 +713,7 @@ class CourseRepository {
   `;
 
     await features
+      .addCondition(`c.deleted_at IS NULL`)
       .filter()
       .search(["c.name", "c.description"])
       .sort()

@@ -1,5 +1,6 @@
--- Enable UUID generation
+-- Enable UUID generation + trigram search
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
 -- =========================
 -- ENUM TYPES
@@ -88,6 +89,8 @@ CREATE TRIGGER trg_password_reset_codes_updated_at
 BEFORE UPDATE ON password_reset_codes
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
+
+CREATE INDEX idx_password_reset_codes_user ON password_reset_codes(user_id);
 -- ========================
 -- CATEGORIES
 -- =========================
@@ -128,6 +131,14 @@ CREATE TRIGGER trg_courses_updated_at
 BEFORE UPDATE ON courses
 FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
+
+-- Course read paths (audit PERF-4)
+CREATE INDEX idx_courses_category ON courses(category_id);
+CREATE INDEX idx_courses_instructor ON courses(instructor_id);
+CREATE INDEX idx_courses_catalog ON courses(category_id, instructor_id, status, deleted_at);
+CREATE INDEX idx_courses_active_created ON courses(created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX idx_courses_name_trgm ON courses USING gin (name gin_trgm_ops);
+CREATE INDEX idx_courses_description_trgm ON courses USING gin (description gin_trgm_ops);
 
 -- =========================
 -- COURSE OBJECTIVES
@@ -367,7 +378,6 @@ CREATE TABLE course_reviews(
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
   rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
-  helpful_count INTEGER DEFAULT 0,
   review TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -442,6 +452,7 @@ CREATE TABLE lesson_completion (
 );
 CREATE INDEX idx_lesson_completion_user ON lesson_completion(user_id);
 CREATE INDEX idx_lesson_completion_lesson ON lesson_completion(lesson_id);
+CREATE INDEX idx_lesson_completion_user_course ON lesson_completion(user_id, course_id);
 
 -- =========================
 -- CERTIFICATES

@@ -17,6 +17,8 @@ export function useLessonNavigation() {
   return {
     currentLessonIndex: currentIndex,
     totalLessons: flatLessons.length,
+    prevLesson,
+    nextLesson,
     prevLessonId: prevLesson?.id ?? null,
     nextLessonId: nextLesson?.id ?? null,
     isPrevQuiz: prevLesson?.type === "QUIZ",

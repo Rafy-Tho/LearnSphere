@@ -1,13 +1,20 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useCreateCompletedLesson } from "@/features/learning/hooks/useLearningMutations";
+import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  useCreateCompletedLesson,
+  useUpdateCourseProgress,
+} from "@/features/learning/hooks/useLearningMutations";
 import { useCompletedLesson as useGetCompletedLesson } from "@/features/learning/hooks/useLessons";
-import { useUpdateCourseProgress } from "@/features/learning/hooks/useLearningMutations";
 import { useLessonNavigation } from "@/features/learning/hooks/useLessonNavigation";
+import Button from "@/components/ui/Button";
+import Badge from "@/components/ui/Badge";
+import ProgressBar from "@/components/ui/ProgressBar";
 
 function NextPrevious() {
   const { courseId, lessonId } = useParams();
   const navigate = useNavigate();
-  const { mutate: completeLesson } = useCreateCompletedLesson();
+  const { mutateAsync: completeLesson, isPending: isCompleting } =
+    useCreateCompletedLesson();
   const { mutate: updateProgress } = useUpdateCourseProgress();
   const { data: completedLesson } = useGetCompletedLesson();
   const {
@@ -15,15 +22,14 @@ function NextPrevious() {
     totalLessons,
     prevLessonId,
     nextLessonId,
+    nextLesson,
     isPrevQuiz,
     isNextQuiz,
   } = useLessonNavigation();
 
-  function handleCompleteLesson() {
-    if (completedLesson) return;
-    completeLesson();
-    updateProgress({ lessonId });
-  }
+  const isCompleted = Boolean(completedLesson);
+  const hasNext = Boolean(nextLessonId);
+
   const goToNextPage = () => {
     if (!nextLessonId) return;
     if (isNextQuiz)
@@ -37,82 +43,86 @@ function NextPrevious() {
       navigate(`/courses/${courseId}/lessons/${prevLessonId}/quiz`);
     else navigate(`/courses/${courseId}/lessons/${prevLessonId}`);
   };
-  return (
-    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 px-4 py-6 border-t border-border bg-surface mt-8">
-      <button
-        onClick={goToPrevPage}
-        disabled={!prevLessonId}
-        className={`
-                  flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 w-full sm:w-auto justify-center
-                  ${
-                    prevLessonId
-                      ? "bg-surface-muted text-foreground hover:bg-border cursor-pointer"
-                      : "bg-surface-muted text-foreground-muted cursor-not-allowed"
-                  }
-                `}
-      >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
-        Previous
-      </button>
 
-      <div className="text-sm text-foreground-muted font-medium px-3 py-1 bg-surface-muted rounded-full sm:bg-transparent ">
-        Lesson {currentLessonIndex + 1} of {totalLessons}
-      </div>
-      <div className="flex items-center gap-2 w-full sm:w-auto">
-        {!completedLesson && (
-          <button
-            onClick={handleCompleteLesson}
-            className={`
-                  flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 w-full sm:w-auto justify-center
-                  ${
-                    !completedLesson
-                      ? "bg-warning text-white hover:bg-warning/90 active:bg-warning/80 cursor-pointer"
-                      : "bg-surface-muted text-foreground-muted cursor-not-allowed"
-                  }
-                `}
-          >
-            Complete
-          </button>
-        )}
-        <button
-          onClick={goToNextPage}
-          disabled={!nextLessonId}
-          className={`
-                  flex items-center gap-2 px-4 py-2 rounded-lg transition-colors duration-200 w-full sm:w-auto justify-center
-                  ${
-                    nextLessonId
-                      ? "bg-warning text-white hover:bg-warning/90 active:bg-warning/80 cursor-pointer"
-                      : "bg-surface-muted text-foreground-muted cursor-not-allowed"
-                  }
-                `}
+  async function handlePrimaryAction() {
+    if (isCompleted) {
+      goToNextPage();
+      return;
+    }
+
+    try {
+      await completeLesson();
+      updateProgress({ lessonId });
+      goToNextPage();
+    } catch {
+      // Errors are surfaced by the mutation's toast.
+    }
+  }
+
+  let primaryLabel = "Complete & Continue";
+  let isPrimaryDisabled = false;
+
+  if (isCompleted && hasNext) {
+    primaryLabel = "Next Lesson";
+  } else if (!hasNext && !isCompleted) {
+    primaryLabel = "Mark as complete";
+  } else if (!hasNext && isCompleted) {
+    primaryLabel = "Course completed";
+    isPrimaryDisabled = true;
+  }
+
+  return (
+    <div className="sticky bottom-0 z-10 border-t border-border bg-surface/95 backdrop-blur-md">
+      <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <Button
+          variant="outline"
+          size="md"
+          onClick={goToPrevPage}
+          disabled={!prevLessonId}
+          leftIcon={<ChevronLeft size={16} />}
+          aria-label="Previous lesson"
+          className="w-full sm:w-auto"
         >
-          Next
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
+          Previous
+        </Button>
+
+        <div className="order-first w-full sm:order-none sm:max-w-xs sm:flex-none">
+          <div className="mb-1.5 flex items-center justify-between gap-3 text-xs text-foreground-muted">
+            <span className="font-medium whitespace-nowrap">
+              Lesson {currentLessonIndex + 1} of {totalLessons}
+            </span>
+            {nextLesson?.name && (
+              <span className="min-w-0 truncate" title={nextLesson.name}>
+                Next: {nextLesson.name}
+              </span>
+            )}
+          </div>
+          <ProgressBar
+            value={currentLessonIndex + 1}
+            max={totalLessons}
+            size="sm"
+          />
+        </div>
+
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          {isCompleted && (
+            <Badge variant="success" className="shrink-0">
+              <CheckCircle2 size={14} />
+              Completed
+            </Badge>
+          )}
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handlePrimaryAction}
+            isLoading={isCompleting}
+            disabled={isPrimaryDisabled}
+            rightIcon={hasNext ? <ChevronRight size={16} /> : undefined}
+            className="flex-1 sm:flex-none"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
-          </svg>
-        </button>
+            {primaryLabel}
+          </Button>
+        </div>
       </div>
     </div>
   );

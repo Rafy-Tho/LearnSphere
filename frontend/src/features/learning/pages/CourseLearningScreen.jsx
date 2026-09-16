@@ -10,6 +10,7 @@ const CourseLearningScreen = () => {
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const sectionRef = useRef(null);
   const location = useLocation();
+  const isQuizRoute = location.pathname.endsWith("/quiz");
   const closeSidebar = useCallback(
     () => setIsSidebarOpen(false),
     [setIsSidebarOpen],
@@ -61,8 +62,8 @@ const CourseLearningScreen = () => {
             ref={sectionRef}
           >
             <Outlet />
-            {/* Navigation buttons */}
-            <NextPrevious />
+            {/* Navigation buttons (lesson content only) */}
+            {!isQuizRoute && <NextPrevious />}
           </main>
         </div>
       </div>

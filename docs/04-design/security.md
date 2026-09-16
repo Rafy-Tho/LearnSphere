@@ -44,6 +44,7 @@ The former gaps (missing `authorize`/validators on quiz options, unused `loginLi
 | `passwordResetLimiter` | 12 h | 10 | Password reset code requests |
 | `codeAttemptsLimiter` | 1 h | 10 | Code verify + reset |
 | `loginLimiter` | 15 min | 5 | Applied to `POST /auth/login` (+ per-account lockout) |
+| `emailVerificationLimiter` | 1 h | 5 | Register + resend verification code |
 
 Rate-limit exhaustion returns HTTP 429.
 
@@ -69,6 +70,22 @@ Rate-limit exhaustion returns HTTP 429.
 - Codes expire after 10 minutes and have an attempt counter (max 5).
 - Reset-code requests and attempts are rate-limited.
 - The `password_reset_codes.code` column is `VARCHAR(255)` (migration `0011`).
+
+## 7.1 Email Verification Security
+
+- Registration and unverified login issue a 6-digit `crypto.randomInt` code; no
+  authenticated session exists until `POST /auth/verify-email` succeeds.
+- Only an HMAC-SHA256 hash (keyed with `SESSION_SECRET`) is stored in
+  `email_verification_codes`; codes are never logged or returned in responses.
+- Codes expire after 10 minutes, are single-use, invalidate previous codes on
+  resend, and cap attempts at 5.
+- The pending user is tracked server-side in the session
+  (`pendingVerificationUserId`); `POST /auth/verify-email` accepts `{ code }`
+  only, so no user identifier is exposed.
+- Register/resend are covered by `emailVerificationLimiter`; verification by
+  `codeAttemptsLimiter`.
+- `users.email UNIQUE` is preserved; unknown/duplicate emails get generic
+  responses that do not reveal account existence.
 
 ## 8. Payments Security
 

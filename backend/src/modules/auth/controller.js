@@ -18,7 +18,7 @@ class AuthController {
   register = asyncHandler(async (req, res) => {
     const { email, password, name } = req.body;
 
-    const { created } = await this.authService.registerUser({
+    const { created, user } = await this.authService.registerUser({
       name,
       email,
       password,
@@ -26,6 +26,9 @@ class AuthController {
 
     // Never auto-login and never reveal whether the email already existed.
     if (created) {
+      await this.authService.sendVerificationCode(user);
+      req.session.pendingVerificationUserId = user.id;
+
       this.emailService
         .sendWelcome(email, name)
         .catch((error) =>
@@ -35,19 +38,69 @@ class AuthController {
         );
     }
 
-    return sendSuccess(res, null, {
-      statusCode: StatusCode.CREATED,
-      message: "Registration successful. Please log in.",
-    });
+    return sendSuccess(
+      res,
+      { requiresEmailVerification: true, email },
+      {
+        statusCode: StatusCode.CREATED,
+        message: "Registration successful. Please verify your email.",
+      },
+    );
   });
 
   login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
     const user = await this.authService.authenticate({ email, password });
+
+    // Unverified accounts must verify before an authenticated session exists.
+    if (!user.email_verified_at) {
+      await this.authService.sendVerificationCode(user);
+      req.session.pendingVerificationUserId = user.id;
+
+      return sendSuccess(
+        res,
+        { requiresEmailVerification: true, email: user.email },
+        { message: "Email verification required" },
+      );
+    }
+
     await this.sessionService.create(req, user);
 
-    return sendSuccess(res, user, { message: "User logged in successfully" });
+    return sendSuccess(
+      res,
+      { ...user, requiresEmailVerification: false },
+      { message: "User logged in successfully" },
+    );
+  });
+
+  verifyEmail = asyncHandler(async (req, res) => {
+    const { code } = req.body;
+    const pendingUserId = req.session.pendingVerificationUserId;
+
+    const user = await this.authService.verifyEmailCode({
+      userId: pendingUserId,
+      code,
+    });
+
+    delete req.session.pendingVerificationUserId;
+    await this.sessionService.create(req, user);
+
+    return sendSuccess(
+      res,
+      { ...user, requiresEmailVerification: false },
+      { message: "Email verified successfully" },
+    );
+  });
+
+  resendVerificationCode = asyncHandler(async (req, res) => {
+    const pendingUserId = req.session.pendingVerificationUserId;
+
+    await this.authService.resendVerificationCode(pendingUserId);
+
+    return sendSuccess(res, null, {
+      message: "Verification code sent successfully",
+    });
   });
 
   logout = asyncHandler(async (req, res) => {

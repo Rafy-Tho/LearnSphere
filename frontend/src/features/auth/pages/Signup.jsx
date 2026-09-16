@@ -9,6 +9,7 @@ import PasswordInput from "@/features/auth/components/form/PasswordInput";
 import TermCheck from "@/features/auth/components/form/TermCheck";
 import SocialButtons from "@/features/auth/components/SocialButtons";
 import { useRegister } from "@/features/auth/hooks/useAuthMutations";
+import { saveEmailVerificationFlow } from "@/features/auth/utils/emailVerificationFlow";
 import Button from "@/components/ui/Button";
 
 const SignupSchema = z.object({
@@ -41,11 +42,12 @@ const Signup = () => {
     try {
       await registerUser(formData);
 
-      toast.success("Registration successful. Please log in.");
+      saveEmailVerificationFlow(formData.email);
+      toast.success("Check your email for the verification code");
 
       reset();
 
-      navigate("/login");
+      navigate("/verify-email");
     } catch (err) {
       toast.error(err.message || "Register failed");
     }

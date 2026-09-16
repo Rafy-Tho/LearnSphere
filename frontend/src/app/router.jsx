@@ -17,6 +17,9 @@ const Signup = lazy(() => import("@/features/auth/pages/Signup"));
 const ResetPasswordFlow = lazy(
   () => import("@/features/auth/pages/ResetPasswordFlow"),
 );
+const VerifyEmail = lazy(
+  () => import("@/features/auth/pages/VerifyEmail"),
+);
 const LearningDashboard = lazy(
   () => import("@/features/dashboard/pages/LearningDashboard"),
 );
@@ -66,6 +69,7 @@ function AppRouter() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPasswordFlow />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
           {/* Learning Dashboard */}
           <Route element={<RequireAuth />}>

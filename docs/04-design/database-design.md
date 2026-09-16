@@ -19,6 +19,7 @@
 erDiagram
   users ||--o| user_profiles : has
   users ||--o{ password_reset_codes : requests
+  users ||--o{ email_verification_codes : verifies
   users ||--o{ courses : instructs
   categories ||--o{ courses : classifies
   courses ||--o{ course_objectives : has
@@ -75,6 +76,9 @@ erDiagram
 | password | VARCHAR(255) | NOT NULL (bcrypt hash) |
 | role | user_role | DEFAULT `LEARNER` |
 | status | user_status | DEFAULT `ACTIVE` |
+| failed_login_attempts | INTEGER | DEFAULT 0 |
+| locked_until | TIMESTAMPTZ | nullable |
+| email_verified_at | TIMESTAMPTZ | nullable (`NULL` = unverified) |
 | last_login | TIMESTAMPTZ | nullable |
 | created_at | TIMESTAMPTZ | DEFAULT now |
 | updated_at | TIMESTAMPTZ | DEFAULT now |
@@ -106,6 +110,21 @@ One-to-one with `users`.
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
 > The column is `VARCHAR(255)`; the stored value is an HMAC-SHA256 hex digest keyed with `SESSION_SECRET`. (Formerly `VARCHAR(6)` — resolved, see §9.)
+
+#### `email_verification_codes`
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| user_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| code | VARCHAR(255) | NOT NULL (HMAC-SHA256 hex) |
+| attempts | INTEGER | DEFAULT 0 |
+| expires_at | TIMESTAMPTZ | NOT NULL |
+| created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
+
+Separate from `password_reset_codes` (distinct flows). A new code invalidates
+previous ones; codes are single-use, expire after 10 minutes, and cap attempts
+at 5. Added in migration `0013`.
 
 ### 4.2 Catalog & Content
 
@@ -402,6 +421,7 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 |---|---|
 | `UserRepository` | users, user_profiles |
 | `PasswordResetCodeRepository` | password_reset_codes |
+| `EmailVerificationCodeRepository` | email_verification_codes |
 | `CategoryRepository` | categories |
 | `CourseRepository` | courses, course_reviews, modules, chapters, lessons, enrollments, learn_progress, lesson_completion |
 | `CourseObjectiveRepository` | course_objectives |

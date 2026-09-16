@@ -47,6 +47,7 @@ CREATE TABLE users(
   status user_status DEFAULT 'ACTIVE',
   failed_login_attempts INTEGER NOT NULL DEFAULT 0,
   locked_until TIMESTAMP WITH TIME ZONE,
+  email_verified_at TIMESTAMP WITH TIME ZONE,
   last_login TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -93,6 +94,24 @@ FOR EACH ROW
 EXECUTE FUNCTION set_updated_at();
 
 CREATE INDEX idx_password_reset_codes_user ON password_reset_codes(user_id);
+
+CREATE TABLE email_verification_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  code VARCHAR(255) NOT NULL,
+  attempts INTEGER DEFAULT 0,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER trg_email_verification_codes_updated_at
+BEFORE UPDATE ON email_verification_codes
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+CREATE INDEX idx_email_verification_codes_user
+  ON email_verification_codes(user_id);
 -- ========================
 -- CATEGORIES
 -- =========================

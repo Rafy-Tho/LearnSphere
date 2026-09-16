@@ -76,12 +76,20 @@ Mounted at `/api/v1/auth`.
 
 | Method | Path | Middleware | Description |
 |---|---|---|---|
-| POST | `/register` | `val` | Register user + profile, start session |
-| POST | `/login` | `loginLimiter`, `val` | Authenticate, start session |
+| POST | `/register` | `emailVerificationLimiter`, `val` | Register user + profile, email a verification code |
+| POST | `/login` | `loginLimiter`, `val` | Authenticate; session only when email is verified |
+| POST | `/verify-email` | `codeAttemptsLimiter`, `val` | Verify pending email code, then start session |
+| POST | `/resend-verification-code` | `emailVerificationLimiter` | Re-issue the pending verification code |
 | POST | `/logout` | `auth` | Destroy session |
 | POST | `/password-resets` | `passwordResetLimiter`, `val` | Request a password reset code |
 | POST | `/password-resets/verify` | `codeAttemptsLimiter`, `val` | Verify reset code |
 | PATCH | `/password` | `codeAttemptsLimiter`, `val` | Reset password with code |
+
+> Registration and login of an unverified account return
+> `data: { requiresEmailVerification: true, email }` and set a pending
+> verification id in the session; no authenticated session is created until
+> `POST /verify-email` succeeds. `POST /verify-email` takes `{ code }` only and
+> returns the authenticated user.
 
 ## 3. Users (current user)
 

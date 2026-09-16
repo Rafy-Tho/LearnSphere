@@ -41,7 +41,8 @@ schema. Verify with `pg_dump --schema-only` on two scratch databases.
 The baseline (`0001`–`0010`) is idempotent, so on a database that already has the
 tables it is a no-op except for new indexes and re-created triggers; `0011`
 applies the drift fixes (D1–D4, D6); `0012` adds the login-lockout columns
-(`users.failed_login_attempts`, `users.locked_until`).
+(`users.failed_login_attempts`, `users.locked_until`); `0013` adds email
+verification (`users.email_verified_at` + `email_verification_codes`).
 
 ### Upgrading from the old `0001_drift_fixes.sql`
 

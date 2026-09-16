@@ -20,6 +20,23 @@ export function useRegister() {
   return { registerUser, isPending, error };
 }
 
+export function useVerifyEmail() {
+  const { mutateAsync: verifyEmail, isPending, error } = useMutation({
+    mutationKey: ["verifyEmail"],
+    mutationFn: (payload) => authApi.verifyEmail(payload),
+  });
+  return { verifyEmail, isPending, error };
+}
+
+export function useResendVerificationCode() {
+  const { mutateAsync: resendVerificationCode, isPending, error } =
+    useMutation({
+      mutationKey: ["resendVerificationCode"],
+      mutationFn: () => authApi.resendVerificationCode(),
+    });
+  return { resendVerificationCode, isPending, error };
+}
+
 export function useSendResetPasswordCode() {
   const { mutate: sendResetPasswordCode, isPending, error } = useMutation({
     mutationKey: ["sendResetPasswordCode"],

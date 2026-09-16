@@ -8,6 +8,7 @@ import PasswordInput from "@/features/auth/components/form/PasswordInput";
 import TermCheck from "@/features/auth/components/form/TermCheck";
 import { useLogin } from "@/features/auth/hooks/useAuthMutations";
 import useAuthActions from "@/features/auth/hooks/useAuthActions";
+import { saveEmailVerificationFlow } from "@/features/auth/utils/emailVerificationFlow";
 import { toast } from "react-toastify";
 import Button from "@/components/ui/Button";
 const LoginSchema = z.object({
@@ -40,6 +41,13 @@ const Login = () => {
   const onSubmit = async (formData) => {
     try {
       const res = await login(formData);
+
+      if (res?.requiresEmailVerification) {
+        saveEmailVerificationFlow(res.email || formData.email);
+        toast.info("Please verify your email to continue");
+        navigate("/verify-email");
+        return;
+      }
 
       toast.success("Login successful");
 

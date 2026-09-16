@@ -33,3 +33,9 @@ export const codeAttemptsLimiter = createLimiter(
   10, // Limit each IP to 10 requests per windowMs
   "Too many code attempts, please try again after 1 hour",
 );
+
+export const emailVerificationLimiter = createLimiter(
+  60 * 60 * 1000, // 1 hour
+  5, // Limit each IP to 5 verification emails per windowMs
+  "Too many verification requests, please try again after 1 hour",
+);

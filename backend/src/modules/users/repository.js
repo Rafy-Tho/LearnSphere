@@ -20,7 +20,7 @@ class UserRepository {
   async findByEmail(email) {
     const query = `
       SELECT id, email, role, password, last_login, name, image_url, created_at, updated_at,status,
-             failed_login_attempts, locked_until
+             failed_login_attempts, locked_until, email_verified_at
       FROM users
       WHERE email = $1
     `;
@@ -117,11 +117,23 @@ class UserRepository {
   async findById(userId) {
     const query = `
       SELECT 
-         id, email, role, last_login, name, image_url, password, created_at
+         id, email, role, last_login, name, image_url, password, created_at,
+         email_verified_at
       FROM users
       WHERE id = $1
     `;
     const result = await this.db.query(query, [userId]);
+    return result.rows[0];
+  }
+
+  async markEmailVerified(userId, client = this.db) {
+    const query = `
+      UPDATE users
+      SET email_verified_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+      RETURNING id, email, role, name, image_url, email_verified_at
+    `;
+    const result = await client.query(query, [userId]);
     return result.rows[0];
   }
   async updateLastLogin({ userId, lastLogin }) {

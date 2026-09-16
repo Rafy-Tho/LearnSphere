@@ -122,6 +122,22 @@ class EmailService {
       `,
     });
   }
+
+  async sendVerificationCode(to, code) {
+    return this.send({
+      to,
+      subject: "Verify Your Email",
+      text: `Your verification code is: ${code}. This code expires in 10 minutes.`,
+      html: `
+        <div style="font-family: Arial;">
+          <h2>Verify Your Email</h2>
+          <p>Your verification code is:</p>
+          <h1 style="color:green;">${code}</h1>
+          <p>This code expires in 10 minutes.</p>
+        </div>
+      `,
+    });
+  }
 }
 
 const emailService = new EmailService();

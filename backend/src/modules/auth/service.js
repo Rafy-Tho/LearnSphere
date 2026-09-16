@@ -8,6 +8,7 @@ import hashService from "../../common/services/hash-service.js";
 import { withTransaction } from "../../config/database.js";
 import userRepository from "../users/repository.js";
 import passwordResetCodeRepository from "./repository.js";
+import emailVerificationCodeRepository from "./email-verification.repository.js";
 import sessionRepository from "./session.repository.js";
 
 const DEFAULT_AVATAR =
@@ -15,6 +16,8 @@ const DEFAULT_AVATAR =
 
 const RESET_CODE_TTL_MS = 10 * 60 * 1000;
 const MAX_RESET_ATTEMPTS = 5;
+const EMAIL_VERIFICATION_TTL_MS = 10 * 60 * 1000;
+const MAX_EMAIL_VERIFICATION_ATTEMPTS = 5;
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;
 
@@ -27,12 +30,14 @@ class AuthService {
   constructor({
     userRepository,
     passwordResetCodeRepository,
+    emailVerificationCodeRepository,
     sessionRepository,
     hashService,
     emailService,
   }) {
     this.userRepository = userRepository;
     this.passwordResetCodeRepository = passwordResetCodeRepository;
+    this.emailVerificationCodeRepository = emailVerificationCodeRepository;
     this.sessionRepository = sessionRepository;
     this.hashService = hashService;
     this.emailService = emailService;
@@ -113,6 +118,85 @@ class AuthService {
   isLocked(user) {
     if (!user.locked_until) return false;
     return new Date(user.locked_until).getTime() > Date.now();
+  }
+
+  // Invalidate any previous code, generate + store a new hashed code and email
+  // it. Email failures are logged but never fail the auth flow (resend exists).
+  async sendVerificationCode(user) {
+    await this.emailVerificationCodeRepository.deleteByUserId(user.id);
+
+    const code = createRandomCode();
+    const expiresAt = new Date(Date.now() + EMAIL_VERIFICATION_TTL_MS);
+
+    await this.emailVerificationCodeRepository.create({
+      code: hashCode(code),
+      userId: user.id,
+      expiresAt,
+    });
+
+    try {
+      await this.emailService.sendVerificationCode(user.email, code);
+    } catch (error) {
+      logger.error("Failed to send verification email", {
+        message: error.message,
+        userId: user.id,
+      });
+    }
+
+    logger.audit("auth.email_verification.sent", { userId: user.id });
+  }
+
+  async verifyEmailCode({ userId, code }) {
+    // No pending verification in the session: stay generic.
+    if (!userId) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "Invalid or expired code");
+    }
+
+    const attemptCount =
+      await this.emailVerificationCodeRepository.incrementAttempt(userId);
+    if (attemptCount > MAX_EMAIL_VERIFICATION_ATTEMPTS) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "Too many attempts");
+    }
+
+    const existingCode =
+      await this.emailVerificationCodeRepository.findLatestByUserId(userId);
+    if (!existingCode) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "Invalid or expired code");
+    }
+
+    if (existingCode.expires_at < new Date()) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "Code expired");
+    }
+
+    if (existingCode.code !== hashCode(code)) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "Invalid or expired code");
+    }
+
+    const user = await withTransaction(async (client) => {
+      const verifiedUser = await this.userRepository.markEmailVerified(
+        userId,
+        client,
+      );
+      await this.emailVerificationCodeRepository.deleteByUserId(userId, client);
+      return verifiedUser;
+    });
+
+    if (!user) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "Invalid or expired code");
+    }
+
+    logger.audit("auth.email_verification.verified", { userId });
+    return user;
+  }
+
+  async resendVerificationCode(userId) {
+    // Do not reveal account state; silently no-op for unknown/verified users.
+    if (!userId) return;
+
+    const user = await this.userRepository.findById(userId);
+    if (!user || user.email_verified_at) return;
+
+    await this.sendVerificationCode(user);
   }
 
   async getUserById(userId) {
@@ -206,6 +290,7 @@ export { AuthService };
 export default new AuthService({
   userRepository,
   passwordResetCodeRepository,
+  emailVerificationCodeRepository,
   sessionRepository,
   hashService,
   emailService,

@@ -3,6 +3,7 @@ import requireAuth from "../../common/middleware/require-auth.js";
 import { validateResult } from "../../common/middleware/validate-result.js";
 import {
   codeAttemptsLimiter,
+  emailVerificationLimiter,
   loginLimiter,
   passwordResetLimiter,
 } from "../../common/middleware/rate-limit-middlewares.js";
@@ -13,6 +14,7 @@ const authRoute = express.Router();
 
 authRoute.post(
   "/register",
+  emailVerificationLimiter,
   validation.validateRegister,
   validateResult,
   authController.register,
@@ -23,6 +25,18 @@ authRoute.post(
   validation.validateLogin,
   validateResult,
   authController.login,
+);
+authRoute.post(
+  "/verify-email",
+  codeAttemptsLimiter,
+  validation.validateVerifyEmail,
+  validateResult,
+  authController.verifyEmail,
+);
+authRoute.post(
+  "/resend-verification-code",
+  emailVerificationLimiter,
+  authController.resendVerificationCode,
 );
 authRoute.post("/logout", requireAuth, authController.logout);
 authRoute.post(

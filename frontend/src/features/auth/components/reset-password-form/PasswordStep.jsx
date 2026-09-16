@@ -5,8 +5,8 @@ import { useResetPassword } from "@/features/auth/hooks/useAuthMutations";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { removeResetPasswordFlow } from "@/features/auth/utils/resetPasswordFlow";
-import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 const passwordSchema = z
   .object({
@@ -62,9 +62,9 @@ const PasswordStep = ({ email, otp }) => {
   return (
     <>
       <div className="text-center mb-6">
-        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
-            className="w-8 h-8 text-blue-600 dark:text-blue-400"
+            className="w-8 h-8 text-primary"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -77,10 +77,10 @@ const PasswordStep = ({ email, otp }) => {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+        <h1 className="text-2xl font-bold text-foreground mb-2">
           Reset Password
         </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-sm text-foreground-muted">
           Enter your new password
         </p>
       </div>
@@ -107,48 +107,37 @@ const PasswordStep = ({ email, otp }) => {
         />
 
         {/* Password Requirements Hint */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-          <p className="text-xs text-slate-600 dark:text-slate-400 mb-1 font-medium">
+        <div className="bg-primary/5 rounded-lg p-3">
+          <p className="text-xs text-foreground-muted mb-1 font-medium">
             Password must contain:
           </p>
-          <ul className="text-xs text-slate-500 dark:text-slate-500 space-y-1">
+          <ul className="text-xs text-foreground-muted space-y-1">
             <li className="flex items-center gap-2">
-              <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
+              <span className="w-1 h-1 bg-primary rounded-full"></span>
               At least 8 characters
             </li>
             <li className="flex items-center gap-2">
-              <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
+              <span className="w-1 h-1 bg-primary rounded-full"></span>
               One uppercase letter
             </li>
             <li className="flex items-center gap-2">
-              <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
+              <span className="w-1 h-1 bg-primary rounded-full"></span>
               One lowercase letter
             </li>
             <li className="flex items-center gap-2">
-              <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
+              <span className="w-1 h-1 bg-primary rounded-full"></span>
               One number
             </li>
             <li className="flex items-center gap-2">
-              <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
+              <span className="w-1 h-1 bg-primary rounded-full"></span>
               One special character
             </li>
           </ul>
         </div>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
-        >
-          {isPending ? (
-            <>
-              <SpinnerLoader size="sm" color="white" />
-              <span>Resetting...</span>
-            </>
-          ) : (
-            "Reset Password"
-          )}
-        </button>
+        <Button type="submit" size="lg" fullWidth isLoading={isPending}>
+          {isPending ? "Resetting..." : "Reset Password"}
+        </Button>
       </form>
     </>
   );

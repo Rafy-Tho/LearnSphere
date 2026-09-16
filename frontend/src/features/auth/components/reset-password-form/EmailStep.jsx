@@ -5,8 +5,8 @@ import { z } from "zod";
 import { Mail } from "lucide-react";
 import { resetResendTimer } from "@/features/auth/utils/resendTimer";
 import { useSendResetPasswordCode } from "@/features/auth/hooks/useAuthMutations";
-import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 const emailSchema = z.object({
   email: z
@@ -40,9 +40,9 @@ const EmailStep = ({ onSuccess }) => {
   return (
     <>
       <div className="text-center mb-6">
-        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
-            className="w-8 h-8 text-blue-600 dark:text-blue-400"
+            className="w-8 h-8 text-primary"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -55,10 +55,10 @@ const EmailStep = ({ onSuccess }) => {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+        <h1 className="text-2xl font-bold text-foreground mb-2">
           Forgot Password?
         </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-sm text-foreground-muted">
           Enter your email to receive OTP verification
         </p>
       </div>
@@ -74,20 +74,9 @@ const EmailStep = ({ onSuccess }) => {
           {...register("email")}
         />
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
-        >
-          {isPending ? (
-            <>
-              <SpinnerLoader size="sm" color="white" />
-              <span>Sending OTP...</span>
-            </>
-          ) : (
-            "Send OTP"
-          )}
-        </button>
+        <Button type="submit" size="lg" fullWidth isLoading={isPending}>
+          {isPending ? "Sending OTP..." : "Send OTP"}
+        </Button>
       </form>
     </>
   );

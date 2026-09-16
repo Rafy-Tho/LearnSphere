@@ -16,14 +16,14 @@ export default function RecommendedSection() {
     <section className="mb-14">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="flex items-center gap-2 text-lg font-bold">
-          <span className="flex size-9 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-950/60">
-            <ArrowUpRight className="size-4 text-indigo-600 dark:text-indigo-400" />
+          <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+            <ArrowUpRight className="size-4 text-primary" />
           </span>
           Recommended For You
         </h2>
         <button
           type="button"
-          className="rounded-lg border border-slate-200 px-4 py-2 text-sm text-indigo-600 dark:border-slate-600 dark:text-indigo-400"
+          className="cursor-pointer rounded-lg border border-border px-4 py-2 text-sm text-primary"
         >
           Learning Preferences
         </button>
@@ -44,7 +44,7 @@ export default function RecommendedSection() {
           to="/courses"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           type="button"
-          className="rounded-lg bg-indigo-600 px-8 py-3 font-semibold text-white hover:bg-indigo-700 cursor-pointer block"
+          className="rounded-lg bg-primary px-8 py-3 font-semibold text-white hover:bg-primary-hover cursor-pointer block"
         >
           Explore All
         </Link>

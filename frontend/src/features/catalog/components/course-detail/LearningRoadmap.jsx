@@ -105,13 +105,13 @@ export default function LearningRoadmap({ sectionRef }) {
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
               Learning Roadmap
             </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-foreground-muted mt-1">
               {`${course?.total_lessons} Lessons • ${course?.total_quizzes} Quizzes`}
               {completedCount > 0 && (
-                <span className="ml-2 text-green-600 dark:text-green-400 font-medium">
+                <span className="ml-2 text-success font-medium">
                   • {completedCount}/{totalLessons} completed
                 </span>
               )}
@@ -121,26 +121,26 @@ export default function LearningRoadmap({ sectionRef }) {
 
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-foreground-muted" />
             <input
               type="text"
               placeholder="Search Lessons"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 border border-border bg-surface text-foreground placeholder:text-foreground-muted rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/50 focus:border-transparent"
             />
           </div>
           <button
             onClick={toggleExpandAll}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-border bg-surface hover:bg-surface-muted rounded-lg transition-colors whitespace-nowrap cursor-pointer"
           >
-            <span className="text-sm font-medium dark:text-white">
+            <span className="text-sm font-medium text-foreground">
               Expand All
             </span>
             {expandedSections.length > 0 ? (
-              <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              <ChevronUp className="w-5 h-5 text-foreground-muted" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              <ChevronDown className="w-5 h-5 text-foreground-muted" />
             )}
           </button>
         </div>
@@ -150,27 +150,27 @@ export default function LearningRoadmap({ sectionRef }) {
         {filteredModules.map((module, index) => (
           <div
             key={module.id}
-            className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden bg-white dark:bg-gray-800"
+            className="border border-border rounded-xl overflow-hidden bg-surface"
           >
             <button
               onClick={() => toggleSection(module.id)}
-              className="w-full px-6 py-5 flex items-start justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="w-full px-6 py-5 flex items-start justify-between hover:bg-surface-muted transition-colors cursor-pointer"
             >
               <div className="flex-1 text-left">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-slate-100 mb-2">
+                <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                   {index + 1}. {module.name}
                 </h3>
                 {module.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 pr-4">
+                  <p className="text-sm text-foreground-muted pr-4">
                     {module.description}
                   </p>
                 )}
               </div>
               <div className="shrink-0 ml-4">
                 {expandedSections.includes(module.id) ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  <ChevronUp className="w-5 h-5 text-foreground-muted" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  <ChevronDown className="w-5 h-5 text-foreground-muted" />
                 )}
               </div>
             </button>
@@ -197,20 +197,20 @@ export default function LearningRoadmap({ sectionRef }) {
                       className="flex items-center gap-3 py-2 text-sm sm:text-base"
                     >
                       {isLocked ? (
-                        <Lock className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0 " />
+                        <Lock className="w-4 h-4 text-foreground-muted shrink-0 " />
                       ) : (
                         <Icon
-                          className={`w-4 h-4 shrink-0 cursor-pointer transition-colors ${isCompleted ? "text-green-500 dark:text-green-400" : "text-gray-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-400"}`}
+                          className={`w-4 h-4 shrink-0 cursor-pointer transition-colors ${isCompleted ? "text-success" : "text-foreground hover:text-primary"}`}
                         />
                       )}
 
                       <span
                         className={
                           isLocked
-                            ? "text-gray-500 dark:text-gray-400"
+                            ? "text-foreground-muted"
                             : isCompleted
-                              ? "text-gray-500 dark:text-gray-400 line-through"
-                              : "text-gray-900 dark:text-white cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                              ? "text-foreground-muted line-through"
+                              : "text-foreground cursor-pointer hover:text-primary transition-colors"
                         }
                       >
                         {lesson.name}
@@ -224,16 +224,16 @@ export default function LearningRoadmap({ sectionRef }) {
         ))}
       </div>
 
-      <div className="mt-12 border border-indigo-200 dark:border-indigo-900 rounded-xl p-6 sm:p-8 bg-white dark:bg-gray-800">
+      <div className="mt-12 border border-primary/30 rounded-xl p-6 sm:p-8 bg-surface">
         <div className="flex flex-col lg:flex-row items-center gap-8">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-3">
-              <Award className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+              <Award className="w-5 h-5 text-foreground-muted" />
+              <h3 className="text-xl font-bold text-foreground">
                 Certificate of Completion
               </h3>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-foreground-muted mb-4">
               {certificate
                 ? "Congratulations! You earned your certificate for this course."
                 : isComplete
@@ -243,7 +243,7 @@ export default function LearningRoadmap({ sectionRef }) {
             {certificate ? (
               <Link
                 to={`/certificates/${certificate.id}`}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-lg text-sm font-medium transition-colors"
               >
                 <ExternalLink className="w-4 h-4" />
                 View Certificate
@@ -254,30 +254,30 @@ export default function LearningRoadmap({ sectionRef }) {
                 disabled={!canClaim || claiming}
                 className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                   canClaim
-                    ? "bg-indigo-600 hover:bg-indigo-700 text-white"
-                    : "border border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                    ? "bg-primary hover:bg-primary-hover text-white"
+                    : "border border-border bg-surface-muted text-foreground-muted cursor-not-allowed"
                 }`}
               >
                 {claiming ? "Claiming..." : "Claim Certificate"}
               </button>
             )}
           </div>
-          <div className="w-full lg:w-64 h-48 border-2 border-indigo-300 dark:border-indigo-800 rounded-lg bg-gradient-to-br from-indigo-50 dark:from-gray-700 to-purple-50 dark:to-gray-700 flex items-center justify-center">
+          <div className="w-full lg:w-64 h-48 border-2 border-primary/30 rounded-lg bg-surface-muted flex items-center justify-center">
             <div className="text-center">
               {certificate ? (
                 <>
-                  <Award className="w-12 h-12 text-indigo-600 dark:text-indigo-400 mx-auto mb-2" />
-                  <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                  <Award className="w-12 h-12 text-primary mx-auto mb-2" />
+                  <p className="text-xs text-primary font-medium">
                     Certificate Earned
                   </p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                  <p className="text-xs text-foreground-muted mt-1">
                     {certificate.certificate_number}
                   </p>
                 </>
               ) : (
                 <>
-                  <Lock className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
-                  <p className="text-xs text-gray-400 dark:text-gray-500">
+                  <Lock className="w-12 h-12 text-foreground-muted mx-auto mb-2" />
+                  <p className="text-xs text-foreground-muted">
                     Certificate Preview
                   </p>
                 </>

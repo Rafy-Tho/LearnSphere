@@ -9,37 +9,34 @@ const OptionButton = ({
   onSelect,
   disabled,
 }) => {
-  let bgColor =
-    "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700";
+  let bgColor = "bg-surface border-border";
 
   if (isAnswered && isCorrect) {
-    bgColor =
-      "bg-green-50 border-green-500 dark:bg-green-900/20 dark:border-green-600";
+    bgColor = "bg-success/10 border-success";
   } else if (isAnswered && isWrong) {
-    bgColor = "bg-red-50 border-red-500 dark:bg-red-900/20 dark:border-red-600";
+    bgColor = "bg-destructive/10 border-destructive";
   } else if (!isAnswered && isSelected) {
-    bgColor =
-      "bg-blue-50 border-blue-500 dark:bg-blue-900/20 dark:border-blue-600";
+    bgColor = "bg-primary/10 border-primary";
   }
 
   return (
     <button
       onClick={onSelect}
       disabled={disabled}
-      className={`w-full p-4 text-left border-2 rounded-xl transition-all ${bgColor} ${
+      className={`w-full p-4 text-left border-2 rounded-xl transition-colors ${bgColor} ${
         !disabled &&
-        "hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+        "hover:border-primary hover:bg-primary/10"
       }`}
     >
       <div className="flex items-center justify-between">
-        <span className="text-slate-700 dark:text-slate-200">
+        <span className="text-foreground">
           {String.fromCharCode(65 + index)}. {option.text}
         </span>
         {isAnswered && isCorrect && (
-          <span className="text-green-600 text-xl">✓</span>
+          <span className="text-success text-xl">✓</span>
         )}
         {isAnswered && isWrong && (
-          <span className="text-red-600 text-xl">✗</span>
+          <span className="text-destructive text-xl">✗</span>
         )}
       </div>
     </button>

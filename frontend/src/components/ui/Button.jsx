@@ -2,30 +2,34 @@ import cn from "@/utils/cn";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 
 const variantClasses = {
-  primary: "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300",
+  primary:
+    "bg-primary text-white hover:bg-primary-hover focus-visible:ring-primary/50",
   secondary:
-    "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 focus:ring-gray-300",
-  danger: "bg-red-600 hover:bg-red-700 text-white focus:ring-red-300",
-  orange: "bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-300",
+    "bg-surface-muted text-foreground hover:bg-border focus-visible:ring-ring/50",
   outline:
-    "border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-gray-300",
+    "border border-border bg-surface text-foreground hover:bg-surface-muted focus-visible:ring-ring/50",
   ghost:
-    "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 focus:ring-gray-300",
+    "text-foreground hover:bg-surface-muted focus-visible:ring-ring/50",
+  destructive:
+    "bg-destructive text-white hover:opacity-90 focus-visible:ring-destructive/50",
+  link: "text-primary underline-offset-4 hover:underline focus-visible:ring-ring/50",
 };
 
 const sizeClasses = {
-  sm: "px-3 py-1.5 text-sm",
-  md: "px-4 py-2 text-sm",
-  lg: "px-6 py-3 text-base",
+  sm: "h-8 px-3 text-xs",
+  md: "h-10 px-4 text-sm",
+  lg: "h-12 px-6 text-base",
+  icon: "h-10 w-10 p-0",
 };
 
-const solidVariants = ["primary", "danger", "orange"];
+const solidVariants = ["primary", "destructive"];
 
 function Button({
   children,
   variant = "primary",
   size = "md",
   type = "button",
+  as,
   isLoading = false,
   disabled = false,
   fullWidth = false,
@@ -34,16 +38,19 @@ function Button({
   className = "",
   ...props
 }) {
+  const Component = as || "button";
+  const isNativeButton = Component === "button";
   const isDisabled = disabled || isLoading;
+  const isLink = variant === "link";
 
   return (
-    <button
-      type={type}
-      disabled={isDisabled}
+    <Component
+      {...(isNativeButton ? { type, disabled: isDisabled } : {})}
+      {...(isDisabled && !isNativeButton ? { "aria-disabled": true } : {})}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
+        "inline-flex items-center justify-center gap-2 rounded-lg font-medium whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
         variantClasses[variant],
-        sizeClasses[size],
+        isLink ? "p-0" : sizeClasses[size],
         fullWidth && "w-full",
         className,
       )}
@@ -52,14 +59,14 @@ function Button({
       {isLoading ? (
         <SpinnerLoader
           size="sm"
-          color={solidVariants.includes(variant) ? "white" : "gray"}
+          color={solidVariants.includes(variant) ? "white" : "muted"}
         />
       ) : (
         leftIcon
       )}
       {children}
       {!isLoading && rightIcon}
-    </button>
+    </Component>
   );
 }
 

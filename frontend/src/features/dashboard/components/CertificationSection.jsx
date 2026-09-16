@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useMyCertificates } from "@/features/learning/hooks/useLearning";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import Button from "@/components/ui/Button";
 
 export default function CertificationSection() {
   const { data: certificates, isPending, error } = useMyCertificates();
@@ -17,8 +18,8 @@ export default function CertificationSection() {
     return (
       <div className="my-8 md:my-16">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-bold">
-          <span className="flex size-9 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-950/60">
-            <Award className="size-4 text-indigo-600 dark:text-indigo-400" />
+          <span className="flex size-9 items-center justify-center rounded-full bg-primary/10">
+            <Award className="size-4 text-primary" />
           </span>
           My Certificates
         </h2>
@@ -27,36 +28,37 @@ export default function CertificationSection() {
             <Link
               key={cert.id}
               to={`/certificates/${cert.id}`}
-              className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-5 hover:shadow-md transition-shadow dark:border-slate-800 dark:bg-slate-900"
+              className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-5 hover:shadow-md transition-shadow"
             >
               <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-950/60">
-                  <Award className="size-5 text-indigo-600 dark:text-indigo-400" />
+                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
+                  <Award className="size-5 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {cert.course_name}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-foreground-muted">
                     {new Date(cert.issued_at).toLocaleDateString()}
                   </p>
                 </div>
-                <ExternalLink className="size-4 text-gray-400 shrink-0" />
+                <ExternalLink className="size-4 text-foreground-muted shrink-0" />
               </div>
-              <p className="text-xs text-gray-400 dark:text-gray-500 font-mono truncate">
+              <p className="text-xs text-foreground-muted font-mono truncate">
                 {cert.certificate_number}
               </p>
               </Link>
             ))}
         </div>
         {!showAll && certificates.length > 6 && (
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => setShowAll(true)}
-            className="mt-4 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="mt-4"
           >
             Show all {certificates.length} certificates
-          </button>
+          </Button>
         )}
       </div>
     );
@@ -65,26 +67,26 @@ export default function CertificationSection() {
   return (
     <div className="my-8 md:my-16">
       <h2 className="mb-4 flex items-center gap-2 text-lg font-bold">
-        <span className="flex size-9 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-950/60">
-          <Award className="size-4 text-indigo-600 dark:text-indigo-400" />
+        <span className="flex size-9 items-center justify-center rounded-full bg-primary/10">
+          <Award className="size-4 text-primary" />
         </span>
         Certification
       </h2>
-      <div className="flex flex-col gap-6 rounded-xl border border-slate-200 bg-white p-6 md:flex-row md:items-center dark:border-slate-800 dark:bg-slate-900">
-        <div className="flex h-32 w-full shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-indigo-300 bg-slate-50 dark:border-indigo-700 dark:bg-slate-800/50 md:w-40">
-          <Award className="size-10 text-indigo-300 dark:text-indigo-600" />
+      <div className="flex flex-col gap-6 rounded-xl border border-border bg-surface p-6 md:flex-row md:items-center">
+        <div className="flex h-32 w-full shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-primary/30 bg-surface-muted md:w-40">
+          <Award className="size-10 text-primary" />
         </div>
         <div className="flex-1">
           <h3 className="text-lg font-bold">
             Your certificate is waiting. Don&apos;t delay!
           </h3>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-sm text-foreground-muted">
             Complete a course to earn your first certificate.
           </p>
         </div>
         <Link
           to="/learning-dashboard/in-progress"
-          className="shrink-0 rounded-lg border-2 border-purple-600 px-4 py-2 font-medium text-purple-600 dark:border-purple-400 dark:text-purple-400 text-center hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-colors"
+          className="shrink-0 rounded-lg border-2 border-primary px-4 py-2 font-medium text-primary text-center hover:bg-primary/10 transition-colors"
         >
           Explore
         </Link>

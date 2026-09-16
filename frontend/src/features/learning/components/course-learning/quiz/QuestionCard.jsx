@@ -12,7 +12,7 @@ const QuestionCard = ({
 }) => {
   return (
     <div>
-      <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
+      <h2 className="text-xl font-bold text-foreground mb-6">
         {question.question}
       </h2>
 

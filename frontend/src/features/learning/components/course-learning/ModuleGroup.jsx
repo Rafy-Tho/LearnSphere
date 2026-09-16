@@ -9,7 +9,7 @@ function ModuleGroup({ module, isOpen, onToggle, index, completedIds }) {
     <div className="mb-1">
       <button
         onClick={() => onToggle(module.id)}
-        className="flex w-full items-start justify-between rounded-md px-2 py-2.5 text-left text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+        className="flex w-full items-start justify-between rounded-md px-2 py-2.5 text-left text-sm font-semibold text-foreground hover:bg-surface-muted transition-colors cursor-pointer"
       >
         <span>
           {index + 1}. {module.name}
@@ -41,14 +41,14 @@ function ModuleGroup({ module, isOpen, onToggle, index, completedIds }) {
                   className={({ isActive }) => `
                      flex w-full items-start gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors ${
                        isActive
-                         ? "bg-blue-50 text-blue-700 font-medium dark:bg-blue-950 dark:text-blue-300"
-                         : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                         ? "bg-primary/10 text-primary font-medium"
+                         : "text-foreground-muted hover:bg-surface-muted hover:text-foreground"
                      }`}
                 >
                   {!isLocked ? (
                     <Icon
                       size={14}
-                      className={`mt-0.5 shrink-0 ${isCompleted ? "text-green-500 dark:text-green-400" : ""}`}
+                      className={`mt-0.5 shrink-0 ${isCompleted ? "text-success" : ""}`}
                     />
                   ) : (
                     <Lock size={14} className="mt-0.5 shrink-0" />

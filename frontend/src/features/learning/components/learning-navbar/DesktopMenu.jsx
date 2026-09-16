@@ -25,10 +25,10 @@ function DesktopMenu({ setIsRatingOpen }) {
       <UnlockAccessButton />
       {/* Your Reviews  */}
       {reviews && (
-        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-4 py-2 shadow-sm">
           <RatingStars rating={reviews?.rating} />
           <div className="flex items-baseline gap-1">
-            <span className="text-sm font-bold text-slate-900 dark:text-white">
+            <span className="text-sm font-bold text-foreground">
               {reviews?.rating}
             </span>
           </div>
@@ -39,9 +39,9 @@ function DesktopMenu({ setIsRatingOpen }) {
         <button
           onClick={() => setIsRatingOpen(true)}
           type="button"
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:shadow-md active:scale-95 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/80 cursor-pointer"
+          className="group inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-surface-muted cursor-pointer"
         >
-          <StarOff className="h-4 w-4 text-amber-500 transition-transform duration-200 group-hover:rotate-12" />
+          <StarOff className="h-4 w-4 text-warning transition-transform duration-200 group-hover:rotate-12" />
           Leave Review
         </button>
       )}
@@ -54,8 +54,9 @@ function DesktopMenu({ setIsRatingOpen }) {
           aria-expanded={moreMenuOpen}
           aria-controls={moreMenuId}
           aria-haspopup="true"
-          className={`flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 ${
-            moreMenuOpen ? "bg-slate-100 text-slate-700 dark:bg-slate-800" : ""
+          aria-label="More options"
+          className={`flex h-9 w-9 items-center justify-center rounded-lg text-foreground-muted transition-colors hover:bg-surface-muted hover:text-foreground cursor-pointer ${
+            moreMenuOpen ? "bg-surface-muted text-foreground" : ""
           }`}
           onClick={() => setMoreMenuOpen(!moreMenuOpen)}
         >

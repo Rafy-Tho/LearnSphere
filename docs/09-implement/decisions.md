@@ -32,6 +32,11 @@ Decisions that block or shape dependent work. Record a decision here **before** 
 | D-24 | Frontend query keys | Inline literals vs central factory | ✅ | Central factory (`lib/queryKeys.js`) | 2026-09-16 | All keys + invalidation go through the factory; `clearUserQueries` roots derived from it. Blocks FS-3/FS-4 |
 | D-25 | Frontend optimistic updates | Invalidate-only vs optimistic + rollback | ✅ | Optimistic + rollback | 2026-09-16 | Used only for immediate interactions (helpful vote, report); lists stay refetch. Blocks FS-6/FS-9 |
 | D-26 | Frontend state taxonomy | Server-state-first vs global store | ✅ | Server-state-first | 2026-09-16 | Only global client state is theme + server-derived auth; no new state managers. Learner app only. Blocks FS-5/FS-6 |
+| D-27 | Frontend design system mechanism | JS `tailwind.config` vs Tailwind v4 CSS-first `@theme` | ✅ | CSS-first `@theme` tokens | 2026-09-16 | New `src/css/theme.css` imported by `index.css`; no config file, no new deps. Blocks FD-2…FD-4 |
+| D-28 | Frontend primary accent | Blue vs indigo vs teal/emerald | ✅ | Blue (+ slate neutrals) | 2026-09-16 | Retire indigo/violet/cyan/purple for primary actions; blue already the `Button` default. Blocks FD-2/FD-5…FD-19 |
+| D-29 | Frontend dark mode | Full parity vs light-first | ✅ | Full light/dark parity | 2026-09-16 | Keep the existing `.dark` class variant and `ThemeProvider` behavior. Blocks FD-2…FD-22 |
+| D-30 | Frontend component strategy | Add UI kit vs upgrade existing primitives vs duplicates only | ✅ | Upgrade existing primitives | 2026-09-16 | Extend `components/ui/*` with variants; add `Badge`/`Alert`/`Skeleton`/`Textarea`/`Select` only where reuse justifies. No new deps. Blocks FD-5…FD-9 |
+| D-31 | Frontend design scope | Include admin vs learner only | ✅ | Learner only | 2026-09-16 | Styling/UX refactor only; no API/auth/routing/business-logic changes. Blocks FD-1…FD-22 |
 
 ## Related
 

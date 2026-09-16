@@ -20,9 +20,30 @@ const Navigation = ({ user, onLogout }) => {
       }
     };
 
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setIsAvatarOpen(false);
+        setIsMobileMenuOpen(false);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, []);
+
+  // Lock body scroll while the mobile menu is open
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMobileMenuOpen]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -43,10 +64,10 @@ const Navigation = ({ user, onLogout }) => {
 
   return (
     <header
-      className="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md"
+      className="sticky top-0 z-50 bg-surface border-b border-border shadow-sm"
       ref={navRef}
     >
-      <div className="max-w-7xl mx-auto   ">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Logo />

@@ -9,17 +9,15 @@ function EmptyState({ icon, title, description, action, className = "" }) {
       )}
     >
       {icon && (
-        <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 dark:text-slate-500 mb-4">
+        <div className="w-14 h-14 rounded-full bg-surface-muted flex items-center justify-center text-foreground-muted mb-4">
           {icon}
         </div>
       )}
       {title && (
-        <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200">
-          {title}
-        </h3>
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
       )}
       {description && (
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 max-w-sm">
+        <p className="mt-1 text-sm text-foreground-muted max-w-sm">
           {description}
         </p>
       )}

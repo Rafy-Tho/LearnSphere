@@ -7,9 +7,9 @@ import { Sidebar } from "@/features/catalog/components/course/Sidebar";
 export default function CourseScreen() {
   const [showMobileFilter, setShowMobileFilter] = useState(false);
   return (
-    <div className="h-[calc(100vh-64px)] bg-slate-100 dark:bg-slate-900 flex flex-col max-w-7xl mx-auto">
+    <div className="h-[calc(100vh-64px)] bg-background flex flex-col max-w-7xl mx-auto">
       {/* Fixed Header Section */}
-      <div className="sticky top-0 z-30 bg-slate-100 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800">
+      <div className="sticky top-0 z-30 bg-background border-b border-border">
         {/* Search Header */}
         <SearchHeader
           showMobileFilter={showMobileFilter}
@@ -36,7 +36,7 @@ export default function CourseScreen() {
 
         {/* Mobile Sidebar - Slide in from left on mobile */}
         <div
-          className={`fixed left-0 top-0 w-64 bg-slate-100 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out md:hidden h-full overflow-y-auto py-15 ${
+          className={`fixed left-0 top-0 w-64 bg-background border-r border-border z-50 transform transition-transform duration-300 ease-in-out md:hidden h-full overflow-y-auto py-15 ${
             showMobileFilter ? "translate-x-0" : "-translate-x-full"
           }`}
         >

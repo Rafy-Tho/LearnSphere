@@ -19,8 +19,9 @@ function MobileMenu({ setIsRatingOpen }) {
         aria-expanded={menuOpen}
         aria-controls={menuId}
         aria-haspopup="true"
-        className={`flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-all duration-200 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 ${
-          menuOpen ? "bg-slate-100 text-slate-700 dark:bg-slate-800" : ""
+        aria-label="More options"
+        className={`flex h-9 w-9 items-center justify-center rounded-lg text-foreground-muted transition-colors hover:bg-surface-muted hover:text-foreground cursor-pointer ${
+          menuOpen ? "bg-surface-muted text-foreground" : ""
         }`}
         onClick={() => setMenuOpen(!menuOpen)}
       >

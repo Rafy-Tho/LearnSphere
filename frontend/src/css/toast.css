@@ -1,0 +1,139 @@
+/*
+ * Toast styling — aligns react-toastify with the semantic design tokens
+ * (see theme.css). Imported after the library stylesheet in AppToastContainer.
+ */
+
+:root {
+  --toastify-font-family: inherit;
+  --toastify-toast-width: 22rem;
+  --toastify-toast-min-height: auto;
+  --toastify-toast-max-height: 90vh;
+  --toastify-toast-padding: 0.875rem 1rem;
+  --toastify-toast-bd-radius: 0.75rem;
+  --toastify-toast-shadow: none;
+
+  /* Surfaces + text (mode-aware via theme.css variables) */
+  --toastify-color-light: var(--surface);
+  --toastify-text-color-light: var(--foreground);
+  --toastify-color-dark: var(--surface);
+  --toastify-text-color-dark: var(--foreground);
+  --toastify-color-transparent: color-mix(
+    in oklab,
+    var(--foreground) 14%,
+    transparent
+  );
+
+  /* Status icons */
+  --toastify-icon-color-info: var(--primary);
+  --toastify-icon-color-success: var(--success);
+  --toastify-icon-color-warning: var(--warning);
+  --toastify-icon-color-error: var(--destructive);
+
+  /* Progress bar */
+  --toastify-color-progress-light: var(--primary);
+  --toastify-color-progress-dark: var(--primary);
+  --toastify-color-progress-info: var(--primary);
+  --toastify-color-progress-success: var(--success);
+  --toastify-color-progress-warning: var(--warning);
+  --toastify-color-progress-error: var(--destructive);
+  --toastify-color-progress-bgo: 0.12;
+}
+
+/* Card */
+.Toastify__toast {
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--toastify-toast-bd-radius);
+  box-shadow:
+    0 12px 32px -14px rgba(2, 6, 23, 0.35),
+    0 2px 8px -4px rgba(2, 6, 23, 0.18);
+  overflow: hidden;
+}
+
+.Toastify__toast-body {
+  margin: 0;
+  padding: 0.125rem 1.25rem 0 0;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+/* Icon inside a soft tinted circle */
+.Toastify__toast-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-inline-end: 0;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.Toastify__toast-icon > svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.Toastify__toast--success .Toastify__toast-icon {
+  background: color-mix(in oklab, var(--success) 14%, transparent);
+}
+.Toastify__toast--error .Toastify__toast-icon {
+  background: color-mix(in oklab, var(--destructive) 14%, transparent);
+}
+.Toastify__toast--warning .Toastify__toast-icon {
+  background: color-mix(in oklab, var(--warning) 16%, transparent);
+}
+.Toastify__toast--info .Toastify__toast-icon,
+.Toastify__toast--default .Toastify__toast-icon {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+.Toastify__toast--default .Toastify__toast-icon > svg {
+  fill: var(--primary);
+}
+
+/* Close button */
+.Toastify__close-button,
+.Toastify__close-button--light {
+  top: 0.6rem;
+  right: 0.6rem;
+  color: var(--foreground-muted);
+  opacity: 1;
+  transition: color 150ms ease;
+}
+.Toastify__close-button:hover,
+.Toastify__close-button:focus {
+  color: var(--foreground);
+  opacity: 1;
+}
+.Toastify__close-button > svg {
+  height: 0.875rem;
+  width: 0.8125rem;
+}
+
+/* Thin progress bar */
+.Toastify__progress-bar--wrp {
+  height: 3px;
+  border-radius: 0;
+}
+.Toastify__progress-bar {
+  opacity: 1;
+}
+.Toastify__progress-bar--bg {
+  background: var(--foreground);
+}
+
+/* Mobile */
+@media only screen and (max-width: 480px) {
+  .Toastify__toast-container {
+    width: 100%;
+    padding: 0 0.75rem;
+  }
+  .Toastify__toast {
+    --toastify-toast-width: 100%;
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+}

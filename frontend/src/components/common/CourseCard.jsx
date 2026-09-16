@@ -22,17 +22,17 @@ function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
 
   return (
     <article
-      className="flex shrink-0 flex-col rounded-xl border border-slate-100 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900 h-full w-full cursor-pointer"
+      className="flex shrink-0 flex-col rounded-xl border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md h-full w-full cursor-pointer"
       onClick={handleClick}
     >
       <div className="mb-4 flex items-start justify-between">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400 ">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
           <BookOpen className="size-3.5" aria-hidden />
           Course
         </span>
         <button
           type="button"
-          className="text-slate-400 transition hover:text-indigo-600 dark:text-slate-500 cursor-pointer"
+          className="text-foreground-muted transition-colors hover:text-primary cursor-pointer"
           aria-label="Bookmark"
           onClick={(e) => {
             e.stopPropagation();
@@ -43,14 +43,12 @@ function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
         </button>
       </div>
 
-      <h3 className="mb-2 text-lg font-bold text-slate-900 dark:text-slate-100">
-        {course.name}
-      </h3>
-      <p className="mb-6 line-clamp-4 flex-1 text-sm text-slate-600 dark:text-slate-400">
+      <h3 className="mb-2 text-lg font-bold text-foreground">{course.name}</h3>
+      <p className="mb-6 line-clamp-4 flex-1 text-sm text-foreground-muted">
         {truncateText(course.description, 150)}
       </p>
 
-      <div className="mt-auto flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+      <div className="mt-auto flex items-center justify-between text-xs text-foreground-muted">
         <span className="inline-flex items-center gap-1">
           <Clock className="size-3.5" />
           {formatMinutes(course.total_duration)}
@@ -64,11 +62,11 @@ function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
       {hasProgress && (
         <ProgressBar
           value={progressPercentage}
-          color="indigo"
+          color="primary"
           size="sm"
           leftLabel="Progress"
           rightLabel={`${Math.round(progressPercentage)}%`}
-          className="mt-4 pt-2 border-t border-slate-100 dark:border-slate-800"
+          className="mt-4 pt-2 border-t border-border"
         />
       )}
     </article>

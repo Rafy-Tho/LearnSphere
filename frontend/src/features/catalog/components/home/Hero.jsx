@@ -2,11 +2,11 @@ import banner from "@/assets/banner.jpg";
 
 function Hero() {
   return (
-    <section className="xl:min-h-[500px] bg-blue-50 dark:bg-gray-800 px-4 sm:px-10 py-10">
+    <section className="xl:min-h-[500px] bg-surface-muted px-4 sm:px-10 py-10">
       <div className="grid xl:grid-cols-2 justify-center items-center gap-10 max-w-7xl mx-auto">
         <div>
           <div className="max-w-3xl max-xl:mx-auto max-xl:text-center">
-            <p className="mb-2 font-semibold text-blue-600 dark:text-blue-400">
+            <p className="mb-2 font-semibold text-primary">
               <span className="rotate-90 inline-block mr-2">|</span> LEARN
               ANYTIME, ANYWHERE
             </p>
@@ -24,19 +24,19 @@ function Hero() {
           <section className="mt-12 container mx-auto">
             <div className="grid min-[450px]:grid-cols-2 md:grid-cols-3 gap-8 text-center">
               <div>
-                <h3 className="text-3xl font-semibold text-blue-600 dark:text-blue-400">
+                <h3 className="text-3xl font-semibold text-primary">
                   500+
                 </h3>
                 <p className="mt-3 font-medium">Expert Instructors</p>
               </div>
               <div>
-                <h3 className="text-3xl font-semibold text-blue-600 dark:text-blue-400">
+                <h3 className="text-3xl font-semibold text-primary">
                   50K+
                 </h3>
                 <p className="mt-3 font-medium">Active Learners</p>
               </div>
               <div>
-                <h3 className="text-3xl font-semibold text-blue-600 dark:text-blue-400">
+                <h3 className="text-3xl font-semibold text-primary">
                   1.5K+
                 </h3>
                 <p className="mt-3 font-medium">Courses Available</p>

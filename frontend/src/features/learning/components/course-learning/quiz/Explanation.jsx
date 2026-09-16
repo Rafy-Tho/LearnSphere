@@ -4,14 +4,14 @@ const Explanation = ({ isCorrect, explanation }) => {
     <div
       className={`p-4 rounded-xl mb-6 ${
         isCorrect
-          ? "bg-green-50 dark:bg-green-900/20"
-          : "bg-red-50 dark:bg-red-900/20"
+          ? "bg-success/10"
+          : "bg-destructive/10"
       }`}
     >
-      <p className="font-semibold mb-1 text-slate-900 dark:text-white">
+      <p className="font-semibold mb-1 text-foreground">
         {isCorrect ? "✓ Correct!" : "✗ Incorrect"}
       </p>
-      <p className="text-sm text-slate-600 dark:text-slate-300">
+      <p className="text-sm text-foreground-muted">
         {explanation}
       </p>
     </div>

@@ -4,7 +4,7 @@ import { memo } from "react";
 import { useCreatePayment } from "@/features/subscriptions/hooks/useSubscriptionMutations";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { toast } from "react-toastify";
-import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import Button from "@/components/ui/Button";
 
 function PricingCard({ plan, activeSubscription }) {
   const { id, tier, price, description, features, highlighted = false } = plan;
@@ -39,19 +39,19 @@ function PricingCard({ plan, activeSubscription }) {
   return (
     <div
       className={`
-        relative flex flex-col rounded-2xl p-8 transition-all duration-300
+        relative flex flex-col rounded-2xl p-8 transition-colors duration-300
         ${
           isActivePlan
-            ? "bg-gray-100 dark:bg-slate-800 opacity-75"
+            ? "bg-surface-muted opacity-75"
             : hasActiveSubscription
-              ? "bg-gray-50 dark:bg-slate-800/50 opacity-60"
-              : "bg-white dark:bg-slate-900"
+              ? "bg-surface-muted opacity-60"
+              : "bg-surface"
         }
-        max-w-[340px] 
+        max-w-[340px]
         ${
           highlighted && !isActivePlan && !hasActiveSubscription
-            ? "ring-2 ring-cyan-400 shadow-[0_0_40px_rgba(34,211,238,0.15)] dark:ring-cyan-400"
-            : "ring-1 ring-gray-200 dark:ring-slate-700"
+            ? "ring-2 ring-primary shadow-md"
+            : "ring-1 ring-border"
         }
       `}
     >
@@ -59,18 +59,18 @@ function PricingCard({ plan, activeSubscription }) {
         <h3
           className={`text-lg font-semibold mb-4 ${
             highlighted && !isActivePlan && !hasActiveSubscription
-              ? "text-cyan-400"
-              : "text-gray-900 dark:text-white"
+              ? "text-primary"
+              : "text-foreground"
           }`}
         >
           {tier}
           {isActivePlan && (
-            <span className="ml-2 text-xs font-normal text-green-600 dark:text-green-400">
+            <span className="ml-2 text-xs font-normal text-success">
               (Current Plan)
             </span>
           )}
           {hasActiveSubscription && !isActivePlan && (
-            <span className="ml-2 text-xs font-normal text-gray-500 dark:text-gray-400">
+            <span className="ml-2 text-xs font-normal text-foreground-muted">
               (Unavailable)
             </span>
           )}
@@ -80,24 +80,16 @@ function PricingCard({ plan, activeSubscription }) {
           <span
             className={`text-6xl font-bold leading-none ${
               hasActiveSubscription && !isActivePlan
-                ? "text-gray-400 dark:text-gray-600"
-                : "text-gray-900 dark:text-white"
+                ? "text-foreground-muted"
+                : "text-foreground"
             }`}
           >
             ${price}
           </span>
-          <span className="mb-2 text-sm text-gray-500 dark:text-slate-400">
-            / price
-          </span>
+          <span className="mb-2 text-sm text-foreground-muted">/ price</span>
         </div>
 
-        <p
-          className={`text-sm leading-relaxed ${
-            hasActiveSubscription && !isActivePlan
-              ? "text-gray-400 dark:text-gray-600"
-              : "text-gray-500 dark:text-slate-400"
-          }`}
-        >
+        <p className="text-sm leading-relaxed text-foreground-muted">
           {description}
         </p>
       </div>
@@ -107,49 +99,31 @@ function PricingCard({ plan, activeSubscription }) {
           <li key={feature} className="flex items-center gap-3">
             <CheckCircle2
               size={18}
-              className={`flex-shrink-0 ${
-                hasActiveSubscription
-                  ? "text-gray-400 dark:text-slate-600"
-                  : "text-gray-500 dark:text-slate-400"
-              }`}
+              className="flex-shrink-0 text-foreground-muted"
             />
             <span
               className={`text-sm ${
-                hasActiveSubscription
-                  ? "text-gray-400 dark:text-slate-500"
-                  : "text-gray-700 dark:text-slate-300"
+                hasActiveSubscription ? "text-foreground-muted" : "text-foreground"
               }`}
             >
               {feature.text}
             </span>
             {feature.hasInfo && (
-              <Info
-                size={14}
-                className="flex-shrink-0 text-gray-400 dark:text-slate-500"
-              />
+              <Info size={14} className="flex-shrink-0 text-foreground-muted" />
             )}
           </li>
         ))}
       </ul>
 
-      <button
-        onClick={!hasActiveSubscription && !isLoading ? payment : undefined}
-        disabled={hasActiveSubscription || isLoading}
-        className={`
-          w-full py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2
-          ${!hasActiveSubscription && !isLoading ? "cursor-pointer" : "cursor-not-allowed"}
-          ${
-            hasActiveSubscription
-              ? "bg-gray-300 text-gray-500 dark:bg-slate-700 dark:text-slate-500"
-              : isLoading
-                ? "bg-gray-300 text-gray-500 dark:bg-slate-700 dark:text-slate-500"
-                : highlighted
-                  ? "bg-gradient-to-r from-cyan-400 to-blue-500 text-white hover:from-cyan-300 hover:to-blue-400 shadow-lg shadow-cyan-500/25"
-                  : "border border-gray-300 text-gray-900 hover:bg-gray-50 dark:border-slate-600 dark:text-white dark:hover:bg-slate-800"
-          }
-        `}
+      <Button
+        onClick={payment}
+        disabled={hasActiveSubscription}
+        isLoading={isLoading}
+        variant={highlighted ? "primary" : "outline"}
+        size="lg"
+        fullWidth
+        className="rounded-xl text-sm font-semibold"
       >
-        {isLoading && <SpinnerLoader size="sm" color="gray" />}
         {isActivePlan
           ? "Current Plan"
           : hasActiveSubscription
@@ -157,7 +131,7 @@ function PricingCard({ plan, activeSubscription }) {
             : isLoading
               ? "Redirecting..."
               : "Get Started"}
-      </button>
+      </Button>
     </div>
   );
 }

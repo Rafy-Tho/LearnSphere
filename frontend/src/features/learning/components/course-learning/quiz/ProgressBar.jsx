@@ -9,7 +9,7 @@ const ProgressBar = ({ currentIndex, totalQuestions, answersCount }) => {
   return (
     <ProgressBarPrimitive
       value={progress}
-      color="green"
+      color="success"
       leftLabel={`Question ${currentIndex + 1} of ${totalQuestions}`}
       rightLabel={`Answered: ${answersCount}`}
       className="mb-6"

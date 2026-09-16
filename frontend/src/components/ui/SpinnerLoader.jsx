@@ -1,34 +1,28 @@
-import React from "react";
+const sizeClasses = {
+  sm: "w-4 h-4",
+  md: "w-8 h-8",
+  lg: "w-12 h-12",
+  xl: "w-16 h-16",
+};
 
-const SpinnerLoader = ({ size = "md", color = "blue" }) => {
-  const sizeClasses = {
-    sm: "w-4 h-4",
-    md: "w-8 h-8",
-    lg: "w-12 h-12",
-    xl: "w-16 h-16",
-  };
+const colorClasses = {
+  primary: "border-primary",
+  muted: "border-foreground-muted",
+  white: "border-white",
+};
 
-  const colorClasses = {
-    blue: "border-blue-600",
-    gray: "border-gray-600",
-    green: "border-green-600",
-    red: "border-red-600",
-    yellow: "border-yellow-600",
-    purple: "border-purple-600",
-    white: "border-white",
-  };
+const borderClasses = {
+  sm: "border-2",
+  md: "border-4",
+  lg: "border-4",
+  xl: "border-4",
+};
 
-  const borderClasses = {
-    sm: "border-2",
-    md: "border-4",
-    lg: "border-4",
-    xl: "border-4",
-  };
-
+const SpinnerLoader = ({ size = "md", color = "primary" }) => {
   return (
     <div className="flex items-center justify-center">
       <div
-        className={`${sizeClasses[size]} ${colorClasses[color]} ${borderClasses[size]} border-t-transparent rounded-full animate-spin`}
+        className={`${sizeClasses[size]} ${colorClasses[color] || colorClasses.primary} ${borderClasses[size]} border-t-transparent rounded-full animate-spin`}
         role="status"
         aria-label="Loading"
       ></div>

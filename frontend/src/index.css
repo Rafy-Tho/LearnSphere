@@ -1,8 +1,66 @@
 @import "tailwindcss";
-@import "../src/css/constant.css";
+@import "./css/theme.css";
 @custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
 :where(a, button, input, select, textarea, [role="button"]) {
-  @apply transition-all duration-300;
+  transition-property: color, background-color, border-color, box-shadow,
+    opacity, transform;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-overlay-in {
+  animation: overlay-in 150ms ease-out;
+}
+
+.animate-dialog-in {
+  animation: dialog-in 150ms ease-out;
 }
 
 ::-webkit-scrollbar {
@@ -26,7 +84,6 @@
 * {
   scrollbar-width: thin;
   scrollbar-color: theme("colors.slate.300") transparent;
-  /* overflow-x: hidden; Hide horizontal overflow */
 }
 
 .dark * {
@@ -36,5 +93,4 @@
 /* Optional: For smoother scrolling */
 html {
   scroll-behavior: smooth;
-  /* overflow-x: hidden; Hide horizontal overflow on html */
 }

@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import Button from "@/components/ui/Button";
 
 function LoginSignupButton() {
   const location = useLocation();
@@ -6,31 +7,30 @@ function LoginSignupButton() {
   const isLoginActive = location.pathname === "/login";
   const isSignupActive = location.pathname === "/signup";
 
+  const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
   return (
     <div className="flex items-center gap-3">
-      <Link
+      <Button
+        as={Link}
         to="/login"
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className={`px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-          isLoginActive
-            ? "text-blue-600 dark:text-blue-400 border-2 border-blue-600 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20"
-            : "text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white"
-        }`}
+        variant={isLoginActive ? "primary" : "outline"}
+        size="md"
+        onClick={scrollTop}
       >
         Login
-      </Link>
+      </Button>
 
-      <Link
+      <Button
+        as={Link}
         to="/signup"
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        className={`px-5 py-2 text-sm font-medium rounded-lg transition-all duration-200 hidden sm:block ${
-          isSignupActive
-            ? "bg-blue-500 text-white ring-2 ring-blue-300 dark:ring-blue-300"
-            : "bg-blue-500 hover:bg-blue-600 dark:hover:bg-blue-400 text-white shadow-md hover:shadow-lg"
-        }`}
+        variant={isSignupActive ? "outline" : "primary"}
+        size="md"
+        className="hidden sm:inline-flex"
+        onClick={scrollTop}
       >
         Sign up
-      </Link>
+      </Button>
     </div>
   );
 }

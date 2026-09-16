@@ -4,6 +4,7 @@ import { Lock, Shield, X } from "lucide-react";
 import SectionCard from "@/features/settings/components/SectionCard";
 import { useUpdatePassword } from "@/features/settings/hooks/useUserMutations";
 import { toast } from "react-toastify";
+import Button from "@/components/ui/Button";
 function PasswordContainer() {
   const [passwords, setPasswords] = useState({
     current: "",
@@ -72,7 +73,7 @@ function PasswordContainer() {
             placeholder="Enter your current password"
           />
           {pwError?.current && (
-            <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1.5">
+            <p className="text-xs text-destructive flex items-center gap-1.5">
               <X size={12} /> {pwError.current}
             </p>
           )}
@@ -87,7 +88,7 @@ function PasswordContainer() {
               autoComplete="new-password"
             />
             {pwError?.newPass && (
-              <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1.5">
+              <p className="text-xs text-destructive flex items-center gap-1.5">
                 <X size={12} /> {pwError.newPass}
               </p>
             )}
@@ -101,7 +102,7 @@ function PasswordContainer() {
               autoComplete="new-password"
             />
             {pwError?.confirm && (
-              <p className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1.5">
+              <p className="text-xs text-destructive flex items-center gap-1.5">
                 <X size={12} /> {pwError.confirm}
               </p>
             )}
@@ -116,22 +117,22 @@ function PasswordContainer() {
                 return (
                   <div
                     key={i}
-                    className={`h-2 flex-1 rounded-full transition-all duration-300 ${
+                    className={`h-2 flex-1 rounded-full transition-colors duration-300 ${
                       i <= strength
                         ? strength <= 1
-                          ? "bg-red-400"
+                          ? "bg-destructive"
                           : strength <= 2
-                            ? "bg-amber-400"
+                            ? "bg-warning"
                             : strength <= 3
-                              ? "bg-slate-400"
-                              : "bg-slate-700 dark:bg-slate-300"
-                        : "bg-slate-200 dark:bg-slate-700"
+                              ? "bg-foreground-muted"
+                              : "bg-foreground"
+                        : "bg-surface-muted"
                     }`}
                   />
                 );
               })}
             </div>
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+            <p className="text-xs text-foreground-muted">
               {passwords.newPass.length < 4
                 ? "Too short"
                 : passwords.newPass.length < 6
@@ -144,13 +145,14 @@ function PasswordContainer() {
         )}
 
         <div className="flex justify-end">
-          <button
+          <Button
             type="submit"
             disabled={!isEdit}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 text-sm font-medium hover:bg-slate-700 dark:hover:bg-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            leftIcon={<Lock size={14} />}
+            className="shadow-sm"
           >
-            <Lock size={14} /> {isPending ? "Updating..." : "Update Password"}
-          </button>
+            {isPending ? "Updating..." : "Update Password"}
+          </Button>
         </div>
       </form>
     </SectionCard>

@@ -59,20 +59,18 @@ export default function PricingSection() {
   if (user && isPending) return <SpinnerLoader />;
   if (user && error) return <ErrorMessage message={error.message} />;
   return (
-    <section className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-slate-900 dark:to-slate-800">
+    <section className="min-h-screen transition-colors duration-300 bg-surface-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
         {/* Header - Updated for E-Learning */}
         <div className="text-center mb-14 sm:mb-16 max-w-3xl mx-auto">
-          <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+          <span className="text-sm font-semibold text-primary uppercase tracking-wider">
             Pricing Plans
           </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4 text-gray-900 dark:text-white mt-2">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4 text-foreground mt-2">
             Start your{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
-              learning journey
-            </span>
+            <span className="text-primary">learning journey</span>
           </h1>
-          <p className="text-base sm:text-lg text-gray-500 dark:text-slate-300">
+          <p className="text-base sm:text-lg text-foreground-muted">
             Choose the perfect plan for your online course needs. Learn at your
             own pace, anytime, anywhere.
           </p>
@@ -90,7 +88,7 @@ export default function PricingSection() {
         </div>
 
         {/* Optional: Footer note for transparency */}
-        <p className="text-center text-gray-400 dark:text-slate-500 text-sm mt-12">
+        <p className="text-center text-foreground-muted text-sm mt-12">
           All plans include a 14-day free trial. No credit card required.
         </p>
       </div>

@@ -38,20 +38,20 @@ const ResetPasswordFlow = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         {/* Progress Steps */}
         <ProgressStep currentStep={step} totalSteps={3} />
 
         {/* Card */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="h-2 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+        <div className="bg-surface rounded-2xl shadow-xl border border-border overflow-hidden">
+          <div className="h-1 bg-primary"></div>
 
           <div className="p-8">
             {step > 1 && (
               <button
                 onClick={() => setFlow((prev) => ({ ...prev, step: prev.step - 1 }))}
-                className="mt-4 text-sm text-blue-500 hover:underline"
+                className="mt-4 text-sm text-primary hover:underline cursor-pointer"
               >
                 ← Back
               </button>
@@ -72,7 +72,7 @@ const ResetPasswordFlow = () => {
             <div className="mt-6 text-center">
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-foreground-muted hover:text-primary transition-colors"
               >
                 <svg
                   className="w-4 h-4"

@@ -1,13 +1,11 @@
 import cn from "@/utils/cn";
 
 const colorClasses = {
-  blue: "bg-blue-600",
-  green: "bg-green-600",
-  violet: "bg-violet-600",
-  indigo: "bg-indigo-600",
-  red: "bg-red-600",
-  amber: "bg-amber-500",
-  slate: "bg-slate-400 dark:bg-slate-500",
+  primary: "bg-primary",
+  success: "bg-success",
+  warning: "bg-warning",
+  destructive: "bg-destructive",
+  muted: "bg-foreground-muted",
 };
 
 const trackSizes = {
@@ -19,7 +17,7 @@ const trackSizes = {
 function ProgressBar({
   value = 0,
   max = 100,
-  color = "blue",
+  color = "primary",
   size = "md",
   leftLabel,
   rightLabel,
@@ -33,21 +31,21 @@ function ProgressBar({
   return (
     <div className={className}>
       {hasLabels && (
-        <div className="flex justify-between text-sm text-slate-600 dark:text-slate-400 mb-2">
+        <div className="flex justify-between text-sm text-foreground-muted mb-2">
           <span>{leftLabel}</span>
           <span>{rightLabel ?? (showValue ? `${Math.round(percent)}%` : null)}</span>
         </div>
       )}
       <div
         className={cn(
-          "w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden",
+          "w-full bg-surface-muted rounded-full overflow-hidden",
           trackSizes[size],
         )}
       >
         <div
           className={cn(
-            "h-full rounded-full transition-all duration-300",
-            colorClasses[color],
+            "h-full rounded-full transition-[width] duration-300",
+            colorClasses[color] || colorClasses.primary,
             barClassName,
           )}
           style={{ width: `${percent}%` }}

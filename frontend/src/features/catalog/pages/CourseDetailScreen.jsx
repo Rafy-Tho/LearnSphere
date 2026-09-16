@@ -13,7 +13,7 @@ function CourseDetailScreen() {
     });
   }, []);
   return (
-    <div className="bg-slate-100 dark:bg-slate-900">
+    <div className="bg-background">
       <HeroSection scrollToSection={scrollToSection} />
       <LearningObjective />
       <LearningRoadmap sectionRef={sectionRef} />

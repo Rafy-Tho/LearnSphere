@@ -10,7 +10,7 @@ export default function Header() {
         <img
           src={user?.image_url}
           alt=""
-          className="size-14 shrink-0 rounded-full border border-slate-200 dark:border-slate-700"
+          className="size-14 shrink-0 rounded-full border border-border"
         />
         <div>
           <div className="flex flex-wrap items-center gap-2">
@@ -18,14 +18,14 @@ export default function Header() {
               Welcome, {user?.name}!
             </h1>
           </div>
-          <p className="mt-1 text-slate-600 dark:text-slate-400">
+          <p className="mt-1 text-foreground-muted">
             Take the first steps to building your professional skills
           </p>
         </div>
       </div>
       <Link
          to='/courses'
-        className="shrink-0 self-start rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-indigo-600 dark:border-slate-600 dark:text-indigo-400 block"
+        className="shrink-0 self-start rounded-lg border border-border px-4 py-2 text-sm font-medium text-primary block"
       >
         Explore All
       </Link>

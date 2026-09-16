@@ -66,7 +66,7 @@ const Pagination = ({
   const pageNumbers = getPageNumbers();
 
   return (
-    <nav className="flex flex-col gap-4 border-t border-gray-200 pt-6 mt-6">
+    <nav className="flex flex-col gap-4 border-t border-border pt-6 mt-6">
       {/* Page Numbers Row - Shows on all screens */}
       <div className="flex justify-center">
         <div className="flex items-center flex-wrap justify-center gap-1 sm:gap-2">
@@ -74,7 +74,7 @@ const Pagination = ({
           {showFirstLast && currentPage !== 1 && totalPages > 1 && (
             <button
               onClick={() => handlePageChange(1)}
-              className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-700  dark:text-slate-400 rounded-md transition-colors duration-200 cursor-pointer"
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-foreground-muted rounded-md transition-colors duration-200 cursor-pointer"
             >
               First
             </button>
@@ -86,7 +86,7 @@ const Pagination = ({
               return (
                 <span
                   key={`ellipsis-${index}`}
-                  className="px-1.5 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm text-slate-700  dark:text-slate-400"
+                  className="px-1.5 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm text-foreground-muted"
                 >
                   ...
                 </span>
@@ -99,11 +99,11 @@ const Pagination = ({
                 onClick={() => handlePageChange(page)}
                 className={`
               min-w-8 sm:min-w-9 px-1.5 sm:px-3 py-1.5 sm:py-2 
-              text-xs sm:text-sm font-medium rounded-md transition-all duration-200 cursor-pointer
+              text-xs sm:text-sm font-medium rounded-md transition-colors duration-200 cursor-pointer
               ${
                 currentPage === page
-                  ? "bg-blue-600 text-white shadow-sm hover:bg-blue-700"
-                  : "text-slate-700  dark:text-slate-400 hover:bg-slate-400 dark:hover:bg-slate-600"
+                  ? "bg-primary text-white shadow-sm hover:bg-primary-hover"
+                  : "text-foreground-muted hover:bg-surface-muted"
               }
             `}
               >
@@ -116,7 +116,7 @@ const Pagination = ({
           {showFirstLast && currentPage !== totalPages && totalPages > 1 && (
             <button
               onClick={() => handlePageChange(totalPages)}
-              className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-700  dark:text-slate-400 rounded-md transition-colors duration-200 cursor-pointer"
+              className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-foreground-muted rounded-md transition-colors duration-200 cursor-pointer"
             >
               Last
             </button>
@@ -133,12 +133,12 @@ const Pagination = ({
             disabled={currentPage === 1}
             className={`
           flex-1 sm:flex-none sm:w-32 px-4 py-2.5 sm:py-2 
-          text-sm font-medium rounded-lg transition-all duration-200
+          text-sm font-medium rounded-lg transition-colors duration-200
           flex items-center justify-center gap-2
           ${
             currentPage === 1
-              ? " dark:text-slate-700 text-slate-400  cursor-not-allowed"
-              : " dark:text-slate-400 text-slate-700  cursor-pointer"
+              ? "text-foreground-muted opacity-50 cursor-not-allowed"
+              : "text-foreground-muted hover:text-foreground cursor-pointer"
           }
         `}
           >
@@ -148,7 +148,7 @@ const Pagination = ({
         )}
 
         {/* Page Info - Mobile */}
-        <div className="text-sm text-slate-700 dark:text-slate-400  font-medium whitespace-nowrap">
+        <div className="text-sm text-foreground-muted font-medium whitespace-nowrap">
           Page {currentPage} of {totalPages}
         </div>
 
@@ -159,12 +159,12 @@ const Pagination = ({
             disabled={currentPage === totalPages}
             className={`
           flex-1 sm:flex-none sm:w-32 px-4 py-2.5 sm:py-2 
-          text-sm font-medium rounded-lg transition-all duration-200
+          text-sm font-medium rounded-lg transition-colors duration-200
           flex items-center justify-center gap-2
           ${
             currentPage === totalPages
-              ? " dark:text-slate-700 text-slate-400  cursor-not-allowed"
-              : " dark:text-slate-400 text-slate-700  cursor-pointer"
+              ? "text-foreground-muted opacity-50 cursor-not-allowed"
+              : "text-foreground-muted hover:text-foreground cursor-pointer"
           }
         `}
           >

@@ -2,6 +2,7 @@ import { Calendar, Camera, Check, Edit3, MapPin, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import Avatar from "@/features/settings/components/Avatar";
 import InputField from "@/features/settings/components/InputField";
+import Textarea from "@/components/ui/Textarea";
 function ProfileHeader({
   editMode,
   handleSaveProfile,
@@ -26,13 +27,8 @@ function ProfileHeader({
     setPreview(URL.createObjectURL(file));
   };
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
-      <div
-        className="h-24 relative"
-        style={{
-          background: "linear-gradient(to right, #334155, #475569, #64748b)",
-        }}
-      >
+    <div className="bg-surface border border-border rounded-2xl shadow-sm overflow-hidden">
+      <div className="h-24 relative bg-primary">
         <div
           className="absolute inset-0 opacity-20"
           style={{
@@ -51,7 +47,7 @@ function ProfileHeader({
               <label
                 htmlFor="avatar"
                 type="button"
-                className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-slate-700 dark:bg-slate-200 text-white dark:text-slate-900 flex items-center justify-center shadow-md hover:scale-105 transition-transform"
+                className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:scale-105 transition-transform cursor-pointer"
               >
                 <Camera size={13} />
               </label>
@@ -69,7 +65,7 @@ function ProfileHeader({
             {!editMode ? (
               <button
                 onClick={handleOpenEdit}
-                className="inline-flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all"
+                className="inline-flex items-center gap-2 text-xs font-medium px-4 py-2 rounded-lg bg-surface-muted text-foreground hover:bg-border border border-border transition-colors cursor-pointer"
               >
                 <Edit3 size={13} /> Edit Profile
               </button>
@@ -77,14 +73,14 @@ function ProfileHeader({
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleCancelEdit}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border border-border text-foreground-muted hover:bg-surface-muted transition-colors cursor-pointer"
                 >
                   <X size={13} /> Cancel
                 </button>
                 {!isUpdatePending && (
                   <button
                     onClick={handleSaveProfile}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-white transition-all shadow-sm"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
                   >
                     <Check size={13} /> Save Changes
                   </button>
@@ -92,7 +88,7 @@ function ProfileHeader({
                 {isUpdatePending && (
                   <button
                     disabled={isUpdatePending}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900 hover:bg-slate-700 dark:hover:bg-white transition-all shadow-sm"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
                   >
                     saving...
                   </button>
@@ -104,13 +100,13 @@ function ProfileHeader({
 
         {!editMode ? (
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+            <h2 className="text-lg font-semibold text-foreground">
               {field("name")}
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-sm text-foreground-muted mt-1">
               {field("bio")}
             </p>
-            <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-slate-400 dark:text-slate-500">
+            <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-foreground-muted">
               <span className="flex items-center gap-1.5">
                 <MapPin size={12} />
                 {field("location")}
@@ -134,14 +130,14 @@ function ProfileHeader({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              <label className="text-xs font-medium text-foreground-muted uppercase tracking-wider">
                 Bio
               </label>
-              <textarea
+              <Textarea
                 value={field("bio")}
                 onChange={(e) => update("bio")(e.target.value)}
                 rows={2}
-                className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 dark:focus:ring-slate-500 focus:border-transparent transition-all resize-none"
+                className="resize-none"
               />
             </div>
           </div>

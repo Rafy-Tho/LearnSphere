@@ -52,7 +52,9 @@ const ThemeSelector = () => {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center text-gray-600 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:text-blue-400 font-medium rounded-lg transition-colors cursor-pointer"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+        className="flex items-center text-foreground-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 font-medium rounded-lg transition-colors cursor-pointer"
       >
         {isDark ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
         <span className="ml-2 text-sm font-normal">Theme Selector</span>
@@ -62,7 +64,7 @@ const ThemeSelector = () => {
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute left-1/2 top-full mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg py-1 z-50"
+          className="absolute left-1/2 top-full mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg py-1 z-50"
         >
           {themes.map((item) => {
             const Icon = item.icon;
@@ -74,10 +76,10 @@ const ThemeSelector = () => {
                   setTheme(item.value);
                   setIsOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors cursor-pointer ${
                   theme === item.value
-                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                    : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    ? "bg-primary/10 text-primary"
+                    : "text-foreground hover:bg-surface-muted"
                 }`}
               >
                 <Icon className="w-4 h-4" />

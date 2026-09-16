@@ -40,19 +40,19 @@ export default function CourseRating() {
       size="sm"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <p className="text-xs text-slate-500">Share your experience</p>
+        <p className="text-xs text-foreground-muted">Share your experience</p>
 
         <div>
-          <label className="text-xs text-slate-500 block mb-2">
+          <label className="text-xs text-foreground-muted block mb-2">
             Your rating
           </label>
           <StarRating value={rating} onChange={setRating} setError={setError} />
         </div>
         {error && (
-          <p className="text-xs text-red-500 dark:text-red-400">{error}</p>
+          <p className="text-xs text-destructive">{error}</p>
         )}
         <div>
-          <label className="text-xs text-slate-500 block mb-2">
+          <label className="text-xs text-foreground-muted block mb-2">
             Description (optional)
           </label>
           <textarea
@@ -60,11 +60,11 @@ export default function CourseRating() {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Tell others what you thought about this course..."
             rows={4}
-            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+            className="w-full rounded-lg border border-border bg-surface-muted px-3 py-2 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-ring resize-none"
           />
         </div>
 
-        <Button type="submit" variant="orange" isLoading={isPending} fullWidth>
+        <Button type="submit" variant="primary" isLoading={isPending} fullWidth>
           Submit review
         </Button>
       </form>

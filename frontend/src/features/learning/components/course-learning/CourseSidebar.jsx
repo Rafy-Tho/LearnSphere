@@ -109,47 +109,48 @@ export function CourseSidebar({ onClose }) {
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
   return (
-    <aside className="flex flex-col lg:h-[calc(100vh-64px)] h-full bg-slate-50 border-r border-slate-200 dark:bg-slate-900 dark:border-slate-800">
+    <aside className="flex flex-col lg:h-[calc(100vh-64px)] h-full bg-surface border-r border-border">
       <button
         onClick={onClose}
-        className="text-slate-400 dark:text-slate-500 absolute top-3 right-3 text-2xl cursor-pointer lg:hidden"
+        aria-label="Close sidebar"
+        className="text-foreground-muted absolute top-3 right-3 text-2xl cursor-pointer lg:hidden"
       >
         <X size={16} />
       </button>
       <div className="p-5 pb-4">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-4">
+        <h2 className="text-lg font-semibold text-foreground mb-4">
           {course.name}
         </h2>
         <div className="relative mb-3">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground-muted"
           />
           <input
             type="text"
             placeholder="Search Content"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-2 pl-9 pr-3 text-sm text-slate-900 dark:text-slate-50 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full rounded-md border border-border bg-surface py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-ring focus:border-primary"
           />
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setActiveFilter("ALL")}
-            className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+            className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors cursor-pointer ${
               activeFilter === "ALL"
-                ? "border-blue-600 bg-blue-50 text-blue-700 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-300"
-                : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                ? "border-primary/30 bg-primary/10 text-primary"
+                : "border-border text-foreground-muted hover:text-foreground"
             }`}
           >
             All Lessons
           </button>
           <button
             onClick={handleFree}
-            className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+            className={`rounded-full px-3 py-1 text-xs font-medium border transition-colors cursor-pointer ${
               activeFilter === "FREE"
-                ? "border-blue-600 bg-blue-50 text-blue-700 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-300"
-                : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+                ? "border-primary/30 bg-primary/10 text-primary"
+                : "border-border text-foreground-muted hover:text-foreground"
             }`}
           >
             Free Lessons ({freeCount})

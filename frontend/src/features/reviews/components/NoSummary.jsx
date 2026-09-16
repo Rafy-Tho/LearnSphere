@@ -7,7 +7,7 @@ function NoSummary() {
       icon={<MessageSquare className="size-6" />}
       title="No feedback yet"
       description="Feedback will appear here once available"
-      className="bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700 mb-5"
+      className="bg-surface-muted rounded-xl border border-border mb-5"
     />
   );
 }

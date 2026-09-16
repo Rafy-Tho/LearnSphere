@@ -3,7 +3,7 @@ import PricingSection from "@/features/subscriptions/components/PricingSection";
 
 export default function PricingScreen() {
   return (
-    <div className="min-h-screen dark:text-white mb-16">
+    <div className="min-h-screen text-foreground mb-16">
       <PricingSection />
       <FaqSection />
     </div>

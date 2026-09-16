@@ -94,8 +94,8 @@ const Quiz = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="max-w-2xl w-full bg-surface rounded-2xl shadow-xl p-8">
         <ProgressBar
           currentIndex={currentIndex}
           totalQuestions={questions.length}

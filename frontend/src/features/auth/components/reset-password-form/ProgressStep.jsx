@@ -7,8 +7,8 @@ const ProgressStep = ({ currentStep, totalSteps = 3 }) => {
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                 currentStep >= step
-                  ? "bg-blue-600 text-white"
-                  : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400"
+                  ? "bg-primary text-white"
+                  : "bg-surface-muted text-foreground-muted"
               }`}
             >
               {currentStep > step ? (
@@ -30,16 +30,14 @@ const ProgressStep = ({ currentStep, totalSteps = 3 }) => {
             {step < totalSteps && (
               <div
                 className={`w-12 h-1 mx-2 rounded ${
-                  currentStep > step
-                    ? "bg-blue-600"
-                    : "bg-slate-200 dark:bg-slate-700"
+                  currentStep > step ? "bg-primary" : "bg-surface-muted"
                 }`}
               />
             )}
           </div>
         ))}
       </div>
-      <div className="flex justify-between mt-2 text-xs text-slate-600 dark:text-slate-400">
+      <div className="flex justify-between mt-2 text-xs text-foreground-muted">
         <span>Email</span>
         <span>OTP</span>
         <span>Password</span>

@@ -16,13 +16,13 @@ const CourseLearningScreen = () => {
   );
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-slate-100 dark:bg-slate-900">
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-background">
       {/* rating modal */}
       <CourseRating />
       {/* Mobile overlay */}
       {!isDesktop && isSidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-slate-900/20 dark:bg-slate-950/20"
+          className="fixed inset-0 z-30 bg-black/20"
           onClick={closeSidebar}
         />
       )}
@@ -43,7 +43,7 @@ const CourseLearningScreen = () => {
         {isDesktop && (
           <div
             className={`
-          shrink-0 transition-all duration-200 ease-out overflow-hidden
+          shrink-0 transition-[width] duration-200 ease-out overflow-hidden
           ${isSidebarOpen ? "w-[320px]" : "w-0"}
         `}
           >

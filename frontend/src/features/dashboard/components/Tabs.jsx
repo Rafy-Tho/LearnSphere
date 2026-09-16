@@ -9,7 +9,7 @@ const tabs = [
 export default function Tabs() {
   return (
     <nav
-      className="mb-8 flex gap-6 overflow-x-auto border-b border-slate-200 pb-0 dark:border-slate-800"
+      className="mb-8 flex gap-6 overflow-x-auto border-b border-border pb-0"
       aria-label="Main"
     >
       {tabs.map((t) => (
@@ -20,8 +20,8 @@ export default function Tabs() {
           className={({ isActive }) =>
             `${
               isActive
-                ? "border-b-2 border-blue-500 text-blue-500"
-                : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                ? "border-b-2 border-primary text-primary"
+                : "text-foreground-muted hover:text-foreground"
             } whitespace-nowrap px-1 pb-3 text-sm font-medium transition-colors`
           }
         >

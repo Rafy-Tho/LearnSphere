@@ -5,7 +5,7 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 
 const sectionIcon = (
-  <History className="size-4 text-indigo-600 dark:text-indigo-400" />
+  <History className="size-4 text-primary" />
 );
 
 export default function InProgressDashboard() {

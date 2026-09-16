@@ -1,4 +1,5 @@
 import { socialLogins } from "@/constants/socialLogins";
+import Button from "@/components/ui/Button";
 
 function SocialButtons() {
   return (
@@ -6,22 +7,25 @@ function SocialButtons() {
       {socialLogins.map((social) => {
         const Icon = social.icon;
         return (
-          <button
+          <Button
             key={social.name}
-            className={`w-full ${social.bgColor} ${social.textColor} ${social.hoverColor} border ${social.borderColor} py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-3 transition-all duration-200 transform  shadow-md hover:shadow-xl cursor-pointer`}
+            variant="outline"
+            fullWidth
+            leftIcon={<Icon />}
           >
-            <Icon className="text-lg" />
-            <span>Continue with {social.name}</span>
-          </button>
+            Continue with {social.name}
+          </Button>
         );
       })}
 
       <div className="relative my-8">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-white/20"></div>
+          <div className="w-full border-t border-border"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4  text-white/80">Or register with email</span>
+          <span className="px-4 bg-surface text-foreground-muted">
+            Or continue with email
+          </span>
         </div>
       </div>
     </div>

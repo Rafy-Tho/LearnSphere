@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Outlet } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Don't forget this!
 import useAuth from "@/features/auth/hooks/useAuth";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import AppToastContainer from "@/components/ui/AppToastContainer";
 import LearningNavigation from "@/features/learning/components/LearningNavigation";
 function LearningLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -32,22 +31,22 @@ function LearningLayout() {
   );
   if (isLoading)
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+      <div className="w-full h-screen flex items-center justify-center bg-background">
         <SpinnerLoader />
       </div>
     );
 
   if (error)
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+      <div className="w-full h-screen flex items-center justify-center bg-background text-foreground-muted">
         <ErrorMessage
-          className="bg-red-50 dark:bg-red-900/20 w-full"
+          className="w-full"
           message={error?.message || "Server error"}
         />
       </div>
     );
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-900 text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <LearningNavigation
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
@@ -55,18 +54,7 @@ function LearningLayout() {
         setIsRatingOpen={setIsRatingOpen}
       />
       <Outlet context={outletContext} />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
+      <AppToastContainer />
     </div>
   );
 }

@@ -47,7 +47,7 @@ function StarRating({ value, onChange, setError }) {
         ))}
       </div>
       {active > 0 && (
-        <span className="text-sm font-medium text-orange-600">
+        <span className="text-sm font-medium text-warning">
           {labels[active]}
         </span>
       )}

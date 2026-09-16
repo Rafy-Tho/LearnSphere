@@ -1,10 +1,9 @@
 import { Outlet } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Don't forget this!
 import useAuth from '@/features/auth/hooks/useAuth';
 import { useLogout } from '@/features/auth/hooks/useAuthMutations';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import SpinnerLoader from '@/components/ui/SpinnerLoader';
+import AppToastContainer from '@/components/ui/AppToastContainer';
 import Footer from '@/components/common/Footer';
 import Navigation from '@/components/common/Navigation';
 function AppLayout() {
@@ -12,30 +11,19 @@ function AppLayout() {
   const { user, isLoading, error } = useAuth();
   const { logout } = useLogout();
   if (isLoading) return (
-    <div className="w-full h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+    <div className="w-full h-screen flex items-center justify-center bg-background">
       <SpinnerLoader />
     </div>
   );
 
-  if (error) return <div className="w-full h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400"><ErrorMessage className="bg-red-50 dark:bg-red-900/20 w-full" message={error?.message || 'Server error'} /></div>
+  if (error) return <div className="w-full h-screen flex items-center justify-center bg-background text-foreground-muted"><ErrorMessage className="w-full" message={error?.message || 'Server error'} /></div>
    
   return (
-    <div className="min-w-sm bg-slate-100 dark:bg-slate-900">
+    <div className="min-w-sm bg-background">
       <Navigation user={user} onLogout={logout} />
       <Outlet />
       <Footer />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
+      <AppToastContainer />
     </div>
   );
 }

@@ -16,8 +16,8 @@ function Desktop({ closeAll }) {
               className={({ isActive }) =>
                 `${
                   isActive
-                    ? "border-b-2 border-blue-500 text-blue-500"
-                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                    ? "border-b-2 border-primary text-primary"
+                    : "text-foreground-muted hover:text-foreground"
                 } whitespace-nowrap px-1 pb-3 text-sm font-medium transition-colors`
               }
             >

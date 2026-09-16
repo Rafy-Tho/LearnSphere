@@ -15,14 +15,14 @@ const Testimonial = () => {
   };
 
   return (
-    <section className="py-16 px-4 md:px-8 flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <section className="py-16 px-4 md:px-8 flex items-center justify-center bg-surface-muted">
       <div className="max-w-6xl w-full">
         {/* Header Section */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white text-center md:text-left mb-4">
+          <h1 className="text-4xl font-bold text-foreground text-center md:text-left mb-4">
             Our Testimonials
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 text-sm/6 text-center md:text-left mx-auto md:mx-0 max-w-md">
+          <p className="text-foreground-muted text-sm/6 text-center md:text-left mx-auto md:mx-0 max-w-md">
             See what our customers are saying as they build and launch projects
             at lightning speed.
           </p>
@@ -34,12 +34,12 @@ const Testimonial = () => {
             <div
               key={testimonial.id}
               className={`
-                border border-gray-200 dark:border-gray-800 
+                border border-border 
                 rounded-2xl p-6 
-                hover:border-gray-300 dark:hover:border-gray-700 
-                hover:shadow-lg dark:hover:shadow-gray-800/50
-                transition-all duration-300
-                bg-white dark:bg-gray-800
+                hover:border-primary/40 
+                hover:shadow-md
+                transition-shadow
+                bg-surface
                 ${getGridSpan(index)}
               `}
             >
@@ -49,7 +49,7 @@ const Testimonial = () => {
               {/* Testimonial Text */}
               <p
                 className={`
-                text-gray-700 dark:text-gray-300 
+                text-foreground-muted 
                 text-sm leading-relaxed 
                 ${getMarginBottom(index)}
               `}
@@ -62,13 +62,13 @@ const Testimonial = () => {
                 <img
                   src={testimonial.image}
                   alt={testimonial.name}
-                  className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200 dark:ring-gray-700"
+                  className="w-12 h-12 rounded-full object-cover ring-2 ring-border"
                 />
                 <div className="flex flex-col gap-1">
-                  <h3 className="text-gray-900 dark:text-white text-sm font-medium">
+                  <h3 className="text-foreground text-sm font-medium">
                     {testimonial.name}
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">
+                  <p className="text-foreground-muted text-sm">
                     {testimonial.role}
                   </p>
                 </div>

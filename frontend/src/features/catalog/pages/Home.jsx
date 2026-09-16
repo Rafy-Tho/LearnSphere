@@ -8,7 +8,7 @@ import TopCourse from "@/features/catalog/components/home/TopCourse";
 const Home = () => {
   return (
     <div
-      className={`bg-gray-100 dark:bg-gray-900 text-slate-900 dark:text-gray-100 text-[15px] transition-colors duration-300 min-w-xs`}
+      className={`bg-background text-foreground text-sm min-w-xs`}
     >
       {/* ========== HERO SECTION (e-learning) ========== */}
       <Hero />

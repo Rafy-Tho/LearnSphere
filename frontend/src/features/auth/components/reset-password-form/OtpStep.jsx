@@ -8,7 +8,7 @@ import {
   useSendResetPasswordCode,
   useVerifyResetPasswordCode,
 } from "@/features/auth/hooks/useAuthMutations";
-import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import Button from "@/components/ui/Button";
 
 const otpSchema = z.object({
   otp: z
@@ -122,9 +122,9 @@ const OtpStep = ({ email, onSuccess }) => {
   return (
     <>
       <div className="text-center mb-6">
-        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
-            className="w-8 h-8 text-blue-600 dark:text-blue-400"
+            className="w-8 h-8 text-primary"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -137,73 +137,58 @@ const OtpStep = ({ email, onSuccess }) => {
             />
           </svg>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-          Verify OTP
-        </h1>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <h1 className="text-2xl font-bold text-foreground mb-2">Verify OTP</h1>
+        <p className="text-sm text-foreground-muted">
           We've sent a 6-digit code to{" "}
-          <span className="font-medium text-blue-600 dark:text-blue-400">
-            {email}
-          </span>
+          <span className="font-medium text-primary">{email}</span>
         </p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label
+            htmlFor="otp"
+            className="block text-sm font-medium text-foreground mb-2"
+          >
             Enter OTP
           </label>
           <input
+            id="otp"
             type="text"
             maxLength={6}
             {...register("otp")}
-            className={`w-full px-4 py-3 text-center text-lg tracking-widest bg-slate-50 dark:bg-slate-700 border ${
-              errors.otp
-                ? "border-red-500"
-                : "border-slate-200 dark:border-slate-600"
-            } rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all`}
+            className={`w-full px-4 py-3 text-center text-lg tracking-widest bg-surface-muted border ${
+              errors.otp ? "border-destructive" : "border-border"
+            } rounded-lg text-foreground placeholder:text-foreground-muted focus:outline-none focus:ring-2 focus:ring-ring/50 transition-colors`}
             placeholder="000000"
             disabled={isVerifying}
           />
           {errors.otp && (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-              {errors.otp.message}
-            </p>
+            <p className="mt-2 text-sm text-destructive">{errors.otp.message}</p>
           )}
         </div>
 
         <div className="text-center">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-foreground-muted">
             Didn't receive code?{" "}
             {canResend ? (
               <button
                 type="button"
                 onClick={handleResendOtp}
                 disabled={isSending || !canResend}
-                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                className="text-primary hover:underline font-medium cursor-pointer"
               >
                 {isSending ? "Resending..." : "Resend"}
               </button>
             ) : (
-              <span className="text-slate-500">Resend in {timer}s</span>
+              <span className="text-foreground-muted">Resend in {timer}s</span>
             )}
           </p>
         </div>
 
-        <button
-          type="submit"
-          disabled={isVerifying}
-          className="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
-        >
-          {isVerifying ? (
-            <>
-              <SpinnerLoader size="sm" color="white" />
-              <span>Verifying...</span>
-            </>
-          ) : (
-            "Verify OTP"
-          )}
-        </button>
+        <Button type="submit" size="lg" fullWidth isLoading={isVerifying}>
+          {isVerifying ? "Verifying..." : "Verify OTP"}
+        </Button>
       </form>
     </>
   );

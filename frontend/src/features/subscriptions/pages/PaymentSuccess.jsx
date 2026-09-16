@@ -23,10 +23,10 @@ export default function PaymentSuccess() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-4 py-16 transition-colors duration-300">
+    <div className="min-h-screen bg-surface-muted flex items-center justify-center px-4 py-16 transition-colors duration-300">
       <div className="w-full max-w-lg">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl dark:shadow-slate-900/50 overflow-hidden border border-slate-100 dark:border-slate-800">
-          <div className="bg-gradient-to-br from-emerald-400 to-teal-500 dark:from-emerald-500 dark:to-teal-600 px-8 py-10 text-center relative overflow-hidden">
+        <div className="bg-surface rounded-3xl shadow-xl overflow-hidden border border-border">
+          <div className="bg-success px-8 py-10 text-center relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full opacity-10">
               <div className="absolute top-4 left-8 w-24 h-24 rounded-full border-4 border-white" />
               <div className="absolute bottom-2 right-6 w-16 h-16 rounded-full border-4 border-white" />
@@ -40,13 +40,13 @@ export default function PaymentSuccess() {
               <h1 className="text-3xl font-bold text-white mb-1">
                 Payment Successful
               </h1>
-              <p className="text-emerald-100 text-sm font-medium">
+              <p className="text-white text-sm font-medium">
                 Your transaction has been confirmed
               </p>
             </div>
 
             <div className="relative mt-6 bg-white/15 backdrop-blur-sm rounded-2xl px-6 py-4 text-white">
-              <p className="text-emerald-100 text-xs uppercase tracking-widest font-semibold mb-1">
+              <p className="text-white text-xs uppercase tracking-widest font-semibold mb-1">
                 Amount Charged
               </p>
               <p className="text-4xl font-extrabold">{items.price}</p>
@@ -54,53 +54,53 @@ export default function PaymentSuccess() {
           </div>
 
           <div className="px-8 py-6 space-y-5">
-            <div className="flex items-start gap-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl px-4 py-3">
-              <Star className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
-              <p className="text-emerald-700 dark:text-emerald-400 text-sm font-medium">
+            <div className="flex items-start gap-3 bg-success/10 border border-success/20 rounded-2xl px-4 py-3">
+              <Star className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+              <p className="text-success text-sm font-medium">
                 A confirmation email has been sent to your registered address.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-              <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
-                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <div className="rounded-2xl border border-border overflow-hidden">
+              <div className="px-5 py-3 bg-surface-muted border-b border-border">
+                <p className="text-xs font-semibold text-foreground-muted uppercase tracking-wider">
                   Order Summary
                 </p>
               </div>
               <div className="px-5 py-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Package className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                    <Package className="w-4 h-4 text-foreground-muted flex-shrink-0" />
+                    <span className="text-sm text-foreground">
                       {items.name}
                     </span>
                   </div>
-                  <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  <span className="text-sm font-semibold text-foreground">
                     {items.price}
                   </span>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between">
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                <div className="pt-3 border-t border-border flex justify-between">
+                  <span className="text-sm font-bold text-foreground">
                     Total
                   </span>
-                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-sm font-bold text-success">
                     {items.price}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
+            <div className="rounded-2xl border border-border divide-y divide-border overflow-hidden">
               {details.map(({ label, value }) => (
                 <div
                   key={label}
                   className="flex justify-between items-center px-5 py-3"
                 >
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <span className="text-xs text-foreground-muted font-medium">
                     {label}
                   </span>
-                  <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 font-mono">
+                  <span className="text-xs font-semibold text-foreground font-mono">
                     {value}
                   </span>
                 </div>
@@ -113,7 +113,7 @@ export default function PaymentSuccess() {
                   navigate("/learning-dashboard");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="flex-1 flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold text-sm py-3 px-4 rounded-2xl transition-colors duration-200 shadow-md shadow-emerald-200 dark:shadow-emerald-900/30"
+                className="flex-1 flex items-center justify-center gap-2 bg-success hover:opacity-90 text-white font-semibold text-sm py-3 px-4 rounded-2xl transition-colors duration-200 shadow-md cursor-pointer"
               >
                 Continue
                 <ArrowRight className="w-4 h-4" />

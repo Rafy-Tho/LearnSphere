@@ -20,7 +20,10 @@ function Mobile({
   return (
     <>
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 bg-white dark:bg-gray-800 z-40 overflow-y-auto">
+        <div
+          className="lg:hidden fixed inset-0 top-16 bg-surface z-40 overflow-y-auto"
+          aria-label="Mobile navigation"
+        >
           <nav className="p-4 space-y-4">
             {/* Mobile Navigation Links */}
             <div className="space-y-1">
@@ -36,8 +39,8 @@ function Mobile({
                   className={({ isActive }) =>
                     `${
                       isActive
-                        ? "border-b-2 border-blue-500 text-blue-500"
-                        : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                        ? "border-b-2 border-primary text-primary"
+                        : "text-foreground-muted hover:text-foreground"
                     } whitespace-nowrap px-1 pb-3 text-sm font-medium transition-colors block`
                   }
                 >
@@ -47,10 +50,11 @@ function Mobile({
             </div>
             {/* Mobile User Info with Dropdown */}
             {user && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <div className="border-t border-border pt-4">
                 <button
                   onClick={toggleAvatar}
-                  className="flex items-center justify-between w-full px-4 py-3 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg font-medium transition-colors"
+                  className="flex items-center justify-between w-full px-4 py-3 text-foreground hover:bg-surface-muted rounded-lg font-medium transition-colors cursor-pointer"
+                  aria-expanded={isAvatarOpen}
                 >
                   <div className="flex items-center gap-3">
                     <img
@@ -59,10 +63,10 @@ function Mobile({
                       alt="User avatar"
                     />
                     <div className="text-left">
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-foreground">
                         {user?.name}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                      <p className="text-xs text-foreground-muted">
                         {user?.email}
                       </p>
                     </div>
@@ -73,7 +77,7 @@ function Mobile({
                 {/* Mobile Avatar Dropdown Items */}
                 {isAvatarOpen && (
                   <div className="mt-2 ml-4 space-y-1">
-                    <div className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    <div className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-foreground">
                       <ThemeSelector />
                     </div>
                     {avatarMenuItems.map((item) => {
@@ -86,7 +90,7 @@ function Mobile({
                             closeAll();
                             window.scrollTo({ top: 0, behavior: "smooth" });
                           }}
-                          className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-foreground hover:bg-surface-muted"
                         >
                           <Icon className="w-5 h-5" />
                           {item.label}
@@ -98,9 +102,9 @@ function Mobile({
                         closeAll();
                         setIsConfirmOpen(true);
                       }}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      className="flex w-full items-center gap-3 px-4 py-3 rounded-lg transition-colors text-destructive hover:bg-destructive/10 cursor-pointer"
                     >
-                      <LogOut className="w-5 text-red-500" />
+                      <LogOut className="w-5 text-destructive" />
                       Logout
                     </button>
                   </div>

@@ -10,16 +10,16 @@ const RatingStars = ({ rating = 4.5, maxStars = 5 }) => {
       {[...Array(fullStars)].map((_, i) => (
         <Star
           key={`full-${i}`}
-          className="w-4 h-4 sm:w-5 sm:h-5 fill-orange-400 text-orange-400"
+          className="w-4 h-4 sm:w-5 sm:h-5 fill-warning text-warning"
         />
       ))}
 
       {/* Half star */}
       {hasHalfStar && (
         <div className="relative">
-          <Star className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400" />
+          <Star className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
           <Star
-            className="absolute top-0 left-0 w-4 h-4 sm:w-5 sm:h-5 fill-orange-400 text-orange-400"
+            className="absolute top-0 left-0 w-4 h-4 sm:w-5 sm:h-5 fill-warning text-warning"
             style={{ clipPath: "inset(0 50% 0 0)" }}
           />
         </div>
@@ -29,7 +29,7 @@ const RatingStars = ({ rating = 4.5, maxStars = 5 }) => {
       {[...Array(emptyStars)].map((_, i) => (
         <Star
           key={`empty-${i}`}
-          className="w-4 h-4 sm:w-5 sm:h-5 text-orange-400"
+          className="w-4 h-4 sm:w-5 sm:h-5 text-warning"
         />
       ))}
     </div>

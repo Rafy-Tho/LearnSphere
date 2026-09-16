@@ -61,11 +61,12 @@ export function StudentFeedback() {
             placeholder="Search reviews"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 pr-12 border-2 border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:border-violet-500 dark:focus:border-violet-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500"
+            className="w-full px-4 py-3 pr-12 border-2 border-border rounded-lg focus:outline-none focus:border-primary bg-surface text-foreground placeholder:text-foreground-muted"
           />
           <button
             type="submit"
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-violet-600 dark:bg-violet-500 rounded-lg flex items-center justify-center hover:bg-violet-700 dark:hover:bg-violet-600 transition-colors cursor-pointer"
+            aria-label="Search reviews"
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary rounded-lg flex items-center justify-center hover:bg-primary-hover transition-colors cursor-pointer"
           >
             <Search size={20} className="text-white" />
           </button>
@@ -74,23 +75,23 @@ export function StudentFeedback() {
         <div className="relative" ref={selectRef}>
           <button
             onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-            className="w-full sm:w-auto px-6 py-3 border-2 border-slate-300 dark:border-slate-600 rounded-lg flex items-center justify-between gap-4 hover:border-violet-500 dark:hover:border-violet-400 transition-colors bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+            className="w-full sm:w-auto px-6 py-3 border-2 border-border rounded-lg flex items-center justify-between gap-4 hover:border-primary transition-colors bg-surface text-foreground cursor-pointer"
           >
             <span className="text-sm font-medium">{getFilterLabel()}</span>
             <ChevronDown
               size={20}
-              className="text-slate-600 dark:text-slate-400"
+              className="text-foreground-muted"
             />
           </button>
 
           {showFilterDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-700 border-2 border-slate-300 dark:border-slate-600 rounded-lg shadow-lg z-10">
+            <div className="absolute right-0 mt-2 w-48 bg-surface border-2 border-border rounded-lg shadow-lg z-10">
               <button
                 onClick={() => {
                   setFilterRating("All");
                   setShowFilterDropdown(false);
                 }}
-                className="w-full px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-100"
+                className="w-full px-4 py-2 text-left hover:bg-surface-muted text-foreground cursor-pointer"
               >
                 All ratings
               </button>
@@ -101,7 +102,7 @@ export function StudentFeedback() {
                     setFilterRating(rating);
                     setShowFilterDropdown(false);
                   }}
-                  className="w-full px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-900 dark:text-slate-100"
+                  className="w-full px-4 py-2 text-left hover:bg-surface-muted text-foreground cursor-pointer"
                 >
                   {rating} star{rating > 1 ? "s" : ""}
                 </button>
@@ -126,11 +127,11 @@ export function StudentFeedback() {
           <button
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
-            className="w-full px-6 py-3 border-2 border-violet-500 dark:border-violet-400 text-violet-600 dark:text-violet-400 font-medium rounded-lg hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-6 py-3 border-2 border-primary text-primary font-medium rounded-lg hover:bg-primary/10 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isFetchingNextPage ? (
               <span className="inline-flex items-center gap-2">
-                <SpinnerLoader size="sm" color="purple" />
+                <SpinnerLoader size="sm" color="primary" />
                 Loading...
               </span>
             ) : (

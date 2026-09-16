@@ -9,6 +9,7 @@ import TermCheck from "@/features/auth/components/form/TermCheck";
 import { useLogin } from "@/features/auth/hooks/useAuthMutations";
 import useAuthActions from "@/features/auth/hooks/useAuthActions";
 import { toast } from "react-toastify";
+import Button from "@/components/ui/Button";
 const LoginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   password: z
@@ -51,15 +52,15 @@ const Login = () => {
     }
   };
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 max-w-5xl w-full grid md:grid-cols-2 rounded-2xl shadow-2xl overflow-hidden">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="bg-surface max-w-5xl w-full grid md:grid-cols-2 rounded-2xl shadow-xl border border-border overflow-hidden">
         {/* Left Side - Social Login Options */}
         <div className="p-8 md:p-12 flex flex-col justify-between">
           <div>
-            <h2 className="text-slate-800 dark:text-slate-100 text-3xl font-bold mb-4">
+            <h2 className="text-foreground text-3xl font-bold mb-4">
               Instantly Login
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-8">
+            <p className="text-foreground-muted text-sm leading-relaxed mb-8">
               Choose your preferred method to login in seconds.
             </p>
           </div>
@@ -67,18 +68,18 @@ const Login = () => {
           {/* Social Login Buttons */}
           <SocialButtons />
           <div className="mt-8">
-            <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed">
+            <p className="text-foreground-muted text-xs leading-relaxed">
               By continuing, you agree to our{" "}
               <a
                 href="#"
-                className="text-slate-800 dark:text-slate-100 font-medium underline hover:text-blue-200"
+                className="text-foreground font-medium underline hover:text-primary"
               >
                 Terms of Service
               </a>{" "}
               and{" "}
               <a
                 href="#"
-                className="text-slate-800 dark:text-slate-100 font-medium underline hover:text-blue-200"
+                className="text-foreground font-medium underline hover:text-primary"
               >
                 Privacy Policy
               </a>
@@ -87,12 +88,10 @@ const Login = () => {
         </div>
 
         {/* Right Side - Registration Form */}
-        <div className="p-8 md:p-12">
+        <div className="p-8 md:p-12 border-t md:border-t-0 md:border-l border-border">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Login
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">
+            <h1 className="text-3xl font-bold text-foreground">Login</h1>
+            <p className="text-foreground-muted text-sm mt-2">
               Fill in your details to get started
             </p>
           </div>
@@ -105,27 +104,22 @@ const Login = () => {
             {/* Reset Password Link */}
             <Link
               to="/reset-password"
-              className="text-right block text-sm text-blue-600 hover:underline font-medium cursor-pointer"
+              className="text-right block text-sm text-primary hover:underline font-medium cursor-pointer"
             >
               Forgot password?
             </Link>
             {/* Terms Checkbox */}
             <TermCheck register={register} errors={errors} />
             {/* Submit Button */}
-            <button
-              type="submit"
-              className={`w-full bg-gradient-to-r text-white py-3 px-4 rounded-lg font-medium  focus:ring-4 focus:ring-blue-300 transition-all duration-200 transform hover:scale-[1.02] bg-blue-500 cursor-pointer ${
-                isPending ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            >
+            <Button type="submit" size="lg" fullWidth isLoading={isPending}>
               {isPending ? "Logging in..." : "Login"}
-            </button>
+            </Button>
             {/* Login Link */}
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-center text-sm text-foreground-muted">
               Don't have an account?{" "}
               <Link
                 to="/signup"
-                className="text-blue-600 hover:underline font-medium cursor-pointer"
+                className="text-primary hover:underline font-medium cursor-pointer"
               >
                 Sign up
               </Link>

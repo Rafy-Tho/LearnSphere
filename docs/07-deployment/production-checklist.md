@@ -10,6 +10,7 @@ Use this checklist before and after each production release.
 - [ ] `CLIENT_URL_1` and `CLIENT_URL_2` are exact HTTPS production origins (no wildcards).
 - [ ] Stripe keys are production/live keys; `STRIPE_WEBHOOK_SECRET` matches the live endpoint.
 - [ ] Cloudinary and Brevo credentials are production credentials.
+- [ ] Google OAuth (if enabled): production `GOOGLE_CALLBACK_URL` is registered in Google Cloud Console and matches exactly.
 - [ ] No secrets are committed; `.env` files are gitignored.
 - [ ] Frontend builds use the production `VITE_BASE_URL`.
 

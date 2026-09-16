@@ -75,6 +75,14 @@ class AuthService {
       throw new ApiError(StatusCode.BAD_REQUEST, "Invalid credentials");
     }
 
+    // Provider-only accounts (e.g. Google) have no password; reject password
+    // login with the same generic error and comparable timing.
+    if (!user.password) {
+      await this.hashService.verify(password, DUMMY_PASSWORD_HASH);
+      logger.audit("auth.login.failed", { reason: "no_password" });
+      throw new ApiError(StatusCode.BAD_REQUEST, "Invalid credentials");
+    }
+
     // Locked accounts are rejected without verifying the password; the response
     // stays generic so it does not reveal account state.
     if (this.isLocked(user)) {
@@ -272,6 +280,11 @@ class AuthService {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new ApiError(StatusCode.NOT_FOUND, "User Doesn't Exist");
+    }
+
+    // Provider-only accounts have no password to change.
+    if (!user.password) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "No password set for this account");
     }
 
     const isMatch = await this.hashService.verify(oldPassword, user.password);

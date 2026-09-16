@@ -36,3 +36,6 @@ Single place to track what is done, what is in progress, and what is left. Keep 
 | D-28 | Primary accent | Blue + slate neutrals |
 | D-29 | Dark mode | Full light/dark parity |
 | D-31 | Design scope | Learner app only |
+| D-32 | Google OAuth | Backend-driven authorization-code flow via `openid-client` (state/nonce/PKCE/ID-token); reuses existing session cookies, no JWT |
+| D-33 | Provider email policy | Trust Google's verified email — sets `users.email_verified_at` and links/creates without a separate verification round |
+| D-34 | Provider-only accounts | `users.password` nullable; password login rejected cleanly for provider-only users |

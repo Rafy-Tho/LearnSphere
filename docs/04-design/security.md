@@ -43,7 +43,7 @@ The former gaps (missing `authorize`/validators on quiz options, unused `loginLi
 | `globalLimiter` | 1 min | 100 | All requests |
 | `passwordResetLimiter` | 12 h | 10 | Password reset code requests |
 | `codeAttemptsLimiter` | 1 h | 10 | Code verify + reset |
-| `loginLimiter` | 15 min | 5 | Applied to `POST /auth/login` (+ per-account lockout) |
+| `loginLimiter` | 15 min | 5 | Applied to `POST /auth/login` and `GET /auth/google` (+ per-account lockout) |
 | `emailVerificationLimiter` | 1 h | 5 | Register + resend verification code |
 
 Rate-limit exhaustion returns HTTP 429.
@@ -53,7 +53,8 @@ Rate-limit exhaustion returns HTTP 429.
 - All secrets come from environment variables via `backend/src/config/environment.js`.
 - `.env` files are gitignored at the repo root; no env files are tracked.
 - Required variables: `PORT`, `NODE_ENV`, `DATABASE_URL`, `SESSION_SECRET`, `COOKIE_NAME`, `CLIENT_URL_1`, `CLIENT_URL_2`, `BREVO_API_KEY`, `SENDER_EMAIL`, `CLOUDINARY_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_SECRET_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
-- Frontends only receive `VITE_BASE_URL` (public).
+- Optional variables: `TRUST_PROXY`, and Google OAuth (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`). When unset, the OAuth routes report not-configured instead of blocking boot.
+- Frontends only receive `VITE_BASE_URL` (public). `GOOGLE_CLIENT_SECRET` is server-only and never sent to the browser.
 
 **Rules:** never commit `.env`, never log secrets, never expose server-only keys to Vite (`VITE_*` is bundled into the client).
 
@@ -87,6 +88,28 @@ Rate-limit exhaustion returns HTTP 429.
 - `users.email UNIQUE` is preserved; unknown/duplicate emails get generic
   responses that do not reveal account existence.
 
+## 7.2 Google OAuth Security
+
+- Authorization-code flow with OIDC (`openid-client`); the client secret stays
+  on the backend and is never exposed to the frontend.
+- CSRF/replay protection: a random `state`, OIDC `nonce` and PKCE
+  `code_verifier` are generated per attempt and stored in the server session;
+  all three are validated on the callback. Session state is single-use.
+- The ID token is validated for signature, issuer, audience, expiry and nonce;
+  the email must be `email_verified: true` before it can be used to link an
+  existing account.
+- The provider identity (`provider_user_id` = Google `sub`) comes only from the
+  validated token — never from the browser. `UNIQUE (provider, provider_user_id)`
+  prevents moving a Google identity between users; a mismatched link is rejected
+  (`GOOGLE_ACCOUNT_ALREADY_LINKED`).
+- No duplicate accounts: an existing `users.email` is linked, not re-created;
+  `users.email UNIQUE` remains.
+- Tokens, secrets and raw provider responses are never logged or returned to the
+  client; only stable error codes are surfaced.
+- On success the existing session service creates the normal application
+  session (no separate Google session, no JWT). Logout is unchanged and does not
+  sign the user out of Google.
+
 ## 8. Payments Security
 
 - Stripe Checkout is used; the server never handles raw card data.
@@ -113,6 +136,7 @@ Rate-limit exhaustion returns HTTP 429.
 | XSS | Malicious lesson HTML | DOMPurify on input and render |
 | SQL injection | Malicious query input | Parameterized SQL everywhere; `AdvancedQuery` uses placeholders |
 | CSRF | Cross-site request forgery | JSON-only + `X-Requested-With` guard; `sameSite` cookies |
+| OAuth replay/linking | Forged callback or identity theft | `state` + `nonce` + PKCE validation; verified-email requirement; unique provider identity |
 | Insecure file upload | Malicious uploads | Type/MIME filter + size limit; files pushed to Cloudinary |
 
 ## 11. Security Hardening (resolved)

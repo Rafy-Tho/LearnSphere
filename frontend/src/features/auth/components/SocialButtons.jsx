@@ -1,5 +1,6 @@
 import { socialLogins } from "@/constants/socialLogins";
 import Button from "@/components/ui/Button";
+import { startGoogleLogin } from "@/features/auth/utils/googleOAuth";
 
 function SocialButtons() {
   return (
@@ -12,6 +13,9 @@ function SocialButtons() {
             variant="outline"
             fullWidth
             leftIcon={<Icon />}
+            onClick={
+              social.provider === "google" ? startGoogleLogin : undefined
+            }
           >
             Continue with {social.name}
           </Button>

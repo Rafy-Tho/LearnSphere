@@ -44,6 +44,8 @@ Set these on the backend host:
 | `CLOUDINARY_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_SECRET_KEY` | Image hosting |
 | `STRIPE_SECRET_KEY` | Live or test secret key |
 | `STRIPE_WEBHOOK_SECRET` | Endpoint signing secret |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth client (optional; enables Google login) |
+| `GOOGLE_CALLBACK_URL` | Public `https://<api-host>/api/v1/auth/google/callback`; register it as an authorized redirect URI in Google Cloud Console |
 
 Frontends: set `VITE_BASE_URL` to the public API URL **at build time** (Vite inlines it).
 

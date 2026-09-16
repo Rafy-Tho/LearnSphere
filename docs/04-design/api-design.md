@@ -84,12 +84,23 @@ Mounted at `/api/v1/auth`.
 | POST | `/password-resets` | `passwordResetLimiter`, `val` | Request a password reset code |
 | POST | `/password-resets/verify` | `codeAttemptsLimiter`, `val` | Verify reset code |
 | PATCH | `/password` | `codeAttemptsLimiter`, `val` | Reset password with code |
+| GET | `/google` | `loginLimiter` | Start Google OAuth: set state/nonce/PKCE in session, redirect to Google |
+| GET | `/google/callback` | — | Validate Google response, link/create user, start session, redirect to frontend |
 
 > Registration and login of an unverified account return
 > `data: { requiresEmailVerification: true, email }` and set a pending
 > verification id in the session; no authenticated session is created until
 > `POST /verify-email` succeeds. `POST /verify-email` takes `{ code }` only and
 > returns the authenticated user.
+
+> Google OAuth is browser-driven and does not use the JSON envelope: both
+> endpoints redirect. The callback always redirects to
+> `${CLIENT_URL_1}/auth/callback?status=success` or
+> `?status=error&code=<OAUTH_ERROR_CODE>` (codes: `OAUTH_STATE_INVALID`,
+> `GOOGLE_AUTH_FAILED`, `GOOGLE_EMAIL_NOT_VERIFIED`,
+> `GOOGLE_ACCOUNT_ALREADY_LINKED`, `OAUTH_CALLBACK_FAILED`, `OAUTH_CANCELLED`).
+> The provider identity comes only from Google's validated ID token; the
+> frontend never supplies it.
 
 ## 3. Users (current user)
 

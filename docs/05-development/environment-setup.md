@@ -44,6 +44,9 @@ Create a `.env` in each app. All `.env` files are gitignored. **Do not commit th
 | `CLOUDINARY_SECRET_KEY` | Cloudinary API secret |
 | `STRIPE_SECRET_KEY` | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID (optional; enables Google login) |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret (optional, server-only) |
+| `GOOGLE_CALLBACK_URL` | Google redirect URI; must match the Google Cloud Console entry |
 
 Example (values are placeholders):
 
@@ -62,6 +65,9 @@ CLOUDINARY_API_KEY=
 CLOUDINARY_SECRET_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_CALLBACK_URL=http://localhost:5000/api/v1/auth/google/callback
 ```
 
 ### 3.2 `frontend/.env`
@@ -132,6 +138,17 @@ stripe listen --forward-to localhost:5000/api/v1/webhooks/stripe
 
 Copy the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET`.
 
+## 6.1 Google OAuth (local)
+
+1. In Google Cloud Console, create an OAuth 2.0 Client ID (type: Web application).
+2. Add an authorized redirect URI matching `GOOGLE_CALLBACK_URL`, e.g.
+   `http://localhost:5000/api/v1/auth/google/callback`.
+3. Put the generated client ID/secret into `GOOGLE_CLIENT_ID` /
+   `GOOGLE_CLIENT_SECRET`. These are optional: with them unset the API still
+   boots, but `/api/v1/auth/google` redirects back with `GOOGLE_AUTH_FAILED`.
+4. The callback returns to `CLIENT_URL_1` (learner frontend) at
+   `/auth/callback`; ensure it is running.
+
 ## 7. Scripts Reference
 
 | App | Command | Description |
@@ -161,6 +178,8 @@ Copy the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET`.
 | Session lost on restart | Confirm `connect-pg-simple` store and DB connectivity |
 | Emails not sent | Verify `BREVO_API_KEY` and `SENDER_EMAIL` |
 | Image upload fails | Check Cloudinary credentials and 5 MB/type limits |
+| Google login redirects back with `GOOGLE_AUTH_FAILED` | Set `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`; check `GOOGLE_CALLBACK_URL` matches the Google Console redirect URI exactly |
+| Google callback returns `OAUTH_STATE_INVALID` | The session cookie was missing/expired between start and callback; retry from the login page |
 
 ## 9. Verifying the Setup
 

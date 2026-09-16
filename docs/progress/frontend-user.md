@@ -12,6 +12,7 @@
 | API & state | `lib/apiClient.js` (safe parse, `ApiError`, unwrapped `data`, `getPaginated`, `buildQuery`, upload, `AbortSignal`), central `lib/queryKeys.js`, completed invalidation + optimistic vote/report. |
 | Design / UI-UX | Tailwind v4 `@theme` tokens (`css/theme.css`), blue + slate, full light/dark parity, tokenized layout/pages/toasts, retired ad-hoc gradients/accents. |
 | Email verification | `/verify-email` page with 6-box OTP input (auto-advance, paste), resend + 60s cooldown, error states, and auto-login on success. Signup/Login route unverified users here via `requiresEmailVerification`. |
+| Google login | "Continue with Google" on Login/Signup redirects to the backend `/auth/google`. `/auth/callback` page handles success (refreshes `["me"]`, then dashboard), cancelled/failed OAuth, and maps backend error codes to messages (`features/auth/utils/googleOAuth.js`). |
 
 ## Remaining / Residuals
 

@@ -17,6 +17,20 @@ class UserRepository {
     return result.rows[0];
   }
 
+  // Provider-only account (e.g. Google): no local password. The provider has
+  // already verified the email, so email_verified_at is set immediately.
+  async createOAuthUser({ email, name, imageUrl }, client = this.db) {
+    const query = `
+      INSERT INTO users (email, name, image_url, email_verified_at)
+      VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+      RETURNING id, email, role, status, name, image_url, created_at, updated_at
+    `;
+
+    const result = await client.query(query, [email, name, imageUrl]);
+
+    return result.rows[0];
+  }
+
   async findByEmail(email) {
     const query = `
       SELECT id, email, role, password, last_login, name, image_url, created_at, updated_at,status,
@@ -136,13 +150,13 @@ class UserRepository {
     const result = await client.query(query, [userId]);
     return result.rows[0];
   }
-  async updateLastLogin({ userId, lastLogin }) {
+  async updateLastLogin({ userId, lastLogin }, client = this.db) {
     const query = `
       UPDATE users
       SET last_login = $1
       WHERE id = $2
     `;
-    await this.db.query(query, [lastLogin, userId]);
+    await client.query(query, [lastLogin, userId]);
   }
 
   // Atomically increments the failure counter and locks the account once the

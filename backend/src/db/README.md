@@ -42,7 +42,9 @@ The baseline (`0001`–`0010`) is idempotent, so on a database that already has 
 tables it is a no-op except for new indexes and re-created triggers; `0011`
 applies the drift fixes (D1–D4, D6); `0012` adds the login-lockout columns
 (`users.failed_login_attempts`, `users.locked_until`); `0013` adds email
-verification (`users.email_verified_at` + `email_verification_codes`).
+verification (`users.email_verified_at` + `email_verification_codes`); `0014`
+adds `user_auth_providers` (Google OAuth links) and makes `users.password`
+nullable for provider-only accounts.
 
 ### Upgrading from the old `0001_drift_fixes.sql`
 

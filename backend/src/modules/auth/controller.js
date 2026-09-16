@@ -7,12 +7,15 @@ import logger from "../../common/logger.js";
 import emailService from "../../common/services/email-service.js";
 import sessionService from "../../common/services/session-service.js";
 import authService from "./service.js";
+import googleOAuthService from "./google-oauth.service.js";
+import { OAUTH_ERROR_CODES, OAuthError } from "./oauth-error.js";
 
 class AuthController {
-  constructor({ authService, sessionService, emailService }) {
+  constructor({ authService, sessionService, emailService, googleOAuthService }) {
     this.authService = authService;
     this.sessionService = sessionService;
     this.emailService = emailService;
+    this.googleOAuthService = googleOAuthService;
   }
 
   register = asyncHandler(async (req, res) => {
@@ -73,6 +76,97 @@ class AuthController {
       { message: "User logged in successfully" },
     );
   });
+
+  googleLogin = asyncHandler(async (req, res) => {
+    try {
+      const { url, state, nonce, codeVerifier } =
+        await this.googleOAuthService.getAuthorizationUrl();
+
+      // Persist state/nonce/PKCE verifier before leaving the origin so the
+      // callback can validate the response (CSRF + replay protection).
+      req.session.googleOAuth = { state, nonce, codeVerifier };
+      await this.saveSession(req);
+
+      return res.redirect(url);
+    } catch (error) {
+      logger.error("Google OAuth start failed", { message: error.message });
+      return this.redirectToClient(res, {
+        status: "error",
+        code: OAUTH_ERROR_CODES.GOOGLE_AUTH_FAILED,
+      });
+    }
+  });
+
+  googleCallback = asyncHandler(async (req, res) => {
+    const oauthState = req.session.googleOAuth;
+    delete req.session.googleOAuth;
+
+    // The user declined the consent screen (or Google returned an error).
+    if (req.query.error) {
+      logger.audit("auth.google.cancelled");
+      return this.redirectToClient(res, {
+        status: "error",
+        code: OAUTH_ERROR_CODES.OAUTH_CANCELLED,
+      });
+    }
+
+    if (!oauthState || !req.query.code) {
+      logger.audit("auth.google.state_invalid");
+      return this.redirectToClient(res, {
+        status: "error",
+        code: OAUTH_ERROR_CODES.OAUTH_STATE_INVALID,
+      });
+    }
+
+    try {
+      const user = await this.googleOAuthService.handleCallback({
+        currentUrl: this.buildCallbackUrl(req),
+        state: oauthState.state,
+        nonce: oauthState.nonce,
+        codeVerifier: oauthState.codeVerifier,
+      });
+
+      await this.sessionService.create(req, user);
+
+      return this.redirectToClient(res, { status: "success" });
+    } catch (error) {
+      if (error instanceof OAuthError) {
+        logger.audit("auth.google.failed", { code: error.code });
+        return this.redirectToClient(res, {
+          status: "error",
+          code: error.code,
+        });
+      }
+
+      logger.error("Google OAuth callback failed", { message: error.message });
+      return this.redirectToClient(res, {
+        status: "error",
+        code: OAUTH_ERROR_CODES.OAUTH_CALLBACK_FAILED,
+      });
+    }
+  });
+
+  saveSession(req) {
+    return new Promise((resolve, reject) => {
+      req.session.save((error) => (error ? reject(error) : resolve()));
+    });
+  }
+
+  // Rebuilds the full callback URL (with query) from the configured callback
+  // base so the token exchange can validate the authorization response.
+  buildCallbackUrl(req) {
+    const callbackUrl = new URL(environment.GOOGLE_CALLBACK_URL);
+    const queryIndex = req.originalUrl.indexOf("?");
+    if (queryIndex !== -1) {
+      callbackUrl.search = req.originalUrl.slice(queryIndex);
+    }
+    return callbackUrl;
+  }
+
+  redirectToClient(res, params) {
+    const query = new URLSearchParams(params).toString();
+    return res.redirect(`${environment.CLIENT_URL_1}/auth/callback?${query}`);
+  }
 
   verifyEmail = asyncHandler(async (req, res) => {
     const { code } = req.body;
@@ -146,4 +240,9 @@ class AuthController {
 }
 
 export { AuthController };
-export default new AuthController({ authService, sessionService, emailService });
+export default new AuthController({
+  authService,
+  sessionService,
+  emailService,
+  googleOAuthService,
+});

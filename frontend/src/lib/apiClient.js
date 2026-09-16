@@ -1,7 +1,7 @@
 import { clearUserQueries } from "@/lib/queryClient";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-const AUTH_PATHS = ["/login", "/signup", "/reset-password"];
+const AUTH_PATHS = ["/login", "/signup", "/reset-password", "/auth/callback"];
 
 export class ApiError extends Error {
   constructor(message, { statusCode = null, data = null } = {}) {

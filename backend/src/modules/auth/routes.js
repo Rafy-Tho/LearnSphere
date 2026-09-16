@@ -26,6 +26,8 @@ authRoute.post(
   validateResult,
   authController.login,
 );
+authRoute.get("/google", loginLimiter, authController.googleLogin);
+authRoute.get("/google/callback", authController.googleCallback);
 authRoute.post(
   "/verify-email",
   codeAttemptsLimiter,

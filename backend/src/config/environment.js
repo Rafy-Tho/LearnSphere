@@ -18,6 +18,10 @@ const environment = {
   // mail
   BREVO_API_KEY: process.env.BREVO_API_KEY,
   SENDER_EMAIL: process.env.SENDER_EMAIL,
+  // Google OAuth
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  GOOGLE_CALLBACK_URL: process.env.GOOGLE_CALLBACK_URL,
   // Stripe api key
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
@@ -28,7 +32,14 @@ const environment = {
 };
 
 // Fail fast on missing configuration instead of failing later at request time.
-const OPTIONAL_KEYS = ["TRUST_PROXY"];
+// Google OAuth is optional: when unset, the OAuth routes report not-configured
+// instead of preventing the whole API from booting.
+const OPTIONAL_KEYS = [
+  "TRUST_PROXY",
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "GOOGLE_CALLBACK_URL",
+];
 const REQUIRED_KEYS = Object.keys(environment).filter(
   (key) => !OPTIONAL_KEYS.includes(key),
 );

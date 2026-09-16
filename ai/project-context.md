@@ -17,8 +17,9 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 ## Core Facts
 
 - Auth: cookie session (`express-session` + `connect-pg-simple`), 30-day rolling + 24h idle timeout, `sameSite: "none"` in prod.
+- Auth methods: email/password (bcrypt) + email verification, and Google OAuth (`GET /api/v1/auth/google[/callback]`, authorization-code + OIDC via `openid-client`). Provider links in `user_auth_providers`; `users.password` is nullable for provider-only accounts.
 - API base: `/api/v1`. Response envelope: `{ success, statusCode, message, data }` (+ `pagination` on lists).
-- DB: PostgreSQL, UUID PKs via `pgcrypto`. Schema: `backend/src/db/schema.sql` (22 tables, 9 enums); migrations in `backend/src/db/migrations/` (runner `npm run db:migrate`).
+- DB: PostgreSQL, UUID PKs via `pgcrypto`. Schema: `backend/src/db/schema.sql` (23 tables, 9 enums); migrations in `backend/src/db/migrations/` (runner `npm run db:migrate`).
 - No ORM, no seeds, no tests, no CI.
 - Content hierarchy: `course → module → chapter → lesson → lesson_contents / quizzes → quiz_options`.
 - Roles: `LEARNER`, `INSTRUCTOR`, `ADMIN`. Ownership checked per resource via repository `getInstructor()` joins.

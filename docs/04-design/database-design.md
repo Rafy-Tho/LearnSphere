@@ -20,6 +20,7 @@ erDiagram
   users ||--o| user_profiles : has
   users ||--o{ password_reset_codes : requests
   users ||--o{ email_verification_codes : verifies
+  users ||--o{ user_auth_providers : links
   users ||--o{ courses : instructs
   categories ||--o{ courses : classifies
   courses ||--o{ course_objectives : has
@@ -73,7 +74,7 @@ erDiagram
 | name | VARCHAR(255) | NOT NULL |
 | email | VARCHAR(255) | UNIQUE, NOT NULL |
 | image_url | TEXT | nullable |
-| password | VARCHAR(255) | NOT NULL (bcrypt hash) |
+| password | VARCHAR(255) | nullable (bcrypt hash; `NULL` for provider-only accounts) |
 | role | user_role | DEFAULT `LEARNER` |
 | status | user_status | DEFAULT `ACTIVE` |
 | failed_login_attempts | INTEGER | DEFAULT 0 |
@@ -125,6 +126,23 @@ One-to-one with `users`.
 Separate from `password_reset_codes` (distinct flows). A new code invalidates
 previous ones; codes are single-use, expire after 10 minutes, and cap attempts
 at 5. Added in migration `0013`.
+
+#### `user_auth_providers`
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| user_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| provider | VARCHAR(50) | NOT NULL (e.g. `GOOGLE`) |
+| provider_user_id | VARCHAR(255) | NOT NULL (provider's stable subject id) |
+| provider_email | VARCHAR(255) | nullable |
+| created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
+| | | `UNIQUE (provider, provider_user_id)` |
+
+Links external identities to `users`. The unique constraint maps a provider
+identity to exactly one user; a user may have email/password and/or provider
+logins. Added in migration `0014` (which also makes `users.password` nullable
+for provider-only accounts).
 
 ### 4.2 Catalog & Content
 
@@ -396,14 +414,14 @@ Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `
 ## 5. Triggers & Functions
 
 - `set_updated_at()` — sets `NEW.updated_at = CURRENT_TIMESTAMP`.
-- 18 `BEFORE UPDATE` triggers, one per table with `updated_at`.
+- 19 `BEFORE UPDATE` triggers, one per table with `updated_at`.
 - Tables without triggers: `lesson_completion`, `certificates`, `review_helpful_votes`, `review_reports`.
 
 ## 6. Indexes & Unique Constraints
 
-Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, plus the partial unique `one_active_subscription_per_user`.
+Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, `idx_user_auth_providers_user`, plus the partial unique `one_active_subscription_per_user`.
 
-Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_user_course` (enrollments), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`.
+Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_user_course` (enrollments), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`, `uq_user_auth_provider`.
 
 ## 7. Cascade & Integrity Rules
 
@@ -422,6 +440,7 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 | `UserRepository` | users, user_profiles |
 | `PasswordResetCodeRepository` | password_reset_codes |
 | `EmailVerificationCodeRepository` | email_verification_codes |
+| `AuthProviderRepository` | user_auth_providers |
 | `CategoryRepository` | categories |
 | `CourseRepository` | courses, course_reviews, modules, chapters, lessons, enrollments, learn_progress, lesson_completion |
 | `CourseObjectiveRepository` | course_objectives |

@@ -20,6 +20,9 @@ const ResetPasswordFlow = lazy(
 const VerifyEmail = lazy(
   () => import("@/features/auth/pages/VerifyEmail"),
 );
+const OAuthCallback = lazy(
+  () => import("@/features/auth/pages/OAuthCallback"),
+);
 const LearningDashboard = lazy(
   () => import("@/features/dashboard/pages/LearningDashboard"),
 );
@@ -71,6 +74,8 @@ function AppRouter() {
             <Route path="/reset-password" element={<ResetPasswordFlow />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
           </Route>
+          {/* OAuth callback (public: backend has already set the session) */}
+          <Route path="/auth/callback" element={<OAuthCallback />} />
           {/* Learning Dashboard */}
           <Route element={<RequireAuth />}>
             <Route path="/learning-dashboard" element={<LearningDashboard />}>

@@ -4,6 +4,7 @@ import helmet from "helmet";
 import environment from "../config/environment.js";
 import csrfProtection from "../common/middleware/csrf-protection.js";
 import { globalLimiter } from "../common/middleware/rate-limit-middlewares.js";
+import requestLogger from "../common/middleware/request-logger.js";
 import sessionIdleTimeout from "../common/middleware/session-idle-timeout.js";
 import sessionMiddleware from "../common/middleware/session-middleware.js";
 import webhookRoute from "../modules/subscriptions/webhook.routes.js";
@@ -68,13 +69,10 @@ export async function registerMiddleware(app) {
   // 6. Body parser (JSON only; urlencoded is intentionally unsupported)
   app.use(express.json());
 
-  // 7. Development request logging (session handles cookies; no cookieParser)
-  if (process.env.NODE_ENV === "development") {
-    const { default: morgan } = await import("morgan");
-    app.use(morgan("dev"));
-  }
-
   app.use(globalLimiter);
   app.use(sessionMiddleware);
   app.use(sessionIdleTimeout);
+
+  // 7. Request logging (after session so the authenticated user id is available)
+  app.use(requestLogger);
 }

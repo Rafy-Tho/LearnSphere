@@ -10,6 +10,7 @@ export default function ConfirmDialog({
   message = "This action cannot be undone.",
   confirmText = "OK",
   cancelText = "Cancel",
+  confirmVariant = "destructive",
 }) {
   return (
     <Modal
@@ -22,7 +23,7 @@ export default function ConfirmDialog({
           <Button variant="secondary" onClick={onCancel}>
             {cancelText}
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          <Button variant={confirmVariant} onClick={onConfirm}>
             {confirmText}
           </Button>
         </div>

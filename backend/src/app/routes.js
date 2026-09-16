@@ -20,6 +20,8 @@ import {
   quizSubmissionRoute,
 } from "../modules/content/question.routes.js";
 import { optionCollectionRoute, optionItemRoute } from "../modules/content/option.routes.js";
+import quizAttemptRoute from "../modules/quiz/quiz-attempt.routes.js";
+import completionRoute from "../modules/learning/completion.routes.js";
 import { reviewsItemRoute } from "../modules/reviews/routes.js";
 import {
   certificateItemRoute,
@@ -58,6 +60,8 @@ export function registerRoutes(app) {
   app.use("/api/v1/contents", lessonContentItemRoute);
   app.use("/api/v1/lessons/:lessonId/questions", questionCollectionRoute);
   app.use("/api/v1/lessons/:lessonId/quiz-submissions", quizSubmissionRoute);
+  app.use("/api/v1/lessons/:lessonId/quiz-attempts", quizAttemptRoute);
+  app.use("/api/v1/lessons/:lessonId/completions", completionRoute);
   app.use("/api/v1/questions", questionItemRoute);
   app.use("/api/v1/questions/:questionId/options", optionCollectionRoute);
   app.use("/api/v1/options", optionItemRoute);

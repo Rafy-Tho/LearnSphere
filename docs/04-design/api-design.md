@@ -240,6 +240,18 @@ Collection at `/api/v1/lessons/:lessonId/questions`; item at `/api/v1/questions`
 | PATCH | `/questions/:questionId` | `auth`, `roles(ADMIN, INSTRUCTOR)`, `val` | Update question |
 | DELETE | `/questions/:questionId` | `auth`, `roles(ADMIN, INSTRUCTOR)`, `val` | Delete question |
 
+### Quiz attempts
+
+Collection at `/api/v1/lessons/:lessonId/quiz-attempts` (learner's own attempts).
+
+| Method | Path | Middleware | Description |
+|---|---|---|---|
+| POST | `/lessons/:lessonId/quiz-attempts` | `auth`, enrolled/owner/admin, `val` | Grade server-side, persist a completed attempt + answers, mark the lesson complete |
+| GET | `/lessons/:lessonId/quiz-attempts` | `auth`, enrolled/owner/admin | Attempt history + best score |
+| GET | `/lessons/:lessonId/quiz-attempts/latest` | `auth`, enrolled/owner/admin | Latest completed attempt with full review (or `null`) |
+
+Correct answers and explanations are only returned after submission (review payloads), never while taking the quiz.
+
 ## 13. Options (Quiz Answers)
 
 Collection at `/api/v1/questions/:questionId/options`; item at `/api/v1/options`.

@@ -39,3 +39,4 @@ Single place to track what is done, what is in progress, and what is left. Keep 
 | D-32 | Google OAuth | Backend-driven authorization-code flow via `openid-client` (state/nonce/PKCE/ID-token); reuses existing session cookies, no JWT |
 | D-33 | Provider email policy | Trust Google's verified email — sets `users.email_verified_at` and links/creates without a separate verification round |
 | D-34 | Provider-only accounts | `users.password` nullable; password login rejected cleanly for provider-only users |
+| D-35 | Quiz attempts | Deferred grading (answers hidden until submit); atomic submit persists a completed `quiz_attempts` row + `quiz_answers`, marks the lesson complete; every retake is a new attempt; UI shows best + latest and full history |

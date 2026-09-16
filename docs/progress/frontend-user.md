@@ -11,6 +11,7 @@
 | Performance | Default `staleTime`, scoped `clearUserQueries`, memoized context, removed effect/derived-state cascades, rAF-throttled scroll, list pagination, `manualChunks`. Initial `index` chunk 353.92 → 82.01 kB. |
 | API & state | `lib/apiClient.js` (safe parse, `ApiError`, unwrapped `data`, `getPaginated`, `buildQuery`, upload, `AbortSignal`), central `lib/queryKeys.js`, completed invalidation + optimistic vote/report. |
 | Design / UI-UX | Tailwind v4 `@theme` tokens (`css/theme.css`), blue + slate, full light/dark parity, tokenized layout/pages/toasts, retired ad-hoc gradients/accents. |
+| Quiz experience | Rebuilt `features/learning/pages/Quiz.jsx` as an `intro → taking → results` flow with deferred grading: selectable answer cards, question progress + jump nav, Previous/Next, submit confirmation, score result, per-question review, attempt history, and retake. If a completed attempt exists it opens on the result with "Try Again". New hooks/services (`useQuizAttempts`, `quizAttemptsApi`) + query keys. |
 | Email verification | `/verify-email` page with 6-box OTP input (auto-advance, paste), resend + 60s cooldown, error states, and auto-login on success. Signup/Login route unverified users here via `requiresEmailVerification`. |
 | Google login | "Continue with Google" on Login/Signup redirects to the backend `/auth/google`. `/auth/callback` page handles success (refreshes `["me"]`, then dashboard), cancelled/failed OAuth, and maps backend error codes to messages (`features/auth/utils/googleOAuth.js`). |
 

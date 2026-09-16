@@ -30,6 +30,10 @@ erDiagram
   lessons ||--o{ lesson_contents : has
   lessons ||--o| quizzes : has
   quizzes ||--o{ quiz_options : has
+  users ||--o{ quiz_attempts : takes
+  lessons ||--o{ quiz_attempts : assessed
+  quiz_attempts ||--o{ quiz_answers : records
+  quizzes ||--o{ quiz_answers : answered
   users ||--o{ enrollments : enrolls
   courses ||--o{ enrollments : receives
   users ||--o{ learn_progress : tracks
@@ -268,6 +272,34 @@ Unique `(lesson_id, position)`. Index `idx_quizzes_lesson`.
 
 Unique `(quiz_id, position)`. Index `idx_quiz_options_quiz`.
 
+#### `quiz_attempts`
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| user_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| lesson_id | UUID | NOT NULL, FK → lessons(id) CASCADE |
+| status | VARCHAR(20) | NOT NULL, DEFAULT `in_progress`, CHECK in (`in_progress`, `completed`, `abandoned`) |
+| score | INTEGER | nullable, CHECK >= 0 |
+| total_questions | INTEGER | nullable, CHECK > 0 |
+| started_at | TIMESTAMPTZ | DEFAULT now |
+| completed_at | TIMESTAMPTZ | nullable |
+
+Indexes `idx_quiz_attempts_user_lesson`, `idx_quiz_attempts_lesson`. No `updated_at`/trigger. Each submit inserts a new completed attempt (retakes keep history).
+
+#### `quiz_answers`
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| attempt_id | UUID | NOT NULL, FK → quiz_attempts(id) CASCADE |
+| quiz_id | UUID | NOT NULL, FK → quizzes(id) CASCADE |
+| selected_option_id | UUID | nullable, FK → quiz_options(id) SET NULL |
+| is_correct | BOOLEAN | NOT NULL |
+| answered_at | TIMESTAMPTZ | DEFAULT now |
+
+Unique `(attempt_id, quiz_id)`. Indexes `idx_quiz_answers_attempt`, `idx_quiz_answers_quiz`. No `updated_at`/trigger.
+
 ### 4.3 Learning
 
 #### `enrollments`
@@ -419,9 +451,9 @@ Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `
 
 ## 6. Indexes & Unique Constraints
 
-Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, `idx_user_auth_providers_user`, plus the partial unique `one_active_subscription_per_user`.
+Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, `idx_user_auth_providers_user`, `idx_quiz_attempts_user_lesson`, `idx_quiz_attempts_lesson`, `idx_quiz_answers_attempt`, `idx_quiz_answers_quiz`, plus the partial unique `one_active_subscription_per_user`.
 
-Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_user_course` (enrollments), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`, `uq_user_auth_provider`.
+Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_attempt_quiz` (quiz_answers), `unique_user_course` (enrollments), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`, `uq_user_auth_provider`.
 
 ## 7. Cascade & Integrity Rules
 
@@ -453,6 +485,7 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 | `EnrollmentRepository` | enrollments |
 | `LearningProgressRepository` | learn_progress |
 | `LessonCompletionRepository` | lesson_completion |
+| `QuizAttemptRepository` | quiz_attempts, quiz_answers |
 | `CertificateRepository` | certificates, courses, users, lessons, chapters, modules, lesson_completion |
 | `SubscriptionRepository` | subscription_plans, user_subscriptions, subscription_payments, users |
 | `ReviewRepository` | course_reviews, review_helpful_votes, review_reports, users |

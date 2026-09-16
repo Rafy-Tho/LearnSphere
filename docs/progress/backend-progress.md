@@ -14,6 +14,7 @@
 | Security hardening | Server-side quiz grading, CSRF, helmet headers, session invalidation on password change, per-account login lockout, generic registration, audit logging, 24h idle timeout. |
 | Email verification | `users.email_verified_at` + `email_verification_codes` (migration `0013`, applied). Registration and login of unverified accounts issue a hashed 6-digit code and return `requiresEmailVerification`; `POST /auth/verify-email` verifies and creates the session; `POST /auth/resend-verification-code` re-issues. Existing users verify on next login. |
 | Google OAuth | `GET /auth/google` + `GET /auth/google/callback` (authorization-code + OIDC via `openid-client`: state, nonce, PKCE, ID-token validation). `user_auth_providers` (migration `0014`) links provider identities; `users.password` is now nullable for provider-only accounts. Account linking cases A–D in `modules/auth/google-oauth.service.js`; reuses the existing session service (no JWT). |
+| Quiz attempts | `modules/quiz/` (migration `0015`): `quiz_attempts` + `quiz_answers`. `POST /lessons/:lessonId/quiz-attempts` grades server-side, persists the attempt + answers, and marks the lesson complete (idempotent); `GET .../quiz-attempts` returns history + best score; `GET .../quiz-attempts/latest` returns the latest completed attempt with review. Each retake inserts a new attempt. |
 
 ## Remaining
 
@@ -22,7 +23,7 @@
 | BM-1 | Route cross-module calls through the other module's **service**, not its repository | 🟡 | Modules still import each other's repositories directly (e.g. `courses/course.service.js` → `content/*.repository.js`, `learning/enrollment.service.js` → `content/lesson.repository.js`). |
 | BM-3 | Confirm/complete ownership checks | ⬜ | Mark N/A where not applicable (auth, users, categories, learning, reviews, certificates, subscriptions). |
 | BM-4 | Confirm/complete validators | ⬜ | certificates, subscriptions, admin write endpoints. |
-| Ops | Migrations applied to the live DB | ✅ | `0001`–`0014` applied (`npm run db:status`). `0013` adds email verification; `0014` adds `user_auth_providers` + nullable `users.password`. |
+| Ops | Migrations applied to the live DB | ✅ | `0001`–`0015` applied (`npm run db:status`). `0013` adds email verification; `0014` adds `user_auth_providers` + nullable `users.password`; `0015` adds `quiz_attempts` + `quiz_answers`. |
 
 ## Notes / Residuals
 

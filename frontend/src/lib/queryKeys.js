@@ -26,6 +26,8 @@ export const queryKeys = {
   lessonContent: (lessonId) => ["lesson-content", lessonId],
   quizzes: (lessonId) => ["quizzes", lessonId],
   completedLesson: (lessonId) => ["get-completed-lesson", lessonId],
+  quizAttempts: (lessonId) => ["quiz-attempts", lessonId],
+  quizAttemptLatest: (lessonId) => ["quiz-attempt-latest", lessonId],
 
   reviews: (courseId, params) => ["reviews", courseId, params],
   reviewsRoot: (courseId) => ["reviews", courseId],
@@ -55,6 +57,8 @@ export const userScopedQueryRoots = new Set([
   queryKeys.courseProgress(null)[0],
   queryKeys.courseLessonCompletions(null)[0],
   queryKeys.completedLesson(null)[0],
+  queryKeys.quizAttempts(null)[0],
+  queryKeys.quizAttemptLatest(null)[0],
   queryKeys.certificate(null)[0],
   queryKeys.certificateEligibility(null)[0],
   queryKeys.myCertificates()[0],

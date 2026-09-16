@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { learningApi } from "@/features/learning/services/learning";
 import { lessonsApi } from "@/features/learning/services/lessons";
+import { quizAttemptsApi } from "@/features/learning/services/quizAttempts";
 import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "react-toastify";
 
@@ -114,13 +115,37 @@ export function useCreateCompletedLesson() {
   });
 }
 
-export function useSubmitQuiz() {
-  const { lessonId } = useParams();
+export function useSubmitQuizAttempt() {
+  const { courseId, lessonId } = useParams();
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: ["submit-quiz", lessonId],
-    mutationFn: (answers) => lessonsApi.submitQuiz(lessonId, answers),
+    mutationKey: ["submit-quiz-attempt", lessonId],
+    mutationFn: (answers) => quizAttemptsApi.submit(lessonId, answers),
     onError: (error) => {
-      toast.error(error.message || "Failed to submit answer");
+      toast.error(error.message || "Failed to submit quiz");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.quizAttempts(lessonId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.quizAttemptLatest(lessonId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.completedLesson(lessonId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseLessonCompletionsRoot(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseProgress(courseId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.certificateEligibility(courseId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.inProgress(),
+      });
     },
   });
 }

@@ -1,6 +1,6 @@
 # Business Rules
 
-Business rules define the constraints and policies the system enforces, independent of implementation. Sources: `backend/src/controllers`, `backend/src/repositories`, and `backend/src/db/schema.sql`.
+Business rules define the constraints and policies the system enforces, independent of implementation. Sources: `backend/src/modules/*` and `backend/src/db/schema.sql`.
 
 ## 1. Identity & Access
 
@@ -9,7 +9,7 @@ Business rules define the constraints and policies the system enforces, independ
 | BR-AUTH-01 | A user is uniquely identified by email; duplicate emails are rejected (HTTP 409 via unique constraint `users.email`). |
 | BR-AUTH-02 | New users default to role `LEARNER` and status `ACTIVE`. |
 | BR-AUTH-03 | Passwords are stored only as bcrypt hashes (12 salt rounds). |
-| BR-AUTH-04 | Password reset codes are single-use, expire after 10 minutes, and are stored as SHA-256 hashes. |
+| BR-AUTH-04 | Password reset codes are single-use, expire after 10 minutes, and are stored as HMAC-SHA256 hashes. |
 | BR-AUTH-05 | A reset code may be attempted a limited number of times (max 5) before rejection. |
 | BR-AUTH-06 | A reset-code request may be issued at most 10 times per 12 hours per client. |
 | BR-AUTH-07 | A code-verification/reset attempt may be made at most 10 times per hour per client. |
@@ -82,7 +82,7 @@ Business rules define the constraints and policies the system enforces, independ
 | BR-REV-02 | A rating must be an integer from 1 to 5. |
 | BR-REV-03 | A user may cast at most one helpful vote per review (`UNIQUE(user_id, review_id)`); the vote can be toggled. |
 | BR-REV-04 | A user may file at most one report per review (`UNIQUE(user_id, review_id)`). |
-| BR-REV-05 | `helpful_count` is a denormalized counter on `course_reviews` and is not automatically maintained by a trigger. |
+| BR-REV-05 | The helpful-vote count derives from `review_helpful_votes`; there is no denormalized `helpful_count` column. |
 
 ## 7. Data Integrity Rules
 

@@ -87,7 +87,7 @@ Guidelines:
 3. No `console.log` left behind (`no-console: warn`).
 4. No dead code or unused variables.
 5. Update docs/`ai` rules if architecture or conventions change.
-6. For schema changes, update `backend/src/db/schema.sql` and note the drift risk (no migrations exist).
+6. For schema changes, update `backend/src/db/schema.sql` and add an idempotent migration in `backend/src/db/migrations/`.
 
 ## 6. What Not to Do
 

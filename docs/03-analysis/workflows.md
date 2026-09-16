@@ -4,7 +4,7 @@ End-to-end workflows showing how requests flow through the frontend, backend, an
 
 ## 1. Authentication Workflow
 
-**Participants:** `frontend/src/services/auth.js`, `frontend/src/api/client.js`, `backend/src/modules/auth/routes.js`, `backend/src/modules/auth/controller.js`, `backend/src/modules/auth/service.js`, `backend/src/common/services/hash-service.js`, `backend/src/common/services/session-service.js`, `backend/src/common/middleware/sessionMiddleware.js`.
+**Participants:** `frontend/src/features/auth/services/auth.js`, `frontend/src/lib/apiClient.js`, `backend/src/modules/auth/routes.js`, `backend/src/modules/auth/controller.js`, `backend/src/modules/auth/service.js`, `backend/src/common/services/hash-service.js`, `backend/src/common/services/session-service.js`, `backend/src/common/middleware/session-middleware.js`.
 
 ```mermaid
 sequenceDiagram
@@ -14,7 +14,7 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   U->>F: Submit login form
-  F->>A: POST /api/v1/users/login (credentials: include)
+  F->>A: POST /api/v1/auth/login (credentials: include)
   A->>DB: SELECT user by email
   DB-->>A: user row
   A->>A: bcrypt.compare(password, hash)
@@ -22,7 +22,7 @@ sequenceDiagram
     A->>DB: UPDATE users SET last_login
     A->>DB: INSERT INTO session
     A-->>F: 200 { user } + Set-Cookie
-    F->>F: saveAuth(user) to localStorage
+    F->>F: saveAuth(user) → React Query ["me"] cache
     F-->>U: Redirect to dashboard
   else invalid
     A-->>F: 401 Unauthorized
@@ -36,7 +36,7 @@ Steps:
 2. Route runs validators then the `login` controller.
 3. Controller looks up the user, verifies the password with bcrypt, updates `last_login`, and creates a session via `SessionService.create`.
 4. Session is stored in PostgreSQL by `connect-pg-simple`; the HTTP-only cookie is returned.
-5. Frontend persists user state and routes to the dashboard.
+5. Frontend seeds the `["me"]` query cache and routes to the dashboard.
 
 ## 2. Session Validation Workflow
 
@@ -56,7 +56,7 @@ flowchart TD
 
 ## 3. Course Discovery Workflow
 
-**Participants:** `frontend/src/pages/CourseScreen.jsx`, `frontend/src/hooks/queries/useCourses.js`, `frontend/src/services/courses.js`, `backend/src/modules/courses/routes.js`, `backend/src/modules/courses/service.js`, `backend/src/modules/courses/repository.js`, `backend/src/common/query/advanced-query.js`.
+**Participants:** `frontend/src/features/catalog/pages/CourseScreen.jsx`, `frontend/src/features/catalog/hooks/useCourses.js`, `frontend/src/features/catalog/services/courses.js`, `backend/src/modules/courses/routes.js`, `backend/src/modules/courses/course.service.js`, `backend/src/modules/courses/repository.js`, `backend/src/common/query/advanced-query.js`.
 
 ```mermaid
 sequenceDiagram
@@ -80,7 +80,7 @@ Filters supported by `CourseRepository` include `level`, `category`, `skill` (ma
 
 ## 4. Enrollment Workflow
 
-**Participants:** `frontend/src/hooks/mutations/useCourseMutations.js`, `backend/src/modules/learning/enrollment.routes.js`, `backend/src/modules/learning/service.js`, `backend/src/modules/learning/enrollment.repository.js`, `backend/src/modules/learning/progress.repository.js`.
+**Participants:** `frontend/src/features/learning/hooks/useLearningMutations.js`, `backend/src/modules/learning/enrollment.routes.js`, `backend/src/modules/learning/enrollment.service.js`, `backend/src/modules/learning/enrollment.repository.js`, `backend/src/modules/learning/progress.repository.js`.
 
 ```mermaid
 sequenceDiagram
@@ -90,7 +90,7 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   L->>F: Click Enroll
-  F->>A: POST /api/v1/courses/:id/enrollments
+  F->>A: POST /api/v1/courses/:courseId/enrollments
   A->>DB: INSERT INTO enrollments (user, course)
   A->>DB: SELECT first lesson
   A->>DB: INSERT INTO learn_progress (user, course, lesson)
@@ -102,7 +102,7 @@ Duplicate enrollments are prevented by the `UNIQUE(user_id, course_id)` constrai
 
 ## 5. Learning & Progress Workflow
 
-**Participants:** `frontend/src/components/courseLearning/NextPrevious.jsx`, `frontend/src/components/courseLearning/LessonContent.jsx`, `frontend/src/hooks/mutations/useCourseMutations.js`, `backend/src/modules/learning/service.js`, `backend/src/modules/learning/controller.js`.
+**Participants:** `frontend/src/features/learning/components/course-learning/NextPrevious.jsx`, `frontend/src/features/learning/pages/LessonContent.jsx`, `frontend/src/features/learning/hooks/useLearningMutations.js`, `backend/src/modules/learning/progress.service.js`, `backend/src/modules/learning/progress.controller.js`.
 
 ```mermaid
 sequenceDiagram
@@ -112,12 +112,12 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   L->>F: Open lesson
-  F->>A: GET /api/v1/courses/:id/learn
+  F->>A: GET /api/v1/courses/:courseId/curriculum
   A-->>F: hierarchy + content + completion
   L->>F: Mark complete / next lesson
-  F->>A: POST /api/v1/lessons/:id/completions
+  F->>A: POST /api/v1/lessons/:lessonId/completions
   A->>DB: INSERT lesson_completion (xp, time_spent)
-  F->>A: PATCH /api/v1/courses/:id/progresses
+  F->>A: PATCH /api/v1/courses/:courseId/progress
   A->>DB: UPSERT learn_progress (current lesson)
   A-->>F: updated state
 ```
@@ -126,7 +126,7 @@ Lesson HTML is sanitized with DOMPurify before rendering.
 
 ## 6. Quiz Workflow
 
-**Participants:** `frontend/src/components/courseLearning/quiz/Quiz.jsx`, `frontend/src/hooks/queries/useLessons.js`, `backend/src/modules/content/service.js`, `backend/src/modules/content/lesson.repository.js`.
+**Participants:** `frontend/src/features/learning/pages/Quiz.jsx`, `frontend/src/features/learning/hooks/useLessons.js`, `backend/src/modules/content/question.service.js`, `backend/src/modules/content/lesson.repository.js`.
 
 ```mermaid
 stateDiagram-v2
@@ -137,11 +137,11 @@ stateDiagram-v2
   Results --> [*]: Review / Retry
 ```
 
-The quiz endpoint returns questions with options; results are computed in the frontend state machine and completion is recorded through the completion workflow.
+The quiz endpoint returns questions without answer keys; submission is graded server-side via `POST /lessons/:lessonId/quiz-submissions`, and completion is recorded through the completion workflow.
 
 ## 7. Review Workflow
 
-**Participants:** `frontend/src/components/courseReview/ReviewContainer.jsx`, `frontend/src/hooks/mutations/useCourseMutations.js`, `backend/src/modules/reviews/controller.js`, `backend/src/modules/reviews/service.js`, `backend/src/modules/reviews/repository.js`.
+**Participants:** `frontend/src/features/reviews/components/ReviewContainer.jsx`, `frontend/src/features/reviews/hooks/useReviewMutations.js`, `backend/src/modules/reviews/controller.js`, `backend/src/modules/reviews/service.js`, `backend/src/modules/reviews/repository.js`.
 
 ```mermaid
 sequenceDiagram
@@ -151,20 +151,20 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   L->>F: Submit rating + text
-  F->>A: POST /api/v1/courses/:id/reviews
+  F->>A: POST /api/v1/courses/:courseId/reviews
   A->>DB: INSERT INTO course_reviews
   A-->>F: 201 review
-  F->>A: GET /api/v1/courses/:id/reviews/summary
+  F->>A: GET /api/v1/courses/:courseId/reviews/summary
   A->>DB: aggregate avg + histogram
   A-->>F: summary
   F-->>L: Refresh review list/summary
 ```
 
-Helpful votes toggle via `POST /reviews/:id/helpful-votes`; reports via `POST /reviews/:id/reports`.
+Helpful votes toggle via `PUT`/`DELETE /reviews/:reviewId/helpful-vote`; reports via `POST /reviews/:reviewId/reports`.
 
 ## 8. Subscription & Payment Workflow
 
-**Participants:** `frontend/src/components/pricing/PricingCard.jsx`, `frontend/src/hooks/mutations/useUserMutations.js`, `backend/src/modules/subscriptions/service.js` (`createStripeSession`), `backend/src/modules/subscriptions/webhook.routes.js`, `backend/src/common/services/email-service.js`.
+**Participants:** `frontend/src/features/subscriptions/components/PricingCard.jsx`, `frontend/src/features/subscriptions/hooks/useSubscriptionMutations.js`, `backend/src/modules/subscriptions/subscription.service.js` (`createStripeSession`), `backend/src/modules/subscriptions/webhook.routes.js`, `backend/src/common/services/email-service.js`.
 
 ```mermaid
 sequenceDiagram
@@ -176,13 +176,13 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   L->>F: Select plan / Pay
-  F->>A: POST /api/v1/users/payment-stripe/:subscriptionId
+  F->>A: POST /api/v1/subscriptions/:planId/checkout
   A->>S: Create Checkout Session
   S-->>A: session.url
   A-->>F: { session_url }
   F-->>L: Redirect to Stripe
   L->>S: Complete payment
-  S->>W: POST /api/v1/stripe-webhook (checkout.session.completed)
+  S->>W: POST /api/v1/webhooks/stripe (checkout.session.completed)
   W->>W: Verify signature
   W->>DB: Expire prior active subscriptions
   W->>DB: INSERT user_subscriptions
@@ -195,18 +195,18 @@ The webhook is mounted before JSON body parsing so it can verify the raw request
 
 ## 9. Admin Content Authoring Workflow
 
-**Participants:** `admin/src/pages/CourseDetailPage.jsx`, `admin/src/hooks/course-details/*`, `admin/src/services/*Api.js`, `backend/src/routes/*`.
+**Participants:** `admin/src/pages/CourseDetailPage.jsx`, `admin/src/hooks/course-details/*`, `admin/src/services/*Api.js`, `backend/src/modules/content/*`.
 
 ```mermaid
 flowchart TD
-  A[Open course detail] --> B[Load dashboard-details]
+  A[Open course detail] --> B[Load /admin/courses/:courseId]
   B --> C{Action}
-  C -->|Module| D[POST /courses/:id/modules]
-  C -->|Chapter| E[POST /modules/:id/chapters]
-  C -->|Lesson| F[POST /chapters/:id/lessons]
-  C -->|Content| G[POST /lessons/:id/contents]
-  C -->|Quiz| H[POST /lessons/:id/questions]
-  C -->|Option| I[POST /questions/:id/options]
+  C -->|Module| D[POST /courses/:courseId/modules]
+  C -->|Chapter| E[POST /modules/:moduleId/chapters]
+  C -->|Lesson| F[POST /chapters/:chapterId/lessons]
+  C -->|Content| G[POST /lessons/:lessonId/contents]
+  C -->|Quiz| H[POST /lessons/:lessonId/questions]
+  C -->|Option| I[POST /questions/:questionId/options]
   D --> J[Invalidate course-details]
   E --> J
   F --> J

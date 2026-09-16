@@ -2,7 +2,7 @@
 
 This is the conventional agent entry point. The full guide lives in [`agent.md`](./agent.md); the authoritative rules live in [`ai/`](./ai/).
 
-> **Backend refactor (structure complete):** the backend now follows the module-based structure. Plans: [`docs/08-refactoring/`](./docs/08-refactoring/); tasks: [`docs/09-implement/tasks/`](./docs/09-implement/tasks/); status: [`docs/09-implement/progress-tracking.md`](./docs/09-implement/progress-tracking.md).
+> **Progress:** what is done and what is left lives in [`docs/progress/`](./docs/progress/). The backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started.
 
 ## Start Here
 

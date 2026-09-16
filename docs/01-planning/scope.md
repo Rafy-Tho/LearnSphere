@@ -63,7 +63,7 @@ The following are **not** implemented:
 | Item | Notes |
 |---|---|
 | Automated tests | No test framework or test files exist in any app. |
-| Database migrations/seeds | Only a single `schema.sql`; no migration tool or seed data. |
+| Database seeds | No seed data; schema changes use `schema.sql` + migrations. |
 | CI/CD pipelines | No CI config in the repository. |
 | Social OAuth login | Buttons exist in the UI, but no backend OAuth flow. |
 | Video hosting/streaming | Lessons are text/HTML and quizzes; no video pipeline. |
@@ -77,7 +77,7 @@ The following are **not** implemented:
 
 ## 4. Known Constraints
 
-- The database schema is applied manually; there is no versioning.
+- Schema changes use `schema.sql` for fresh installs and versioned plain-SQL migrations (`npm run db:migrate`) for existing databases.
 - The `admin/` `package.json` is named `frontend` (legacy naming) and there is no `lint` script in `backend/`.
 - Backend is ESM-only and pins `engines.node` to `22.22.2`.
 - Session cookies use `sameSite: "none"` in production, which requires HTTPS and `trust proxy`.

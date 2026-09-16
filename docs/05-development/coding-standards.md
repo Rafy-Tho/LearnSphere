@@ -56,7 +56,7 @@ Conventions derived from the existing codebase. New code should match these patt
 
 ### 3.5 Validation
 
-- Define validators in `backend/src/validators/*` using shared builders from `common.validator.js`.
+- Define validators in `backend/src/modules/<module>/validation.js` using shared builders from `backend/src/common/validation.js`.
 - Always follow a validator with `validateResult`.
 - Sanitize HTML through `htmlValidator`.
 
@@ -78,7 +78,7 @@ Conventions derived from the existing codebase. New code should match these patt
 ### 4.2 Data Fetching
 
 - Use TanStack React Query for all server state.
-- Define query hooks under `hooks/queries` and mutations under `hooks/mutations` (frontend) or domain folders (admin).
+- Define query/mutation hooks with their domain under `features/<domain>/hooks/` (frontend) or domain folders (admin).
 - Mutations invalidate the relevant query keys.
 - Access the API only through service modules; never call `fetch` directly in components.
 
@@ -97,7 +97,7 @@ Conventions derived from the existing codebase. New code should match these patt
 ### 4.5 State
 
 - Server state: React Query.
-- Auth: Context + localStorage mirror.
+- Auth: server-derived via the `["me"]` query (no localStorage mirror).
 - UI state: local `useState`; filters/pagination in the URL (`useSearchParams`).
 
 ### 4.6 Auth & Errors

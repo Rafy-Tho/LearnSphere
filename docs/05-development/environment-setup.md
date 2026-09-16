@@ -64,8 +64,6 @@ STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 ```
 
-> The README mentions a single `CLIENT_URL`; the code actually uses `CLIENT_URL_1` and `CLIENT_URL_2`.
-
 ### 3.2 `frontend/.env`
 
 ```dotenv
@@ -88,15 +86,21 @@ Only `VITE_*` variables reach the browser. Never put secrets in frontend env fil
 createdb learning_platform
 ```
 
-2. Apply the schema (requires `pgcrypto`; the schema creates it):
+2. Apply the schema. For a fresh database:
 
 ```bash
 psql "$DATABASE_URL" -f backend/src/db/schema.sql
 ```
 
-3. The `session` table is created automatically on first backend start (`connect-pg-simple`).
+For an existing database, apply incremental migrations instead:
 
-> There are no migrations or seeds. Schema changes are manual.
+```bash
+cd backend
+npm run db:migrate   # apply pending migrations
+npm run db:status    # list applied/pending
+```
+
+3. The `session` table is created automatically on first backend start (`connect-pg-simple`).
 
 ## 5. Running the Apps
 
@@ -123,7 +127,7 @@ Vite prints the local URLs (commonly `5173` and `5174`). Ensure those origins ma
 Use the Stripe CLI to forward events and get a signing secret:
 
 ```bash
-stripe listen --forward-to localhost:5000/api/v1/stripe-webhook
+stripe listen --forward-to localhost:5000/api/v1/webhooks/stripe
 ```
 
 Copy the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET`.
@@ -134,6 +138,8 @@ Copy the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET`.
 |---|---|---|
 | backend | `npm run dev` | Watch mode server |
 | backend | `npm run pro` | Production start (`NODE_ENV=production`) |
+| backend | `npm run db:migrate` | Apply pending DB migrations |
+| backend | `npm run db:status` | List applied/pending DB migrations |
 | backend | `npx eslint .` | Lint (no npm script) |
 | frontend | `npm run dev` | Vite dev server |
 | frontend | `npm run build` | Production build |
@@ -150,8 +156,8 @@ Copy the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET`.
 |---|---|
 | CORS error in browser | Frontend origin not in `CLIENT_URL_1`/`CLIENT_URL_2` |
 | Cookies not sent | Ensure `credentials: "include"` and matching origins; HTTPS in production |
-| `relation "lesson_contents" does not exist` | Known schema drift; see `docs/04-design/database-design.md` §9 |
-| `column "access_type" does not exist` | Known schema drift on `lessons` |
+| `relation "lesson_contents" does not exist` | Database missing migrations — run `npm run db:migrate` |
+| `column "access_type" does not exist` | Database missing migrations — run `npm run db:migrate` |
 | Session lost on restart | Confirm `connect-pg-simple` store and DB connectivity |
 | Emails not sent | Verify `BREVO_API_KEY` and `SENDER_EMAIL` |
 | Image upload fails | Check Cloudinary credentials and 5 MB/type limits |

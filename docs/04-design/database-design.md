@@ -3,7 +3,7 @@
 **Engine:** PostgreSQL
 **Authoritative DDL:** `backend/src/db/schema.sql`
 **Extension:** `pgcrypto` (for `gen_random_uuid()`)
-**No migrations or seed data exist.** The schema is applied manually.
+**Migrations:** plain SQL in `backend/src/db/migrations/` (runner `npm run db:migrate`); no seed data.
 
 ## 1. Conventions
 
@@ -11,7 +11,7 @@
 - Timestamps use `TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP` unless noted.
 - Tables with `updated_at` maintain it via the `set_updated_at()` trigger.
 - Nearly all child foreign keys are `ON DELETE CASCADE`.
-- List/aggregate queries use parameterized SQL in `backend/src/repositories`.
+- List/aggregate queries use parameterized SQL in `backend/src/modules/<module>/*.repository.js`.
 
 ## 2. Entity Relationship Overview
 
@@ -100,12 +100,12 @@ One-to-one with `users`.
 |---|---|---|
 | id | UUID | PK |
 | user_id | UUID | NOT NULL, FK → users(id) CASCADE |
-| code | VARCHAR(6) | NOT NULL |
+| code | VARCHAR(255) | NOT NULL (HMAC-SHA256 hex) |
 | attempts | INTEGER | DEFAULT 0 |
 | expires_at | TIMESTAMPTZ | NOT NULL |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
-> **Known issue:** The column is `VARCHAR(6)` but `userControllers.js` stores a 64-character SHA-256 hex digest, which will overflow. See §9.
+> The column is `VARCHAR(255)`; the stored value is an HMAC-SHA256 hex digest keyed with `SESSION_SECRET`. (Formerly `VARCHAR(6)` — resolved, see §9.)
 
 ### 4.2 Catalog & Content
 
@@ -339,7 +339,6 @@ Index `idx_subscription_payment_user_subscription`.
 | user_id | UUID | NOT NULL, FK → users(id) CASCADE |
 | course_id | UUID | NOT NULL, FK → courses(id) CASCADE |
 | rating | INTEGER | NOT NULL, CHECK BETWEEN 1 AND 5 |
-| helpful_count | INTEGER | DEFAULT 0 (denormalized) |
 | review | TEXT | nullable |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
@@ -373,7 +372,7 @@ Unique `(user_id, review_id)`.
 ### 4.6 Runtime Table
 
 #### `session`
-Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `backend/src/common/middleware/sessionMiddleware.js`. Not in `schema.sql`; a fresh database has 23 tables after the server runs.
+Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `backend/src/common/middleware/session-middleware.js`. Not in `schema.sql`; a fresh database has 23 tables after the server runs.
 
 ## 5. Triggers & Functions
 
@@ -411,10 +410,10 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 | `LessonRepository` | lessons, quizzes, quiz_options, chapters, modules, courses |
 | `LessonContentRepository` | lesson_contents |
 | `QuestionRepository` | quizzes, lessons, chapters, modules, courses |
-| `AnswerRepository` | quiz_options, quizzes, lessons, chapters, modules |
+| `OptionRepository` | quiz_options, quizzes, lessons, chapters, modules |
 | `EnrollmentRepository` | enrollments |
 | `LearningProgressRepository` | learn_progress |
-| `LessonCompletion` | lesson_completion |
+| `LessonCompletionRepository` | lesson_completion |
 | `CertificateRepository` | certificates, courses, users, lessons, chapters, modules, lesson_completion |
 | `SubscriptionRepository` | subscription_plans, user_subscriptions, subscription_payments, users |
 | `ReviewRepository` | course_reviews, review_helpful_votes, review_reports, users |
@@ -423,14 +422,14 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 
 | # | Issue | Status | Resolution |
 |---|---|---|---|
-| 1 | `lesson_contents` (code) vs `lesson_content` (schema) | ✅ Resolved | Canonical `lesson_contents`; `schema.sql` + migration `0001` |
+| 1 | `lesson_contents` (code) vs `lesson_content` (schema) | ✅ Resolved | Canonical `lesson_contents`; `schema.sql` + migration `0011` |
 | 2 | `lessons.access_type` referenced but missing | ✅ Resolved | Column added (`access_course_type DEFAULT 'FREE'`) |
 | 3 | `quizzes.lesson_id` `UNIQUE` | ✅ Resolved | Constraint dropped; `(lesson_id, position)` kept |
 | 4 | `password_reset_codes.code` too small for a hash | ✅ Resolved | Widened to `VARCHAR(255)`; HMAC-SHA256 stored |
-| 5 | `modules.icon_name` used by code but not defined | ⬜ Open | Decide add column vs remove code usage |
-| 6 | `course_reviews.helpful_count` not maintained | ⬜ Open | Maintain via trigger/service, or drop |
-| 7 | `getPopular` counts `lesson_completion`, not `enrollments` | ⬜ Open | Use `enrollments` (perf B4) |
-| 8 | No indexes on `courses.instructor_id/category_id/deleted_at` | ⬜ Open | Add indexes (perf B1) |
+| 5 | `modules.icon_name` used by code but not defined | ✅ Resolved | Never existed; code usage removed |
+| 6 | `course_reviews.helpful_count` not maintained | ✅ Resolved | Column dropped; count derives from votes |
+| 7 | `getPopular` counts `lesson_completion`, not `enrollments` | ✅ Resolved | Counts `enrollments` |
+| 8 | No indexes on `courses.instructor_id/category_id/deleted_at` | ✅ Resolved | Indexes added (migration `0009`) |
 
 ## 10. Applying the Schema
 

@@ -102,7 +102,7 @@ erDiagram
     timestamptz created_at
     timestamptz updated_at
   }
-  lesson_content {
+  lesson_contents {
     uuid id PK
     uuid lesson_id FK
     int position
@@ -197,7 +197,6 @@ erDiagram
     uuid user_id FK
     uuid course_id FK
     int rating
-    int helpful_count
     text review
     timestamptz created_at
     timestamptz updated_at
@@ -226,7 +225,7 @@ erDiagram
   courses ||--o{ modules : "contains"
   modules ||--o{ chapters : "contains"
   chapters ||--o{ lessons : "contains"
-  lessons ||--o{ lesson_content : "has"
+  lessons ||--o{ lesson_contents : "has"
   lessons ||--o| quizzes : "has"
   quizzes ||--o{ quiz_options : "has"
   users ||--o{ enrollments : "enrolls"
@@ -255,7 +254,7 @@ erDiagram
   courses ||--o{ modules : has
   modules ||--o{ chapters : has
   chapters ||--o{ lessons : has
-  lessons ||--o{ lesson_content : has
+  lessons ||--o{ lesson_contents : has
   lessons ||--o| quizzes : has
   quizzes ||--o{ quiz_options : has
   courses ||--o{ course_objectives : has
@@ -307,7 +306,7 @@ erDiagram
 | courses | modules | course_id | CASCADE | 1:N |
 | modules | chapters | module_id | CASCADE | 1:N |
 | chapters | lessons | chapter_id | CASCADE | 1:N |
-| lessons | lesson_content | lesson_id | CASCADE | 1:N |
+| lessons | lesson_contents | lesson_id | CASCADE | 1:N |
 | lessons | quizzes | lesson_id | CASCADE | 1:1 |
 | quizzes | quiz_options | quiz_id | CASCADE | 1:N |
 | users | enrollments | user_id | CASCADE | 1:N |
@@ -337,7 +336,7 @@ erDiagram
 | modules | (course_id, position) |
 | chapters | (module_id, position) |
 | lessons | (chapter_id, position) |
-| lesson_content | (lesson_id, position) |
+| lesson_contents | (lesson_id, position) |
 | quizzes | lesson_id, (lesson_id, position) |
 | quiz_options | (quiz_id, position) |
 | enrollments | (user_id, course_id) |
@@ -351,4 +350,4 @@ erDiagram
 | review_helpful_votes | (user_id, review_id) |
 | review_reports | (user_id, review_id) |
 
-> **Note:** The ERD reflects the intended `schema.sql`. Known drift (see `docs/04-design/database-design.md` §9) affects `lesson_content`/`lesson_contents`, `lessons.access_type`, and `password_reset_codes.code`.
+> **Note:** The ERD reflects `schema.sql`. The former drift (`lesson_contents`, `lessons.access_type`, `password_reset_codes.code`) is resolved; see `docs/04-design/database-design.md` §9.

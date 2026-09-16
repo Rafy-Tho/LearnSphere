@@ -81,7 +81,7 @@ Frontends: set `VITE_BASE_URL` to the public API URL **at build time** (Vite inl
 
 ### 4.4 Stripe
 
-1. Create a webhook endpoint pointing to `https://<api-host>/api/v1/stripe-webhook`.
+1. Create a webhook endpoint pointing to `https://<api-host>/api/v1/webhooks/stripe`.
 2. Subscribe to `checkout.session.completed` (at minimum).
 3. Copy the signing secret to `STRIPE_WEBHOOK_SECRET`.
 4. Test with the Stripe CLI before going live.
@@ -110,7 +110,7 @@ Frontends: set `VITE_BASE_URL` to the public API URL **at build time** (Vite inl
 
 - Keep the previous frontend builds; static hosts support instant rollback.
 - For backend, deploy immutable releases and be able to redeploy the prior version.
-- Database changes are manual (no migrations): take a backup before schema changes.
+- Database changes are applied via migrations (`npm run db:migrate`); take a backup before applying.
 - Stripe webhook changes should be versioned; keep the previous secret until cutover.
 
 ## 7. Operational Notes
@@ -119,15 +119,14 @@ Frontends: set `VITE_BASE_URL` to the public API URL **at build time** (Vite inl
 |---|---|
 | Sessions | Stored in PostgreSQL; ensure the DB is reachable at all times. |
 | File uploads | Local `uploads/` is temporary; durable storage is Cloudinary. |
-| Logging | Morgan enabled only in development; add structured logging for production. |
+| Logging | Morgan in development; structured `logger` / `logger.audit` in all environments. |
 | Scaling | DB-backed sessions allow multiple backend instances behind a load balancer. |
-| Static `/uploads` | Served by the backend; in multi-instance setups this is not shared. |
+| File uploads | Uploads are temporary local files pushed to Cloudinary; not served statically. |
 | Node version | Pin to 22.22.2 to match `engines`. |
 
 ## 8. Known Deployment Risks
 
-- No migrations: applying schema changes to production is error-prone.
-- Schema drift (see `database-design.md` §9) can cause runtime failures in content/reset flows.
+- Migrations must be applied in order; always back up first.
 - `sameSite: "none"` requires HTTPS; a non-HTTPS production setup breaks auth.
 - No health-check endpoint beyond hitting an API route.
 - No centralized logging/alerting.

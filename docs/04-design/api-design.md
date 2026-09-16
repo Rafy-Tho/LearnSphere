@@ -4,8 +4,7 @@ Base URL: `{VITE_BASE_URL}` (default `http://localhost:5000/api/v1`)
 Content type: `application/json` (except profile upload, which is `multipart/form-data`)
 Auth: HTTP-only session cookie sent with `credentials: include`
 
-> Route naming follows [`../08-refactoring/backend/04-endpoint-naming.md`](../08-refactoring/backend/04-endpoint-naming.md):
-> plural nouns, **max 1 level of nesting**, descriptive params, user-scoped data under `/users/me`.
+> Route naming: plural nouns, **max 1 level of nesting**, descriptive params, user-scoped data under `/users/me`.
 
 ## 1. Conventions
 
@@ -47,7 +46,7 @@ In development the error body may also include `stack` and `error`.
 > `200` with `data: null` is a valid "not present yet" state for learner
 > sub-resources (not enrolled / no review / no progress / no certificate / no active
 > subscription) and for guest `GET /users/me`. `404` is reserved for a missing parent
-> resource. See [`../08-refactoring/backend/03-api.md`](../08-refactoring/backend/03-api.md) §2.7.
+> resource.
 
 ### 1.2 Status Codes
 

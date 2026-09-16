@@ -62,13 +62,14 @@ Always run the lint command for any app you modify. Run builds for frontend/admi
 - Critical auth/payment branches: all paths.
 - Do not chase blanket coverage on presentational components.
 
-## 8. Known Issues to Add Regression Tests For
+## 8. Areas to Add Regression Tests For
 
-- `lesson_contents` vs `lesson_content` table mismatch.
-- Missing `lessons.access_type`.
-- `quizzes.lesson_id UNIQUE`.
-- `password_reset_codes.code` length.
-- Option POST authorization gap.
+- Auth/session middleware and per-account lockout.
+- Authorization (role + ownership), including quiz options.
+- Server-side quiz grading (`POST /lessons/:lessonId/quiz-submissions`).
+- Stripe webhook signature + activation.
+- Enrollment, progress, lesson completion, and certificate eligibility.
+- Review rules (one per course, vote toggle, reports).
 - HTML sanitization.
 
 ## 9. Do Not

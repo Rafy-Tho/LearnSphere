@@ -47,9 +47,9 @@ Quality is currently enforced only by ESLint configs in all three apps. This doc
 
 ### 5.1 Backend Unit
 
-- `HashService` (hash/verify), `HashCode` (deterministic SHA-256), `SessionService`.
+- `HashService` (hash/verify), `HashCode` (HMAC-SHA256), `SessionService`.
 - `AdvancedQuery` builder (filters, operators, sort, pagination).
-- Validators (`common.validator.js` builders and domain schemas).
+- Validators (`common/validation.js` builders and domain schemas).
 - `errorHandler` SQLSTATE mapping.
 
 ### 5.2 Backend Integration (API)
@@ -65,7 +65,7 @@ Quality is currently enforced only by ESLint configs in all three apps. This doc
 
 - API client (`credentials`, 401 handling, pagination unwrapping).
 - Form validation and submission states.
-- Guards (`ProtectRoute`, `IsAuthenticate`, `RedirectToFirstLesson`).
+- Guards (`RequireAuth`, `RedirectIfAuthenticated`, `RedirectToFirstLesson`).
 - Key components (course card, quiz state machine, review summary).
 
 ### 5.4 Frontend Integration
@@ -88,7 +88,7 @@ Quality is currently enforced only by ESLint configs in all three apps. This doc
 | Local | Developer runs | Local Postgres test DB |
 | CI | Automated | Ephemeral Postgres service container |
 
-Each test run should apply `backend/src/db/schema.sql` to a fresh database. Because there are no migrations, the schema file is the source of truth for tests.
+Each test run should apply `backend/src/db/schema.sql` to a fresh database. The schema file is the source of truth for tests (migrations are for existing databases).
 
 ## 7. Coverage Targets
 
@@ -141,10 +141,10 @@ jobs:
 
 ## 11. Known Risks Tests Should Cover
 
-- Schema drift (`lesson_contents`, `lessons.access_type`, reset-code length).
+- Regression coverage for the resolved drift (`lesson_contents`, `lessons.access_type`, reset-code length).
 - One-active-subscription invariant.
 - Ownership checks on content mutations.
-- Option POST authorization gap.
+- Quiz-option authorization (previously missing).
 - HTML sanitization.
 
 See `test-cases.md` for concrete cases.

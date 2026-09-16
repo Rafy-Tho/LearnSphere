@@ -117,7 +117,7 @@ Acceptance criteria are written in Given/When/Then form and map to requirement I
 
 ### AC-LRN-02 — Learning data (FR-LRN-06)
 - **Given** an enrolled learner
-- **When** they request `GET /api/v1/courses/:id/learn`
+- **When** they request `GET /api/v1/courses/:courseId/curriculum`
 - **Then** the full hierarchy, lesson content, and their completion state are returned.
 
 ### AC-LRN-03 — Progress update (FR-LRN-03)

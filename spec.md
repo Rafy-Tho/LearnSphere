@@ -36,7 +36,7 @@ The repository is a monorepo of three independently runnable applications sharin
 ### Infrastructure
 - PostgreSQL with UUID PKs (`pgcrypto`)
 - Schema: `backend/src/db/schema.sql`
-- Config: `backend/src/config/Env.js`
+- Config: `backend/src/config/environment.js`
 
 ## 3. Scope
 
@@ -59,7 +59,7 @@ Full scope: `docs/01-planning/scope.md`.
 
 ## 4. Architecture
 
-> **Backend refactor (structure complete):** the backend now follows the module-based structure. Target: [`docs/08-refactoring/backend/01-structure.md`](./docs/08-refactoring/backend/01-structure.md); tasks: [`docs/09-implement/tasks/`](./docs/09-implement/tasks/); status: [`docs/09-implement/progress-tracking.md`](./docs/09-implement/progress-tracking.md).
+> **Progress:** the backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started. See [`docs/progress/`](./docs/progress/).
 
 ### 4.1 Backend Layering
 
@@ -69,23 +69,22 @@ routes → validators → middlewares → controllers → services / repositorie
 
 | Layer | Location |
 |---|---|
-| Routes | `backend/src/routes/` (+ `routes/admin/`) |
-| Validators | `backend/src/validators/` |
+| App wiring | `backend/src/app/` (`app.js`, `middleware.js`, `routes.js`) |
+| Modules | `backend/src/modules/<module>/` (`routes.js`, `controller.js`, `service.js`, `repository.js`, `validation.js`) |
+| Validators | `backend/src/modules/<module>/validation.js` (+ builders in `backend/src/common/validation.js`) |
 | Middlewares | `backend/src/common/middleware/` |
-| Controllers | `backend/src/controllers/` |
-| Services | `backend/src/common/services/` |
-| Repositories | `backend/src/repositories/` |
+| Services (shared) | `backend/src/common/services/` |
 | Config | `backend/src/config/` |
 | Utils | `backend/src/common/` |
 
 ### 4.2 Request Pipeline
 
-`trust proxy` → CORS → **Stripe webhook (raw body)** → body parsers → logging → global rate limit → session → static uploads → routers → 404 → error handler.
+`trust proxy` → helmet → CORS → **Stripe webhook (raw body)** → CSRF guard → JSON parser → logging → global rate limit → session → idle timeout → routers → 404 → error handler.
 
 ### 4.3 Response Envelope
 
 ```json
-{ "success": true, "statusCode": 200, "message": "OK", "data": {}, "pagination": { "page": 1, "limit": 10, "total": 42, "totalPages": 5 } }
+{ "success": true, "statusCode": 200, "message": "OK", "data": {}, "pagination": { "totalItems": 42, "currentPage": 1, "totalPages": 5, "limit": 10, "next": 2, "prev": null } }
 ```
 
 Errors: `{ "success": false, "statusCode": 422, "message": "..." }` (stack included in development only).
@@ -95,12 +94,12 @@ Errors: `{ "success": false, "statusCode": 422, "message": "..." }` (stack inclu
 | Concern | Mechanism |
 |---|---|
 | Server state | TanStack React Query |
-| Auth/session | `AuthContext` + localStorage mirror |
-| Theme | `ThemeContext` + localStorage |
+| Auth/session | `AuthProvider` + `["me"]` query (server-derived) |
+| Theme | `ThemeProvider` + localStorage |
 | Filters/pagination | URL (`useSearchParams`) |
 | Local UI | `useState` |
 
-API access flows components → hooks → services → `frontend/src/api/client.js` (`credentials: "include"`, 401 auto-logout).
+API access flows components → hooks → feature services → `frontend/src/lib/apiClient.js` (`credentials: "include"`, 401 auto-logout).
 
 ### 4.5 External Integrations
 
@@ -163,7 +162,7 @@ PostgreSQL, 22 declared tables (+ runtime `session`), 9 enum types.
 |---|---|
 | Identity | `users`, `user_profiles`, `password_reset_codes` |
 | Catalog | `categories`, `courses`, `course_objectives` |
-| Content | `modules`, `chapters`, `lessons`, `lesson_content`, `quizzes`, `quiz_options` |
+| Content | `modules`, `chapters`, `lessons`, `lesson_contents`, `quizzes`, `quiz_options` |
 | Learning | `enrollments`, `learn_progress`, `lesson_completion`, `certificates` |
 | Billing | `subscription_plans`, `user_subscriptions`, `subscription_payments` |
 | Reviews | `course_reviews`, `review_helpful_votes`, `review_reports` |
@@ -187,25 +186,23 @@ Base: `/api/v1`. Auth via session cookie. Pagination params: `page`, `limit`, `s
 
 | Domain | Base path |
 |---|---|
-| Users | `/users` (register, login, logout, me, profile, password, payment-stripe, dashboard-data) |
+| Auth | `/auth` (register, login, logout, password-resets, password) |
+| Users | `/users/me` (profile, xp, password), `/users/me/{courses,certificates,subscription}` |
 | Categories | `/categories` |
-| Courses | `/courses` (+ nested modules, objectives, lessons, reviews, enrollments, progresses, certificates) |
-| Objectives | `/courses/:id/objectives`, `/objectives` |
-| Modules | `/courses/:id/modules`, `/modules` |
-| Chapters | `/modules/:id/chapters`, `/chapters` |
-| Lessons | `/chapters/:id/lessons`, `/courses/:id/lessons`, `/lessons` |
-| Contents | `/lessons/:id/contents`, `/contents` |
-| Questions | `/lessons/:id/questions`, `/questions` |
-| Options | `/questions/:id/options`, `/options` |
-| Enrollments | `/courses/:id/enrollments`, `/enrollments` |
-| Progress | `/courses/:id/progresses`, `/progresses` |
-| Completions | `/lessons/:id/completions`, `/completions` |
-| Reviews | `/courses/:id/reviews`, `/reviews` |
-| Certificates | `/courses/:id/certificates`, `/certificates` |
-| Subscriptions | `/subscriptions` |
-| Admin users | `/admin/users` |
-| Admin subscriptions | `/admin/subscriptions` (plans, user-subscriptions, payments) |
-| Stripe webhook | `/stripe-webhook` |
+| Courses | `/courses` (+ `/:courseId/{objectives,reviews,enrollments,progress,certificates,curriculum,first-lesson,completions}`) |
+| Objectives | `/courses/:courseId/objectives`, `/objectives` |
+| Modules | `/courses/:courseId/modules`, `/modules` |
+| Chapters | `/modules/:moduleId/chapters`, `/chapters` |
+| Lessons | `/chapters/:chapterId/lessons`, `/lessons` |
+| Contents | `/lessons/:lessonId/contents`, `/contents` |
+| Questions | `/lessons/:lessonId/questions`, `/lessons/:lessonId/quiz-submissions`, `/questions` |
+| Options | `/questions/:questionId/options`, `/options` |
+| Reviews | `/courses/:courseId/reviews`, `/reviews/:reviewId/{helpful-vote,reports}` |
+| Certificates | `/courses/:courseId/certificates`, `/certificates/:certificateId` |
+| Plans | `/plans/:planId` |
+| Subscriptions | `/subscriptions/:planId/checkout` |
+| Admin | `/admin/{dashboard,courses,users,plans,subscriptions,payments}` |
+| Stripe webhook | `/webhooks/stripe` |
 
 Status codes: `200/201/204`, `400`, `401`, `403`, `404`, `409`, `422`, `429`, `500`. PostgreSQL SQLSTATE `23505→409`, `23503→400`, `23502→400`, `22P02→400`.
 
@@ -258,19 +255,13 @@ Setup steps: `docs/05-development/environment-setup.md`.
 | frontend | `npm run dev` | `npm run lint` | `npm run build` |
 | admin | `npm run dev` | `npm run lint` | `npm run build` |
 
-## 12. Known Issues (Schema Drift & Gaps)
+## 12. Known Issues & Residuals
 
-1. `LessonContentRepository` queries `lesson_contents`; table is `lesson_content`.
-2. Code references `lessons.access_type`; column does not exist.
-3. `quizzes.lesson_id` is `UNIQUE` though many questions per lesson are modeled.
-4. `password_reset_codes.code` is `VARCHAR(6)` but stores a 64-char hash.
-5. `loginLimiter` is defined but not applied.
-6. `POST /api/v1/options` lacks `authorize`; option PATCH/DELETE lack validators.
-7. `modules.icon_name` destructured but not persisted.
-8. `course_reviews.helpful_count` not trigger-maintained.
-9. No tests, no migrations, no CI.
+1. No automated tests and no CI.
+2. Live DB only: legacy `lesson_content*` child object names remain alongside the canonical ones (harmless).
+3. Backend cross-module calls still import other modules' repositories (BM-1).
 
-Details: `docs/04-design/database-design.md` §9, `docs/04-design/security.md` §11.
+Schema drift and the former auth/validation gaps are resolved (migrations `0001`–`0011`, security hardening). Details: `docs/04-design/database-design.md` §9, `docs/04-design/security.md` §11, `docs/progress/backend-progress.md`.
 
 ## 13. Acceptance & Verification
 

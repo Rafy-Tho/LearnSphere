@@ -2,7 +2,7 @@
 
 Entry point for AI coding agents working in this repository. Read this first, then load the detailed rules in `ai/`.
 
-> **Backend refactor (structure complete):** the backend now follows the module-based structure. Target: [`docs/08-refactoring/backend/01-structure.md`](./docs/08-refactoring/backend/01-structure.md); tasks: [`docs/09-implement/tasks/`](./docs/09-implement/tasks/); status: [`docs/09-implement/progress-tracking.md`](./docs/09-implement/progress-tracking.md).
+> **Progress:** what is done and what is left lives in [`docs/progress/`](./docs/progress/). The backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started.
 
 ## 1. What This Project Is
 
@@ -25,7 +25,7 @@ Full context: `ai/project-context.md` and `spec.md`.
 5. `ai/security-rules.md` — mandatory security rules.
 6. `ai/testing-rules.md` — testing expectations.
 7. `ai/task-rules.md` — the workflow to follow.
-8. `docs/09-implement/tasks/` — task definitions + status; `docs/09-implement/progress-tracking.md` — rollup dashboard + changelog. Update both as you work.
+8. `docs/progress/` — status per area (backend, learner frontend, admin). Update it as you work.
 
 Deep reference lives in `docs/`:
 
@@ -40,11 +40,8 @@ Deep reference lives in `docs/`:
 | Security | `docs/04-design/security.md` |
 | Setup | `docs/05-development/environment-setup.md` |
 | Diagrams | `docs/diagrams/` |
-| Refactor audits & plans | `docs/08-refactoring/` |
-| Backend target structure | `docs/08-refactoring/backend/01-structure.md` |
-| DB migrations | `docs/08-refactoring/backend/02-migration-plan.md` |
-| **Tasks** | `docs/09-implement/tasks/` |
-| **Implementation progress** | `docs/09-implement/progress-tracking.md` |
+| Progress | `docs/progress/` |
+| DB migrations | `backend/src/db/README.md` |
 
 ## 3. Commands
 
@@ -75,22 +72,18 @@ There is **no test command** in any app. Do not claim tests pass.
 3. Implement the smallest change that fully solves the problem.
 4. Verify: lint (all touched apps), build (frontends), tests if tooling exists.
 5. Update `docs/` and `ai/` when contracts or conventions change.
-6. Update the task file's status and `docs/09-implement/progress-tracking.md` (dashboard counts + changelog) after every completed item.
+6. Update the matching file in `docs/progress/` after every completed item.
 7. Commit only when explicitly asked, using Conventional Commits.
 
 ## 6. Known Issues — Do Not Silently "Fix"
 
 Surface these and confirm before changing them:
 
-1. `LessonContentRepository` queries `lesson_contents`; the table is `lesson_content`.
-2. Code references `lessons.access_type`; the column does not exist.
-3. `quizzes.lesson_id` is `UNIQUE` though the app models many questions per lesson.
-4. `password_reset_codes.code` is `VARCHAR(6)` but stores a 64-char hash.
-5. `loginLimiter` is defined but unused.
-6. `POST /api/v1/options` lacks an `authorize` guard; option PATCH/DELETE lack validators.
-7. No tests, no migrations, no CI.
+1. No automated tests and no CI.
+2. Live DB only: legacy `lesson_content*` child object names remain alongside the canonical ones (harmless).
+3. Backend cross-module calls still import other modules' repositories (BM-1 in `docs/progress/backend-progress.md`).
 
-Details: `docs/04-design/database-design.md` §9 and `docs/04-design/security.md` §11.
+Schema drift and the former auth/validation gaps are resolved (migrations `0001`–`0011`, security hardening). Details: `docs/04-design/database-design.md` §9 and `docs/04-design/security.md` §11.
 
 ## 7. Escalate Before Doing
 

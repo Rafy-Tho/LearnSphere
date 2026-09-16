@@ -2,7 +2,7 @@
 
 Learning Online Platform is a full-stack web application for delivering structured online courses with authentication, enrollment, progress tracking, quizzes, reviews, and subscription payments.
 
-> **Backend refactor (structure complete):** the backend now follows a module-based structure (`app/`, `config/`, `db/`, `common/`, `modules/`). Audits and plans live in [`docs/08-refactoring/`](./docs/08-refactoring/); tasks in [`docs/09-implement/tasks/`](./docs/09-implement/tasks/); status in [`docs/09-implement/progress-tracking.md`](./docs/09-implement/progress-tracking.md).
+> **Progress:** the backend is module-based (`app/`, `config/`, `db/`, `common/`, `modules/`) and hardened; the learner frontend refactor is complete; the admin refactor has not started. See [`docs/progress/`](./docs/progress/).
 
 ## Project Purpose
 
@@ -21,7 +21,7 @@ The main goal is to combine a clean learning UI with a scalable backend/domain m
 - **Backend:** Express API server with modular routes/controllers/repositories.
 - **Database:** PostgreSQL with a relational schema for users, courses, lessons, enrollments, progress, subscriptions, and reviews.
 - **Auth Session:** Cookie-based session auth using `express-session` + PostgreSQL session store.
-- **Third-party services:** Stripe (payments), Cloudinary (media upload), Resend/Nodemailer (email flows).
+- **Third-party services:** Stripe (payments), Cloudinary (media upload), Brevo (email flows).
 
 ## Tech Stack
 
@@ -47,62 +47,53 @@ The main goal is to combine a clean learning UI with a scalable backend/domain m
 - `multer`
 - Cloudinary SDK
 - Stripe SDK
-- Nodemailer + Resend
+- Brevo REST API
 
 ### Database / Infrastructure
 
 - PostgreSQL (UUID-based primary keys via `pgcrypto`)
 - SQL schema defined in `backend/src/db/schema.sql`
-- Environment-variable based configuration in `backend/src/config/Env.js`
+- Environment-variable based configuration in `backend/src/config/environment.js`
 
 ## Backend Explanation
 
-The backend follows a layered modular pattern:
+The backend follows a layered, module-based pattern under `backend/src/`:
 
-- **Routes layer** (`backend/src/routes`): Defines REST endpoints (users, courses, lessons, reviews, subscriptions, etc).
-- **Controllers layer** (`backend/src/controllers`): Handles request/response logic and orchestration.
-- **Repositories layer** (`backend/src/repositories`): Encapsulates SQL queries and data operations.
-- **Middlewares** (`backend/src/middlewares`): Auth, authorization, validation, rate limiting, sessions, and error handling.
-- **Configs** (`backend/src/configs`): Environment loading, DB pool, Cloudinary setup, SQL schema.
+- **App** (`backend/src/app/`): app creation, middleware pipeline, and route mounting.
+- **Modules** (`backend/src/modules/<module>/`): each domain owns its `routes.js`, `controller.js`, `service.js`, `repository.js`, and `validation.js`.
+- **Common** (`backend/src/common/`): shared middleware, errors, query builder, services, validation builders, and logger.
+- **Config** (`backend/src/config/`): environment, pg pool (+ `withTransaction`), Cloudinary, Stripe.
+- **DB** (`backend/src/db/`): `schema.sql` baseline + `migrations/` and the `migrate.js` runner.
 
-Core API domains exposed from `backend/src/app/app.js`:
+Modules: auth, users, categories, courses, content, learning, reviews, certificates, subscriptions, admin.
 
-- `/api/v1/users`
-- `/api/v1/categories`
-- `/api/v1/courses`
-- `/api/v1/objectives`
-- `/api/v1/modules`
-- `/api/v1/chapters`
-- `/api/v1/lessons`
-- `/api/v1/contents`
-- `/api/v1/reviews`
-- `/api/v1/questions`
-- `/api/v1/answers`
-- `/api/v1/enrollments`
-- `/api/v1/progresses`
-- `/api/v1/completions`
-- `/api/v1/subscriptions`
-- `/api/v1/stripe-webhook`
+Core API surface under `/api/v1`:
+
+- `/auth/*`, `/users/*`, `/users/me/{courses,certificates,subscription}`
+- `/categories`, `/courses`, `/objectives`, `/plans`, `/subscriptions`, `/certificates`, `/reviews`
+- Content: `/courses/:courseId/modules`, `/modules/:moduleId/chapters`, `/chapters/:chapterId/lessons`, `/lessons/:lessonId/{contents,questions,quiz-submissions}`, `/questions/:questionId/options` (plus top-level item routes)
+- Admin: `/admin/{dashboard,courses,users,plans,subscriptions,payments}`
+- Webhook: `/webhooks/stripe`
 
 ### Backend Request Lifecycle
 
-1. Request enters Express app (`backend/src/app/app.js`).
-2. CORS, JSON parsing, rate limiting, and session middleware are applied.
-3. Route-specific validators and auth middleware run.
-4. Controller executes business logic.
-5. Repository performs SQL operation via PostgreSQL pool.
-6. Response returns JSON to frontend.
+1. Request enters the Express app (`backend/src/app/app.js`).
+2. Middleware runs in order: helmet, CORS, **Stripe webhook (raw body)**, CSRF guard, JSON parser, logging, rate limiter, session (+ idle timeout).
+3. Route validators and auth middleware run.
+4. Controller executes business logic via the module service.
+5. Repository performs parameterized SQL via the pg pool.
+6. Response returns the `{ success, statusCode, message, data }` envelope.
 7. Global not-found and error middleware handle unmatched routes/errors.
 
 ## Frontend Explanation
 
-The frontend is a React single-page app with route-driven screens and hook-based data access:
+The learner frontend is a React single-page app with a feature-based structure under `frontend/src/`:
 
-- **Routing:** `frontend/src/App.jsx` defines public and protected routes.
-- **State/Data:** TanStack React Query handles server-state caching and fetching.
-- **Auth context:** `frontend/src/contexts/AuthContext.jsx` stores current user session state.
-- **API services:** `frontend/src/services/*Api.js` provide centralized `fetch` wrappers.
-- **UI structure:** pages + reusable components for home, course listing, learning dashboard, lesson player, quiz, pricing, and settings.
+- **Routing/guards:** `app/router.jsx` + `app/guards/`.
+- **State/Data:** TanStack React Query; server state via hooks → feature services.
+- **Auth:** `features/auth` + the `["me"]` query as the single source of truth.
+- **API client:** `lib/apiClient.js` (transport, 401 handling, envelope unwrapping) and `lib/queryKeys.js` (central query keys).
+- **UI:** `components/ui` primitives, `components/common`, `layouts/`, and `features/<domain>/pages`.
 
 Main user-facing flows include:
 
@@ -121,9 +112,9 @@ The `admin/` directory is a separate React SPA (Vite + Tailwind + shadcn-style U
 
 1. Admin opens `/login`; `AuthContext` calls `useGetMe` (`GET /users/me`) to restore any existing session.
 2. Unauthenticated users are redirected to `/login` by `ProtectedRoutes` in `admin/src/App.jsx`.
-3. Login form submits email/password to `POST /users/login` (via `services/AuthApi.js`, `credentials: include`).
+3. Login form submits email/password to `POST /auth/login` (via `services/AuthApi.js`, `credentials: include`).
 4. On success, `AuthContext.login()` stores the user and the app redirects to the dashboard.
-5. Logout posts to `/users/logout`, clears the query cache, and returns to `/login`.
+5. Logout posts to `/auth/logout`, clears the query cache, and returns to `/login`.
 
 ### Layout & Navigation
 
@@ -142,7 +133,7 @@ The `admin/` directory is a separate React SPA (Vite + Tailwind + shadcn-style U
 
 ### Data Access Pattern
 
-Every page uses TanStack React Query hooks (`admin/src/hooks`) that wrap centralized API services (`admin/src/services/*Api.js`). Forms are validated before submit, and success/error feedback is shown via toast/sonner notifications.
+Every page uses TanStack React Query hooks (`admin/src/hooks`) that wrap centralized API services (`admin/src/services/*Api.js`) through the shared `apiFetch` wrapper (`admin/src/services/http.js`). Forms are validated before submit, and success/error feedback is shown via toast/sonner notifications.
 
 ## Database Design (Table List)
 
@@ -162,7 +153,7 @@ Defined in `backend/src/db/schema.sql`.
 - `modules`
 - `chapters`
 - `lessons`
-- `lesson_content`
+- `lesson_contents`
 - `quizzes`
 - `quiz_options`
 
@@ -280,9 +271,15 @@ Create environment files for backend and frontend.
 
 - `VITE_BASE_URL` (example: `http://localhost:5000/api/v1`)
 
-### 3. Run database schema
+### 3. Set up the database
 
-Execute `backend/src/db/schema.sql` against your PostgreSQL database.
+For a fresh database, run `backend/src/db/schema.sql`. For an existing database, apply migrations:
+
+```bash
+cd backend
+npm run db:migrate   # apply pending migrations
+npm run db:status    # show applied migrations
+```
 
 ### 4. Start development servers
 

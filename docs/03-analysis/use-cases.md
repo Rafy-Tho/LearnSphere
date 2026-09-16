@@ -73,7 +73,7 @@ Use cases describe interactions between actors and the system. Actors: **Guest**
 - **Primary actor:** Guest
 - **Main flow:**
   1. Guest submits their email.
-  2. System generates a 6-digit code, stores its SHA-256 hash with a 10-minute expiry, and emails the code.
+  2. System generates a 6-digit code, stores its HMAC-SHA256 hash with a 10-minute expiry, and emails the code.
   3. Guest submits the code; system verifies it.
   4. Guest submits a new password; system updates the hash and invalidates the code.
 - **Alternative flows:** Expired/invalid/over-attempted code → rejected; rate limits apply.

@@ -16,12 +16,12 @@ Security is non-negotiable. Apply these rules to every change.
 - Verify resource ownership in controllers using repository `getInstructor()` joins; allow `ADMIN` override.
 - Never trust client-supplied `role`, `user_id`, `instructor_id`, or ownership fields.
 - Admin routes must remain guarded by `requireAuth` + `authorize(ADMIN)`.
-- If you find a missing guard (e.g. `POST /api/v1/options`), fix it rather than replicating the pattern.
+- If you find a missing guard, fix it rather than replicating the pattern.
 
 ## 3. Input Validation
 
 - Every write endpoint must have a validator followed by `validateResult`.
-- Use the shared builders in `backend/src/validators/common.validator.js`.
+- Use the shared builders in `backend/src/common/validation.js`.
 - Sanitize HTML with `htmlValidator` (DOMPurify) on input; render with `DOMPurify.sanitize` on the frontend.
 - Validate uploads by extension and MIME; enforce the 5 MB limit.
 - Do not disable or weaken existing validation.
@@ -61,15 +61,13 @@ Security is non-negotiable. Apply these rules to every change.
 
 ## 9. Rate Limiting
 
-- Preserve global and auth-specific limiters.
-- Apply `loginLimiter` to login when touching that route.
+- Preserve global and auth-specific limiters, plus per-account lockout.
 - Do not raise limits without approval.
 
 ## 10. Previously Known Gaps (now resolved)
 
-All of the former gaps were implemented in the security-hardening pass — see
-[`docs/08-refactoring/backend/06-security.md`](../docs/08-refactoring/backend/06-security.md)
-and [`docs/09-implement/tasks/security-hardening.md`](../docs/09-implement/tasks/security-hardening.md).
+All of the former gaps were implemented in the security-hardening pass (see
+[`docs/progress/backend-progress.md`](../docs/progress/backend-progress.md)).
 Keep these protections intact:
 
 1. CSRF guard (JSON-only + `X-Requested-With`) — `common/middleware/csrf-protection.js`.

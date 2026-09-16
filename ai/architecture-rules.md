@@ -2,7 +2,7 @@
 
 These rules define the architectural boundaries you must preserve. Violations should be treated as bugs.
 
-> **Backend refactor (structure complete):** the backend now uses the module-based structure (`app/`, `config/`, `db/`, `common/`, `modules/`). Target: [`docs/08-refactoring/backend/01-structure.md`](../docs/08-refactoring/backend/01-structure.md); tasks: [`docs/09-implement/tasks/`](../docs/09-implement/tasks/); status: [`docs/09-implement/progress-tracking.md`](../docs/09-implement/progress-tracking.md).
+> **Progress:** the backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started. See [`docs/progress/`](../docs/progress/).
 
 ## 1. Backend Layering
 
@@ -18,18 +18,18 @@ routes → validators → middlewares → controllers → services / repositorie
 
 ## 2. Request Pipeline
 
-- Preserve middleware order in `backend/src/app/app.js`:
+- Preserve middleware order in `backend/src/app/middleware.js`:
   1. `trust proxy`
-  2. CORS
-  3. **Stripe webhook (raw body) before `express.json()`**
-  4. body parsers
-  5. logging
-  6. global rate limiter
-  7. session
-  8. static uploads
-  9. routers
-  10. 404
-  11. error handler
+  2. helmet
+  3. CORS
+  4. **Stripe webhook (raw body) before `express.json()`**
+  5. CSRF guard
+  6. JSON body parser
+  7. logging (dev)
+  8. global rate limiter
+  9. session
+  10. idle timeout
+- Routers are mounted in `backend/src/app/routes.js`; 404 + error handler in `backend/src/app/app.js`.
 - Do not move the webhook router after JSON parsing; it will break signature verification.
 
 ## 3. Routing
@@ -57,8 +57,8 @@ routes → validators → middlewares → controllers → services / repositorie
 
 ## 6. Schema
 
-- `backend/src/db/schema.sql` is the source of truth.
-- There are **no migrations**. Any schema change must be reflected in `schema.sql` and documented.
+- `backend/src/db/schema.sql` is the source of truth for fresh installs.
+- Schema changes also require an idempotent migration in `backend/src/db/migrations/` (plain SQL; runner `db/migrate.js`); keep `schema.sql` in sync.
 - When changing schema, check all repositories for the affected columns/tables.
 - Do not add a migration tool without explicit approval.
 

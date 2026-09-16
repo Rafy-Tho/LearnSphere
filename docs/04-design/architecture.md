@@ -1,6 +1,6 @@
 # Architecture
 
-> **Backend refactor (structure complete):** the backend now follows the module-based architecture (`app/`, `config/`, `db/`, `common/`, `modules/`). Target: [`docs/08-refactoring/backend/01-structure.md`](../08-refactoring/backend/01-structure.md); tasks: [`docs/09-implement/tasks/`](../09-implement/tasks/); status: [`docs/09-implement/progress-tracking.md`](../09-implement/progress-tracking.md).
+> **Progress:** the backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started. See [`../progress/`](../progress/).
 
 ## 1. Overview
 
@@ -42,52 +42,54 @@ The backend uses a strict layered architecture with no ORM:
 | Layer | Location | Responsibility |
 |---|---|---|
 | Entry | `backend/src/server.js` | Verify DB connectivity, start HTTP server |
-| App | `backend/src/app/app.js` | Middleware, CORS, session, route mounting, error handling |
-| Routes | `backend/src/routes/` | URL → middleware chain → controller |
-| Validators | `backend/src/validators/` | `express-validator` schemas |
-| Middlewares | `backend/src/common/middleware/` | Auth, authorization, validation, rate limits, upload, errors, session |
-| Controllers | `backend/src/controllers/` | Request orchestration, ownership checks, response shaping |
-| Services | `backend/src/common/services/` | Cross-cutting domain services (session, hashing, email) |
-| Repositories | `backend/src/repositories/` | Parameterized SQL and data access |
-| Config | `backend/src/config/` | Env, DB pool, Cloudinary, schema |
-| Utils | `backend/src/common/` | `ApiError`, `asyncHandler`, `AdvancedQuery`, 404 |
+| App | `backend/src/app/` | `app.js` (wiring + errors), `middleware.js` (pipeline), `routes.js` (mounts) |
+| Modules | `backend/src/modules/<module>/` | `routes.js`, `controller.js`, `service.js`, `repository.js`, `validation.js` |
+| Middlewares | `backend/src/common/middleware/` | Auth, authorization, validation, CSRF, rate limits, upload, errors, session |
+| Shared services | `backend/src/common/services/` | Cross-cutting services (session, hashing, email) |
+| Repositories | `backend/src/modules/<module>/*.repository.js` | Parameterized SQL and data access |
+| Config | `backend/src/config/` | Env, DB pool (+ `withTransaction`), Cloudinary, Stripe |
+| DB | `backend/src/db/` | `schema.sql` + `migrations/` |
+| Utils | `backend/src/common/` | `ApiError`, `asyncHandler`, `AdvancedQuery`, `logger`, 404 |
 | Constants | `backend/src/common/constants/` | Status codes, domain constants |
 
 ### 2.2 Request Lifecycle
 
 ```mermaid
 flowchart LR
-  A[HTTP Request] --> B[CORS]
-  B --> C[Body Parsers]
+  A[HTTP Request] --> B[Helmet + CORS]
+  B --> C[CSRF Guard + JSON Parser]
   C --> D[Global Rate Limit]
-  D --> E[Session]
+  D --> E[Session + Idle Timeout]
   E --> F[Route Match]
   F --> G[Validators]
   G --> H[requireAuth]
   H --> I[authorize]
   I --> J[Controller]
-  J --> K[Repository]
-  K --> L[(PostgreSQL)]
-  L --> M[Response Envelope]
-  M --> N{Error?}
-  N -- no --> O[200/201]
-  N -- yes --> P[Error Handler]
+  J --> K[Service]
+  K --> L[Repository]
+  L --> M[(PostgreSQL)]
+  M --> N[Response Envelope]
+  N --> O{Error?}
+  O -- no --> P[200/201]
+  O -- yes --> Q[Error Handler]
 ```
 
-### 2.3 Middleware Order (`backend/src/app/app.js`)
+### 2.3 Middleware Order (`backend/src/app/middleware.js`)
 
-1. `connectCloudinary()` at import time.
-2. `app.set("trust proxy", 1)`.
-3. CORS (credentials + allowed origins).
-4. **Stripe webhook router** — mounted before body parsers so it can read the raw body.
-5. `express.json()` and `express.urlencoded()`.
-6. Morgan logging (development only).
-7. `globalLimiter`.
-8. `sessionMiddleware`.
-9. Static `/uploads`.
-10. Feature routers.
-11. `notFoundUrl` (404).
-12. `errorHandler`.
+1. `connectCloudinary()` at import time (in `app.js`).
+2. `app.set("trust proxy", ...)` (configurable via `TRUST_PROXY`).
+3. Helmet security headers.
+4. CORS (credentials + allowed origins).
+5. **Stripe webhook router** — mounted before body parsers so it can read the raw body.
+6. CSRF guard (JSON-only + `X-Requested-With`).
+7. `express.json()` (JSON only; `urlencoded` intentionally unsupported).
+8. Morgan logging (development only).
+9. `globalLimiter`.
+10. `sessionMiddleware` (`session-middleware.js`).
+11. Session idle timeout.
+12. Feature routers (mounted in `backend/src/app/routes.js`).
+13. `notFoundUrl` (404).
+14. `errorHandler`.
 
 ### 2.4 Response Envelope
 
@@ -115,27 +117,27 @@ Repositories are singleton classes holding raw parameterized SQL. List endpoints
 
 ### 3.1 Composition
 
-- `frontend/src/main.jsx` → `QueryClientProvider` → `ThemeProvider` → `AuthProvider` → `App`.
-- `App.jsx` defines public routes, protected routes, and a separate learning layout.
+- `frontend/src/main.jsx` → `app/providers.jsx` (`QueryClientProvider` → `ThemeProvider` → `AuthProvider`) → `app/App.jsx`.
+- `app/router.jsx` defines public routes, protected routes (`app/guards/`), and a separate learning layout.
 
 ### 3.2 State Management
 
 | Concern | Mechanism |
 |---|---|
 | Server state | TanStack React Query |
-| Auth/session | `AuthContext` + localStorage mirror |
-| Theme | `ThemeContext` + localStorage |
+| Auth/session | `AuthProvider` + `["me"]` query (server-derived) |
+| Theme | `ThemeProvider` + localStorage |
 | Filters/pagination | URL (`useSearchParams`) |
 | Local UI state | `useState` |
 
 ### 3.3 Hook Organization
 
-- Canonical: `hooks/queries/*` and `hooks/mutations/*`.
-- Feature shims: `hooks/auth`, `hooks/course`, `hooks/user`, `hooks/subscription` re-export canonical hooks for naming compatibility.
+- Feature hooks live with their domain: `features/<domain>/hooks/*` (queries + mutations).
+- Cross-cutting hooks live in `frontend/src/hooks/` (e.g. `useTheme`, `useScrollEffect`).
 
 ### 3.4 API Client
 
-`frontend/src/api/client.js` wraps `fetch` with `credentials: "include"`, JSON handling, 401 auto-logout/redirect, and pagination unwrapping. Services (`frontend/src/services/*`) expose domain methods.
+`frontend/src/lib/apiClient.js` wraps `fetch` with `credentials: "include"`, safe JSON parsing, `ApiError`, 401 auto-logout, and envelope unwrapping (`getPaginated` for lists). Query keys live in `frontend/src/lib/queryKeys.js`; feature services expose domain methods.
 
 ## 4. Admin Architecture
 
@@ -152,11 +154,11 @@ Repositories are singleton classes holding raw parameterized SQL. List endpoints
 | Authentication | Cookie session (`express-session` + `connect-pg-simple`) |
 | Authorization | `requireAuth` + `authorize(...roles)` + per-resource ownership joins |
 | Validation | `express-validator` schemas + `validateResult` (422) |
-| Rate limiting | Global + password-reset + code-attempt limiters |
+| Rate limiting | Global + password-reset + code-attempt limiters + per-account lockout |
 | File upload | `multer` disk storage → Cloudinary → local cleanup |
 | Sanitization | `isomorphic-dompurify` on input; DOMPurify on render |
 | Error handling | Central `errorHandler` with pg SQLSTATE mapping |
-| Logging | Morgan (development) |
+| Logging | Morgan (development) + structured `logger` / `logger.audit` |
 | CORS | Allowlist of two client origins with credentials |
 | Pagination | `AdvancedQuery` + `pagination` metadata |
 
@@ -164,10 +166,10 @@ Repositories are singleton classes holding raw parameterized SQL. List endpoints
 
 | Service | Purpose | Config | Used In |
 |---|---|---|---|
-| PostgreSQL | Primary data + sessions | `DATABASE_URL` | `configs/database.js` |
-| Stripe | Checkout + webhook | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `userControllers.js`, `webhookRoute.js` |
-| Cloudinary | Image hosting | `CLOUDINARY_*` | `configs/cloudinary.js`, `userControllers.js` |
-| Brevo | Transactional email | `BREVO_API_KEY`, `SENDER_EMAIL` | `services/email-service.js` |
+| PostgreSQL | Primary data + sessions | `DATABASE_URL` | `config/database.js` |
+| Stripe | Checkout + webhook | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `modules/subscriptions/*` |
+| Cloudinary | Image hosting | `CLOUDINARY_*` | `config/cloudinary.js`, `modules/users/*` |
+| Brevo | Transactional email | `BREVO_API_KEY`, `SENDER_EMAIL` | `common/services/email-service.js` |
 
 > Note: `nodemailer` and `resend` are listed as dependencies but are not used; email is sent via the Brevo REST API.
 
@@ -183,10 +185,9 @@ Repositories are singleton classes holding raw parameterized SQL. List endpoints
 | Item | Detail |
 |---|---|
 | No ORM | All SQL is hand-written in repositories; schema drift is not caught at compile time. |
-| No migrations | Schema changes are manual; see `database-design.md` for drift findings. |
+| Migrations | Plain SQL migrations in `backend/src/db/migrations/`; keep `schema.sql` in sync. |
 | No tests | No automated verification of architecture boundaries. |
-| Nested routers | Routers using `mergeParams` are only functional when mounted under a parent with `:id`; top-level mounts of some are dead. |
-| Unused login limiter | `loginLimiter` is defined but not applied. |
+| Cross-module calls | Some module services still import other modules' repositories (BM-1). |
 | Single-process sessions | Sessions are DB-backed, so horizontal scaling works, but `express-session` memory fallback must not be used in production. |
 
 See `docs/diagrams/architecture.md` for the component/deployment diagram.

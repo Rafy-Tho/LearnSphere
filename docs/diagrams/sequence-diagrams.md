@@ -14,7 +14,7 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   U->>F: Enter email/password
-  F->>A: POST /api/v1/users/login
+  F->>A: POST /api/v1/auth/login
   A->>A: validateLogin + validateResult
   A->>DB: SELECT * FROM users WHERE email=$1
   DB-->>A: user
@@ -45,7 +45,7 @@ sequenceDiagram
   participant E as EmailService
 
   U->>F: Submit signup
-  F->>A: POST /api/v1/users/register
+  F->>A: POST /api/v1/auth/register
   A->>A: validateRegister
   A->>H: hash(password)
   A->>DB: INSERT users + user_profiles
@@ -68,18 +68,18 @@ sequenceDiagram
   participant E as EmailService
 
   U->>F: Enter email
-  F->>A: POST /users/password-reset-code
+  F->>A: POST /auth/password-resets
   A->>A: generate 6-digit code
-  A->>A: SHA-256 hash + 10-min expiry
+  A->>A: HMAC-SHA256 hash + 10-min expiry
   A->>DB: INSERT password_reset_codes
   A->>E: sendResetCode(email, code)
   A-->>F: 200
   U->>F: Enter code
-  F->>A: POST /users/verify-password-reset-code
+  F->>A: POST /auth/password-resets/verify
   A->>DB: find + check expiry + attempts
   A-->>F: 200 verified
   U->>F: Enter new password
-  F->>A: POST /users/reset-password
+  F->>A: PATCH /auth/password
   A->>DB: UPDATE users.password, DELETE code
   A-->>F: 200
 ```
@@ -102,7 +102,7 @@ sequenceDiagram
   A-->>F: { data, pagination }
   F-->>L: Course grid
   L->>F: Open course + Enroll
-  F->>A: POST /courses/:id/enrollments
+  F->>A: POST /courses/:courseId/enrollments
   A->>DB: INSERT enrollments
   A->>DB: INSERT learn_progress (first lesson)
   A-->>F: 201
@@ -120,15 +120,15 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   L->>F: Open /courses/:id/lessons/:lessonId
-  F->>A: GET /courses/:id/learn
+  F->>A: GET /courses/:courseId/curriculum
   A->>DB: aggregate hierarchy + completion
   A-->>F: learning data
   F->>F: DOMPurify.sanitize(content)
   F-->>L: Render lesson
   L->>F: Complete / Next
-  F->>A: POST /lessons/:id/completions
+  F->>A: POST /lessons/:lessonId/completions
   A->>DB: INSERT lesson_completion
-  F->>A: PATCH /courses/:id/progresses
+  F->>A: PATCH /courses/:courseId/progress
   A->>DB: UPSERT learn_progress
   A-->>F: updated progress
 ```
@@ -144,13 +144,14 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   L->>F: Open quiz lesson
-  F->>A: GET /lessons/:id/questions
+  F->>A: GET /lessons/:lessonId/questions
   A->>DB: SELECT quizzes + json_agg(options)
-  A-->>F: questions + options
+  A-->>F: questions + options (no answer key)
   L->>F: Answer + submit
-  F->>F: evaluate answers (state machine)
-  F-->>L: Results + explanations
-  F->>A: POST /lessons/:id/completions
+  F->>A: POST /lessons/:lessonId/quiz-submissions
+  A->>A: grade server-side
+  A-->>F: results + explanations
+  F->>A: POST /lessons/:lessonId/completions
   A->>DB: INSERT lesson_completion
   A-->>F: 201
 ```
@@ -166,11 +167,11 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   L->>F: Submit rating + text
-  F->>A: POST /courses/:id/reviews
+  F->>A: POST /courses/:courseId/reviews
   A->>A: reviewValidator
   A->>DB: INSERT course_reviews
   A-->>F: 201
-  F->>A: GET /courses/:id/reviews/summary
+  F->>A: GET /courses/:courseId/reviews/summary
   A->>DB: aggregate avg + histogram
   A-->>F: summary
   F-->>L: Updated review section
@@ -187,7 +188,7 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   L->>F: Click helpful
-  F->>A: POST /reviews/:id/helpful-votes
+  F->>A: PUT /reviews/:reviewId/helpful-vote
   A->>DB: SELECT existing vote
   alt exists
     A->>DB: UPDATE/DELETE vote
@@ -212,20 +213,20 @@ sequenceDiagram
   participant E as EmailService
 
   L->>F: Choose plan + Pay
-  F->>A: POST /users/payment-stripe/:subscriptionId
+  F->>A: POST /subscriptions/:planId/checkout
   A->>S: checkout.sessions.create
   S-->>A: session.url
   A-->>F: { session_url }
   F-->>L: Redirect to Stripe
   L->>S: Complete payment
-  S->>W: POST /stripe-webhook (checkout.session.completed)
+  S->>W: POST /webhooks/stripe (checkout.session.completed)
   W->>W: constructEvent + verify signature
   W->>DB: expire prior ACTIVE subscriptions
   W->>DB: INSERT user_subscriptions
   W->>DB: INSERT subscription_payments (COMPLETED)
   W->>E: sendPaymentConfirmation
   S-->>F: Redirect /payment-success
-  F->>A: GET /subscriptions/user-active
+  F->>A: GET /users/me/subscription
   A-->>F: active subscription
 ```
 
@@ -240,21 +241,21 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   AD->>AF: Open course detail
-  AF->>A: GET /courses/:id/dashboard-details
+  AF->>A: GET /admin/courses/:courseId
   A->>DB: aggregate full content tree
   A-->>AF: tree
   AD->>AF: Add module
-  AF->>A: POST /courses/:id/modules
+  AF->>A: POST /courses/:courseId/modules
   A->>DB: INSERT modules
   A-->>AF: 201
   AD->>AF: Add chapter
-  AF->>A: POST /modules/:id/chapters
+  AF->>A: POST /modules/:moduleId/chapters
   AD->>AF: Add lesson
-  AF->>A: POST /chapters/:id/lessons
+  AF->>A: POST /chapters/:chapterId/lessons
   AD->>AF: Add content/question/option
   AF->>A: POST nested content endpoints
   AF->>AF: invalidate ['course-details', courseId]
-  AF->>A: GET /courses/:id/dashboard-details
+  AF->>A: GET /admin/courses/:courseId
   A-->>AF: refreshed tree
 ```
 

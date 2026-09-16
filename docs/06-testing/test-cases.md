@@ -7,7 +7,7 @@ Proposed test cases mapped to acceptance criteria. None are automated yet. Forma
 | ID | Case | Expected |
 |---|---|---|
 | TC-AUTH-01 | Register with unique valid data | 201, user + profile created, session set |
-| TC-AUTH-02 | Register with existing email | 409 |
+| TC-AUTH-02 | Register with existing email | 201 (generic; no account enumeration) |
 | TC-AUTH-03 | Register with weak password | 422 first validation message |
 | TC-AUTH-04 | Login with correct credentials | 200, session created, `last_login` updated |
 | TC-AUTH-05 | Login with wrong password | 401, no session |
@@ -31,7 +31,7 @@ Proposed test cases mapped to acceptance criteria. None are automated yet. Forma
 | TC-AUTHZ-06 | Instructor edits content of non-owned course | 403 |
 | TC-AUTHZ-07 | Instructor edits content of owned course | 200 |
 | TC-AUTHZ-08 | Unauthenticated create module | 401 |
-| TC-AUTHZ-09 | Authenticated learner POSTs an option (known gap) | Should be 403; currently may succeed |
+| TC-AUTHZ-09 | Authenticated learner POSTs an option | 403 |
 
 ## 3. Backend — Validation & Errors
 
@@ -109,14 +109,14 @@ Proposed test cases mapped to acceptance criteria. None are automated yet. Forma
 | ID | Case | Expected |
 |---|---|---|
 | TC-FE-01 | API client sends `credentials: include` | Cookie included |
-| TC-FE-02 | API client on 401 (non-auth path) | Clears localStorage, redirects to `/login` |
-| TC-FE-03 | API client unwraps pagination | Returns `{ data, pagination }` |
-| TC-FE-04 | ProtectRoute with no user | Redirect to `/login` |
-| TC-FE-05 | IsAuthenticate with user | Redirect to `/learning-dashboard` |
+| TC-FE-02 | API client on 401 (non-auth path) | Clears React Query cache, redirects to `/login` |
+| TC-FE-03 | API client `getPaginated` | Returns `{ data, pagination }` |
+| TC-FE-04 | `RequireAuth` with no user | Redirect to `/login` |
+| TC-FE-05 | `RedirectIfAuthenticated` with user | Redirect to `/learning-dashboard` |
 | TC-FE-06 | Login form invalid email | Shows validation error |
 | TC-FE-07 | Signup weak password | Shows validation error |
 | TC-FE-08 | Reset flow steps | Cannot skip ahead |
-| TC-FE-09 | Quiz state machine | Start → questions → results |
+| TC-FE-09 | Quiz submit | Graded server-side; results rendered from response |
 | TC-FE-10 | Lesson HTML sanitized | Script removed before render |
 | TC-FE-11 | Review summary bars | Correct percentages |
 
@@ -148,13 +148,13 @@ Proposed test cases mapped to acceptance criteria. None are automated yet. Forma
 | TC-E2E-09 | Admin manage users | Create/edit/delete reflected |
 | TC-E2E-10 | Subscription checkout (Stripe test) | Active subscription after webhook |
 
-## 12. Regression Cases for Known Issues
+## 12. Regression Cases for Resolved Issues
 
-| ID | Case | Expected after fix |
+| ID | Case | Expected |
 |---|---|---|
 | TC-FIX-01 | Save lesson content | No `relation "lesson_contents"` error |
 | TC-FIX-02 | Create/update lesson with access type | No `column "access_type"` error |
 | TC-FIX-03 | Add second question to a lesson | Allowed |
 | TC-FIX-04 | Password reset end to end | Hash stored without truncation |
 | TC-FIX-05 | Learner POST option | 403 |
-| TC-FIX-06 | Login brute force | 429 via `loginLimiter` |
+| TC-FIX-06 | Login brute force | 429 via `loginLimiter`; account locks after 5 |

@@ -1,6 +1,6 @@
 # Security
 
-This document describes the security controls currently implemented, the threat model, and known gaps. Sources: `backend/src/middlewares`, `backend/src/controllers`, `backend/src/configs`, and both frontends.
+This document describes the security controls currently implemented and the threat model. Sources: `backend/src/common/middleware`, `backend/src/modules/*`, `backend/src/config`, and both frontends.
 
 ## 1. Authentication
 
@@ -11,10 +11,10 @@ This document describes the security controls currently implemented, the threat 
 | Session cookie | `httpOnly`, `secure` in production, `sameSite: "none"` prod / `"lax"` dev, 30-day rolling `maxAge` |
 | Session lifecycle | Regenerated on login; destroyed on logout (`unset: "destroy"`) |
 | Session validation | `requireAuth` requires `session.user.id` and `session.user.role` |
-| Reverse proxy | `app.set("trust proxy", 1)` so secure cookies work behind a proxy |
-| Client-side auth | localStorage mirror for instant UI; cleared on 401 |
+| Reverse proxy | Configurable `trust proxy` (`TRUST_PROXY`) so secure cookies work behind a proxy |
+| Client-side auth | Server-derived via the `["me"]` query; cleared on 401 |
 
-Session cookie configuration lives in `backend/src/common/middleware/sessionMiddleware.js`.
+Session cookie configuration lives in `backend/src/common/middleware/session-middleware.js`.
 
 ## 2. Authorization
 
@@ -23,17 +23,13 @@ Session cookie configuration lives in `backend/src/common/middleware/sessionMidd
 - Resource ownership is verified in controllers by joining up to `courses.instructor_id` (e.g. `getInstructor(id)` in module/chapter/lesson/content/question repositories) and comparing to the session user; `ADMIN` bypasses ownership.
 - Roles: `LEARNER`, `INSTRUCTOR`, `ADMIN`.
 
-### Known Authorization Gaps
+### Authorization Notes
 
-| Gap | Location | Impact |
-|---|---|---|
-| `POST /api/v1/options` has no `authorize` guard | `backend/src/routes/answerRoute.js:17` | Any authenticated user could create a quiz option. |
-| `PATCH /api/v1/options/:id` and `DELETE` lack validators | `backend/src/routes/answerRoute.js:20-21` | Weak input validation on option edits. |
-| `loginLimiter` defined but unused | `backend/src/common/middleware/rateLimitMiddlewares.js:19` | Login relies only on the global limiter. |
+The former gaps (missing `authorize`/validators on quiz options, unused `loginLimiter`) are resolved — see §11.
 
 ## 3. Input Validation & Sanitization
 
-- `express-validator` schemas in `backend/src/validators/` run on request bodies.
+- `express-validator` schemas in `backend/src/modules/<module>/validation.js` (builders in `backend/src/common/validation.js`) run on request bodies.
 - `validateResult` collapses to the first error with HTTP 422.
 - Shared builders: email (normalize + max 100), password (8–100, strong), text (trim, length), code (6 numeric), uuid, number, float, enum, boolean, date, and `htmlValidator`.
 - `htmlValidator` sanitizes HTML with `isomorphic-dompurify` and writes the sanitized value back to `req.body`.
@@ -68,12 +64,11 @@ Rate-limit exhaustion returns HTTP 429.
 
 ## 7. Password Reset Security
 
-- Codes are 6 numeric digits generated randomly.
-- Only the SHA-256 hash is stored (`backend/src/common/services/hash-code.js`).
+- Codes are 6 numeric digits generated with `crypto.randomInt`.
+- Only an HMAC-SHA256 hash (keyed with `SESSION_SECRET`) is stored (`backend/src/common/services/hash-code.js`).
 - Codes expire after 10 minutes and have an attempt counter (max 5).
 - Reset-code requests and attempts are rate-limited.
-
-> **Known issue:** `password_reset_codes.code` is `VARCHAR(6)` while a 64-char hash is stored, which breaks the flow at the database level. See `database-design.md` §9.
+- The `password_reset_codes.code` column is `VARCHAR(255)` (migration `0011`).
 
 ## 8. Payments Security
 
@@ -106,8 +101,7 @@ Rate-limit exhaustion returns HTTP 429.
 ## 11. Security Hardening (resolved)
 
 The former gaps were implemented in the backend security-hardening pass. See
-[`../08-refactoring/backend/06-security.md`](../08-refactoring/backend/06-security.md) and
-[`../09-implement/tasks/security-hardening.md`](../09-implement/tasks/security-hardening.md).
+[`../progress/backend-progress.md`](../progress/backend-progress.md).
 
 | # | Former gap | Resolution |
 |---|---|---|

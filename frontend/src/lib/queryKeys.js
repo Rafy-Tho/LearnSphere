@@ -1,0 +1,69 @@
+export const queryKeys = {
+  me: () => ["me"],
+  profile: () => ["profile"],
+  xpEarned: () => ["xp-earned"],
+
+  categories: () => ["categories"],
+  courses: (params) => ["courses", params],
+  courseDetails: (courseId) => ["course-details", courseId],
+  courseObjectives: (courseId) => ["course-objectives", courseId],
+  popularCourses: () => ["popular-course"],
+
+  courseLearningData: (courseId) => ["course-learning-data", courseId],
+  firstLesson: (courseId) => ["first-lesson", courseId],
+  enrollment: (courseId) => ["enrolled", courseId],
+  courseProgress: (courseId) => ["course-progress", courseId],
+  courseLessonCompletions: (courseId) => [
+    "course-lesson-completions",
+    courseId,
+  ],
+  courseLessonCompletionsRoot: () => ["course-lesson-completions"],
+  certificate: (courseId) => ["certificate", courseId],
+  certificateEligibility: (courseId) => ["certificate-eligibility", courseId],
+  myCertificates: () => ["my-certificates"],
+  certificateById: (id) => ["certificate-by-id", id],
+
+  lessonContent: (lessonId) => ["lesson-content", lessonId],
+  quizzes: (lessonId) => ["quizzes", lessonId],
+  completedLesson: (lessonId) => ["get-completed-lesson", lessonId],
+
+  reviews: (courseId, params) => ["reviews", courseId, params],
+  reviewsRoot: (courseId) => ["reviews", courseId],
+  reviewsInfinite: (courseId, filters) => [
+    "reviews-infinite",
+    courseId,
+    filters,
+  ],
+  reviewsInfiniteRoot: (courseId) => ["reviews-infinite", courseId],
+  reviewDetails: (courseId) => ["review-details", courseId],
+  myReview: (courseId) => ["review-me", courseId],
+
+  activeSubscription: () => ["active-subscription"],
+  subscription: (planId) => ["subscription", planId],
+
+  recentlyViewed: () => ["get-recently-viewed-courses"],
+  recommended: () => ["recommended-course"],
+  inProgress: () => ["course-in-progress"],
+  completed: () => ["completed-course"],
+};
+
+export const userScopedQueryRoots = new Set([
+  queryKeys.me()[0],
+  queryKeys.profile()[0],
+  queryKeys.xpEarned()[0],
+  queryKeys.enrollment(null)[0],
+  queryKeys.courseProgress(null)[0],
+  queryKeys.courseLessonCompletions(null)[0],
+  queryKeys.completedLesson(null)[0],
+  queryKeys.certificate(null)[0],
+  queryKeys.certificateEligibility(null)[0],
+  queryKeys.myCertificates()[0],
+  queryKeys.certificateById(null)[0],
+  queryKeys.myReview(null)[0],
+  queryKeys.activeSubscription()[0],
+  queryKeys.subscription(null)[0],
+  queryKeys.recentlyViewed()[0],
+  queryKeys.recommended()[0],
+  queryKeys.inProgress()[0],
+  queryKeys.completed()[0],
+]);

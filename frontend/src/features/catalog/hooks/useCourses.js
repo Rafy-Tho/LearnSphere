@@ -1,15 +1,14 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { coursesApi } from "@/features/catalog/services/courses";
+import { queryKeys } from "@/lib/queryKeys";
 import parseQueryToObject from "@/utils/parseQueryToObject";
-import parseQueryToString from "@/utils/parseQueryToString";
 
 export function useCourses(params) {
-  const queryString = parseQueryToString(params);
-  const queryObj = parseQueryToObject(params);
+  const queryObject = parseQueryToObject(params);
   return useQuery({
-    queryKey: ["courses", queryObj],
-    queryFn: () => coursesApi.getAll(queryString),
+    queryKey: queryKeys.courses(queryObject),
+    queryFn: ({ signal }) => coursesApi.getAll(queryObject, { signal }),
     placeholderData: keepPreviousData,
   });
 }
@@ -17,8 +16,8 @@ export function useCourses(params) {
 export function useCourseDetails() {
   const { courseId } = useParams();
   return useQuery({
-    queryKey: ["course-details", courseId],
-    queryFn: () => coursesApi.getById(courseId),
+    queryKey: queryKeys.courseDetails(courseId),
+    queryFn: ({ signal }) => coursesApi.getById(courseId, { signal }),
     enabled: !!courseId,
     staleTime: 1000 * 60 * 10,
   });
@@ -27,8 +26,8 @@ export function useCourseDetails() {
 export function useCourseObjectives() {
   const { courseId } = useParams();
   return useQuery({
-    queryKey: ["course-objectives", courseId],
-    queryFn: () => coursesApi.getObjectives(courseId),
+    queryKey: queryKeys.courseObjectives(courseId),
+    queryFn: ({ signal }) => coursesApi.getObjectives(courseId, { signal }),
     enabled: !!courseId,
     staleTime: 1000 * 60 * 10,
   });
@@ -36,8 +35,8 @@ export function useCourseObjectives() {
 
 export function usePopularCourses() {
   return useQuery({
-    queryKey: ["popular-course"],
-    queryFn: () => coursesApi.getPopular(),
+    queryKey: queryKeys.popularCourses(),
+    queryFn: ({ signal }) => coursesApi.getPopular({ signal }),
     staleTime: 1000 * 60 * 10,
   });
 }

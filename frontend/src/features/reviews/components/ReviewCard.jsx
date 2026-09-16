@@ -10,12 +10,8 @@ import { useHelpfulVote } from "@/features/reviews/hooks/useReviewMutations";
 export const ReviewCard = memo(function ReviewCard({ review }) {
   const [showReportModal, setShowReportModal] = useState(false);
   const { mutate } = useHelpfulVote();
-  const [helpfulVote, setHelpfulVote] = useState(
-    () => review.is_helpful ?? null,
-  ); // true, false, or null
-  const [isReported, setIsReported] = useState(
-    () => review.is_reported ?? false,
-  );
+  const helpfulVote = review.is_helpful ?? null;
+  const isReported = review.is_reported ?? false;
   const { user } = useAuth();
   const navigate = useNavigate();
   const handleHelpfulVote = (voteType) => {
@@ -25,7 +21,6 @@ export const ReviewCard = memo(function ReviewCard({ review }) {
       return;
     }
     const next = helpfulVote === voteType ? null : voteType;
-    setHelpfulVote(next);
     mutate({ reviewId: review.id, isHelpful: next });
   };
 
@@ -127,7 +122,6 @@ export const ReviewCard = memo(function ReviewCard({ review }) {
         isOpen={showReportModal}
         onClose={() => setShowReportModal(false)}
         reviewId={review.id}
-        setIsReported={setIsReported}
       />
     </div>
   );

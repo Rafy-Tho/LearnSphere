@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { learningApi } from "@/features/learning/services/learning";
 import { lessonsApi } from "@/features/learning/services/lessons";
+import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "react-toastify";
 
 export function useEnrollCourse() {
@@ -11,7 +12,11 @@ export function useEnrollCourse() {
     mutationKey: ["enroll-course", courseId],
     mutationFn: () => learningApi.enrollCourse(courseId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["enrolled", courseId] });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.enrollment(courseId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inProgress() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.recommended() });
     },
     onError: (error) => {
       toast.error(error.message || "Enrollment failed");
@@ -21,9 +26,15 @@ export function useEnrollCourse() {
 
 export function useCreateCourseProgress() {
   const { courseId } = useParams();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["create-course-progress", courseId],
     mutationFn: () => learningApi.createCourseProgress(courseId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseProgress(courseId),
+      });
+    },
     onError: (error) => {
       toast.error(error.message || "Failed to create course progress");
     },
@@ -32,9 +43,21 @@ export function useCreateCourseProgress() {
 
 export function useUpdateCourseProgress() {
   const { courseId } = useParams();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["update-course-progress", courseId],
     mutationFn: (payload) => learningApi.updateCourseProgress(courseId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseProgress(courseId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseLessonCompletions(courseId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.certificateEligibility(courseId),
+      });
+    },
     onError: (error) => {
       toast.error(error.message || "Failed to update course progress");
     },
@@ -49,11 +72,13 @@ export function useClaimCertificate() {
     mutationFn: () => learningApi.claimCertificate(courseId),
     onSuccess: () => {
       toast.success("Certificate claimed successfully!");
-      queryClient.invalidateQueries({ queryKey: ["certificate", courseId] });
       queryClient.invalidateQueries({
-        queryKey: ["certificate-eligibility", courseId],
+        queryKey: queryKeys.certificate(courseId),
       });
-      queryClient.invalidateQueries({ queryKey: ["my-certificates"] });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.certificateEligibility(courseId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.myCertificates() });
     },
     onError: (error) => {
       toast.error(error.message || "Failed to claim certificate");
@@ -62,7 +87,7 @@ export function useClaimCertificate() {
 }
 
 export function useCreateCompletedLesson() {
-  const { lessonId } = useParams();
+  const { courseId, lessonId } = useParams();
   const queryClient = useQueryClient();
   return useMutation({
     mutationKey: ["create-completed-lesson", lessonId],
@@ -73,11 +98,18 @@ export function useCreateCompletedLesson() {
     onSuccess: () => {
       toast.success("Lesson completed successfully");
       queryClient.invalidateQueries({
-        queryKey: ["get-completed-lesson", lessonId],
+        queryKey: queryKeys.completedLesson(lessonId),
       });
       queryClient.invalidateQueries({
-        queryKey: ["course-lesson-completions"],
+        queryKey: queryKeys.courseLessonCompletionsRoot(),
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseProgress(courseId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.certificateEligibility(courseId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inProgress() });
     },
   });
 }

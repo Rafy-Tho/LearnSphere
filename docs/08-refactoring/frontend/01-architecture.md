@@ -7,6 +7,8 @@ See also [`../architecture-plan.md`](../architecture-plan.md) §4 and [`../front
 > **Status:** Implemented. The learner app now follows this structure; see [`02-migration-plan.md`](./02-migration-plan.md) and [`../../09-implement/tasks/frontend-refactor.md`](../../09-implement/tasks/frontend-refactor.md).
 >
 > **Component standard:** see [`03-components.md`](./03-components.md) and its tasks [`../../09-implement/tasks/frontend-components.md`](../../09-implement/tasks/frontend-components.md).
+>
+> **API & state standard:** see [`05-api-state.md`](./05-api-state.md) and its tasks [`../../09-implement/tasks/frontend-api-state.md`](../../09-implement/tasks/frontend-api-state.md).
 
 ---
 

@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { dashboardApi } from "@/features/dashboard/services/dashboard";
+import { queryKeys } from "@/lib/queryKeys";
 import useAuth from "@/features/auth/hooks/useAuth";
 
 export function useRecentlyViewedCourses() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["get-recently-viewed-courses"],
-    queryFn: () => dashboardApi.getRecentlyViewed(),
+    queryKey: queryKeys.recentlyViewed(),
+    queryFn: ({ signal }) => dashboardApi.getRecentlyViewed({ signal }),
     enabled: !!user,
   });
 }
@@ -14,8 +15,8 @@ export function useRecentlyViewedCourses() {
 export function useRecommendedCourses() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["recommended-course"],
-    queryFn: () => dashboardApi.getRecommended(),
+    queryKey: queryKeys.recommended(),
+    queryFn: ({ signal }) => dashboardApi.getRecommended({ signal }),
     enabled: !!user,
   });
 }
@@ -23,8 +24,8 @@ export function useRecommendedCourses() {
 export function useCoursesInProgress() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["course-in-progress"],
-    queryFn: () => dashboardApi.getInProgress(),
+    queryKey: queryKeys.inProgress(),
+    queryFn: ({ signal }) => dashboardApi.getInProgress(undefined, { signal }),
     enabled: !!user,
   });
 }
@@ -32,8 +33,8 @@ export function useCoursesInProgress() {
 export function useCompletedCourses() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["completed-course"],
-    queryFn: () => dashboardApi.getCompleted(),
+    queryKey: queryKeys.completed(),
+    queryFn: ({ signal }) => dashboardApi.getCompleted(undefined, { signal }),
     enabled: !!user,
   });
 }

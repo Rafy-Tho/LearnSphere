@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+import { queryKeys, userScopedQueryRoots } from "@/lib/queryKeys";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -11,30 +12,9 @@ export const queryClient = new QueryClient({
   },
 });
 
-const USER_SCOPED_QUERY_ROOTS = new Set([
-  "me",
-  "profile",
-  "xp-earned",
-  "active-subscription",
-  "subscription",
-  "enrolled",
-  "course-progress",
-  "course-lesson-completions",
-  "get-completed-lesson",
-  "certificate",
-  "certificate-eligibility",
-  "my-certificates",
-  "certificate-by-id",
-  "review-me",
-  "get-recently-viewed-courses",
-  "recommended-course",
-  "course-in-progress",
-  "completed-course",
-]);
-
 export function clearUserQueries() {
-  queryClient.setQueryData(["me"], null);
+  queryClient.setQueryData(queryKeys.me(), null);
   queryClient.removeQueries({
-    predicate: (query) => USER_SCOPED_QUERY_ROOTS.has(query.queryKey[0]),
+    predicate: (query) => userScopedQueryRoots.has(query.queryKey[0]),
   });
 }

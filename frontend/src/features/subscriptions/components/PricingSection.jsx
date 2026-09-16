@@ -1,6 +1,7 @@
 import { useActiveSubscription as useGetActiveSubscription } from "@/features/subscriptions/hooks/useSubscriptions";
 import useAuth from "@/features/auth/hooks/useAuth";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import PricingCard from "@/features/subscriptions/components/PricingCard";
 import { PLAN_IDS } from "@/constants/plans";
 
@@ -53,9 +54,10 @@ const plans = [
 ];
 export default function PricingSection() {
   const { user } = useAuth();
-  const { data, isPending } = useGetActiveSubscription();
+  const { data, isPending, error } = useGetActiveSubscription();
   const activeSubscription = data || null;
   if (user && isPending) return <SpinnerLoader />;
+  if (user && error) return <ErrorMessage message={error.message} />;
   return (
     <section className="min-h-screen transition-colors duration-300 bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-slate-900 dark:to-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">

@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useGetMe } from "@/features/auth/hooks/useAuthQueries";
 import { clearUserQueries } from "@/lib/queryClient";
+import { queryKeys } from "@/lib/queryKeys";
 import {
   AuthActionsContext,
   AuthContext,
@@ -15,7 +16,7 @@ function AuthProvider({ children }) {
   const saveAuth = useCallback(
     (userData) => {
       if (!userData?.id) return;
-      queryClient.setQueryData(["me"], userData);
+      queryClient.setQueryData(queryKeys.me(), userData);
     },
     [queryClient],
   );

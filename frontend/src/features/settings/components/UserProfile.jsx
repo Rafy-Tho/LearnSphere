@@ -6,7 +6,6 @@ import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { useUpdateUserProfile } from "@/features/settings/hooks/useUserMutations";
 import { toast } from "react-toastify";
-import useAuthActions from "@/features/auth/hooks/useAuthActions";
 
 const defaultUser = {
   name: "",
@@ -33,7 +32,6 @@ const mapUser = (u) => ({
 function UserProfile() {
   const [editMode, setEditMode] = useState(false);
   const [draft, setDraft] = useState(null);
-  const { saveAuth } = useAuthActions();
   const { data, isPending, error } = useGetUserProfile();
   const { mutateAsync: updateProfile, isPending: isUpdatePending } =
     useUpdateUserProfile();
@@ -71,8 +69,7 @@ function UserProfile() {
     });
 
     try {
-      const updatedUser = await updateProfile(formData);
-      saveAuth(updatedUser);
+      await updateProfile(formData);
       toast.success("Profile updated successfully");
       setDraft(null);
       setEditMode(false);

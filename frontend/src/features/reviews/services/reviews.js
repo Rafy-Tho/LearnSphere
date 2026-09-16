@@ -1,13 +1,17 @@
-import { api } from "@/lib/apiClient";
+import { api, buildQuery } from "@/lib/apiClient";
 
 export const reviewsApi = {
-  getReviews: (queryString, courseId) =>
-    api.get(`/courses/${courseId}/reviews?${queryString}`),
-  getReviewDetails: (courseId) =>
-    api.get(`/courses/${courseId}/reviews/summary`),
+  getReviews: (params, courseId, options) =>
+    api.getPaginated(
+      `/courses/${courseId}/reviews${buildQuery(params)}`,
+      options,
+    ),
+  getReviewDetails: (courseId, options) =>
+    api.get(`/courses/${courseId}/reviews/summary`, options),
   createReview: ({ courseId, description, rating }) =>
     api.post(`/courses/${courseId}/reviews`, { description, rating }),
-  getReview: (courseId) => api.get(`/courses/${courseId}/reviews/me`),
+  getReview: (courseId, options) =>
+    api.get(`/courses/${courseId}/reviews/me`, options),
   helpfulVote: ({ reviewId, isHelpful }) =>
     isHelpful === null
       ? api.delete(`/reviews/${reviewId}/helpful-vote`)

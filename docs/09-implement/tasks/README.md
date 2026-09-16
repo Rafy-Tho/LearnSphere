@@ -17,6 +17,7 @@ All implementation tasks, grouped by area. **Status lives in the task files**; t
 | Frontend refactor (learner app) | [`frontend-refactor.md`](./frontend-refactor.md) | FE-1…FE-20 |
 | Frontend components (learner app) | [`frontend-components.md`](./frontend-components.md) | FC-1…FC-16 |
 | Frontend performance (learner app) | [`frontend-performance.md`](./frontend-performance.md) | FP-1…FP-14 |
+| Frontend API & state (learner app) | [`frontend-api-state.md`](./frontend-api-state.md) | FS-1…FS-10 |
 
 Decisions that block tasks: [`../decisions.md`](../decisions.md).
 
@@ -42,6 +43,7 @@ Decisions that block tasks: [`../decisions.md`](../decisions.md).
 - [`../../08-refactoring/frontend/02-migration-plan.md`](../../08-refactoring/frontend/02-migration-plan.md) — frontend migration plan
 - [`../../08-refactoring/frontend/03-components.md`](../../08-refactoring/frontend/03-components.md) — frontend component standard
 - [`../../08-refactoring/frontend/04-performance.md`](../../08-refactoring/frontend/04-performance.md) — frontend performance standard
+- [`../../08-refactoring/frontend/05-api-state.md`](../../08-refactoring/frontend/05-api-state.md) — frontend API & state standard
 
 ## How To Update
 

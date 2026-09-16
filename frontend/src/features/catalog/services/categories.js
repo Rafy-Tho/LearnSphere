@@ -1,5 +1,5 @@
 import { api } from "@/lib/apiClient";
 
 export const categoriesApi = {
-  getAll: () => api.get("/categories"),
+  getAll: (options) => api.get("/categories", options),
 };

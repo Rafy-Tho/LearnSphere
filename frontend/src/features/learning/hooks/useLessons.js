@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { lessonsApi } from "@/features/learning/services/lessons";
+import { queryKeys } from "@/lib/queryKeys";
 
 export function useLessonContent() {
   const { lessonId } = useParams();
   return useQuery({
-    queryKey: ["lesson-content", lessonId],
-    queryFn: () => lessonsApi.getContent(lessonId),
+    queryKey: queryKeys.lessonContent(lessonId),
+    queryFn: ({ signal }) => lessonsApi.getContent(lessonId, { signal }),
     enabled: !!lessonId,
     staleTime: 1000 * 60 * 10,
   });
@@ -15,8 +16,8 @@ export function useLessonContent() {
 export function useQuizzes() {
   const { lessonId } = useParams();
   return useQuery({
-    queryKey: ["quizzes", lessonId],
-    queryFn: () => lessonsApi.getQuizzes(lessonId),
+    queryKey: queryKeys.quizzes(lessonId),
+    queryFn: ({ signal }) => lessonsApi.getQuizzes(lessonId, { signal }),
     enabled: !!lessonId,
     staleTime: 1000 * 60 * 10,
   });
@@ -25,8 +26,8 @@ export function useQuizzes() {
 export function useCompletedLesson() {
   const { lessonId } = useParams();
   return useQuery({
-    queryKey: ["get-completed-lesson", lessonId],
-    queryFn: () => lessonsApi.getCompletedLesson(lessonId),
+    queryKey: queryKeys.completedLesson(lessonId),
+    queryFn: ({ signal }) => lessonsApi.getCompletedLesson(lessonId, { signal }),
     enabled: !!lessonId,
   });
 }

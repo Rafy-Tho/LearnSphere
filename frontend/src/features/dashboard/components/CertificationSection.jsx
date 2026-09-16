@@ -3,12 +3,13 @@ import { Award, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMyCertificates } from "@/features/learning/hooks/useLearning";
 import ErrorMessage from "@/components/ui/ErrorMessage";
+import SpinnerLoader from "@/components/ui/SpinnerLoader";
 
 export default function CertificationSection() {
   const { data: certificates, isPending, error } = useMyCertificates();
   const [showAll, setShowAll] = useState(false);
 
-  if (isPending) return null;
+  if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
 
   if (certificates && certificates.length > 0) {

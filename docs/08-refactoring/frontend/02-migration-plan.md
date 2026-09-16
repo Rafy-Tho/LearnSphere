@@ -5,7 +5,7 @@ Incremental execution plan for moving `frontend/` to the target architecture in
 
 > **Status:** Complete. See [`../../09-implement/tasks/frontend-refactor.md`](../../09-implement/tasks/frontend-refactor.md) for task-level status.
 >
-> **Follow-up:** component consolidation is tracked in [`03-components.md`](./03-components.md) and [`../../09-implement/tasks/frontend-components.md`](../../09-implement/tasks/frontend-components.md).
+> **Follow-up:** component consolidation is tracked in [`03-components.md`](./03-components.md) and [`../../09-implement/tasks/frontend-components.md`](../../09-implement/tasks/frontend-components.md); API/state standards are in [`05-api-state.md`](./05-api-state.md) and [`../../09-implement/tasks/frontend-api-state.md`](../../09-implement/tasks/frontend-api-state.md).
 
 ---
 

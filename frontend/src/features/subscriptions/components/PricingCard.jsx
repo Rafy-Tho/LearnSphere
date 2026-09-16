@@ -1,6 +1,6 @@
 import { CheckCircle2, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { memo, useState } from "react";
+import { memo } from "react";
 import { useCreatePayment } from "@/features/subscriptions/hooks/useSubscriptionMutations";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { toast } from "react-toastify";
@@ -8,10 +8,9 @@ import SpinnerLoader from "@/components/ui/SpinnerLoader";
 
 function PricingCard({ plan, activeSubscription }) {
   const { id, tier, price, description, features, highlighted = false } = plan;
-  const { mutateAsync } = useCreatePayment();
+  const { mutateAsync, isPending: isLoading } = useCreatePayment();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
   // Check if this plan is the active subscription
   const isActivePlan = activeSubscription?.plan_id === id;
   // Check if user has ANY active subscription
@@ -28,15 +27,12 @@ function PricingCard({ plan, activeSubscription }) {
     // Don't allow payment if there's already an active subscription
     if (hasActiveSubscription) return;
 
-    setIsLoading(true);
     try {
       const data = await mutateAsync(id);
       const paymentUrl = data?.session_url;
       window.location.href = paymentUrl;
     } catch (error) {
       toast.error(error.message || "Failed to start checkout");
-    } finally {
-      setIsLoading(false);
     }
   }
 

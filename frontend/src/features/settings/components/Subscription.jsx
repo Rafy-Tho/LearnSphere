@@ -52,9 +52,8 @@ const planConfig = {
 
 function Subscription() {
   const [plan, setPlan] = useState("1-Month");
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { mutateAsync } = useCreatePayment();
+  const { mutateAsync, isPending: isLoading } = useCreatePayment();
   const { user } = useAuth();
   const planInfo = planConfig[plan];
   async function payment() {
@@ -65,15 +64,12 @@ function Subscription() {
       });
       return navigate("/login");
     }
-    setIsLoading(true);
     try {
       const data = await mutateAsync(planInfo.id);
       const paymentUrl = data?.session_url;
       window.location.href = paymentUrl;
     } catch (error) {
       toast.error(error.message || "Failed to start checkout");
-    } finally {
-      setIsLoading(false);
     }
   }
   if (!planInfo) {

@@ -1,83 +1,148 @@
 import { clearUserQueries } from "@/lib/queryClient";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
-const authPath = ["/login", "/signup", "/reset-password"];
+const AUTH_PATHS = ["/login", "/signup", "/reset-password"];
+
+export class ApiError extends Error {
+  constructor(message, { statusCode = null, data = null } = {}) {
+    super(message);
+    this.name = "ApiError";
+    this.statusCode = statusCode;
+    this.data = data;
+  }
+}
+
+export function buildQuery(params) {
+  if (!params) return "";
+
+  if (params instanceof URLSearchParams) {
+    const queryString = params.toString();
+    return queryString ? `?${queryString}` : "";
+  }
+
+  const searchParams = new URLSearchParams();
+  const append = (key, value) => {
+    if (value === undefined || value === null || value === "") return;
+    if (Array.isArray(value)) {
+      value.forEach((item) => append(key, item));
+      return;
+    }
+    if (typeof value === "object") {
+      Object.entries(value).forEach(([operator, operand]) =>
+        append(`${key}[${operator}]`, operand),
+      );
+      return;
+    }
+    searchParams.append(key, String(value));
+  };
+
+  Object.entries(params).forEach(([key, value]) => append(key, value));
+  const queryString = searchParams.toString();
+  return queryString ? `?${queryString}` : "";
+}
+
+async function parseBody(response) {
+  if (response.status === 204) return null;
+  const text = await response.text();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
 class ApiClient {
   constructor(baseURL) {
     this.baseURL = baseURL;
   }
 
-  async request(endpoint, options = {}) {
+  async requestRaw(endpoint, options = {}) {
+    const { method = "GET", body, headers, signal } = options;
     const url = `${this.baseURL}${endpoint}`;
+    const isFormData = body instanceof FormData;
+
     const config = {
+      method,
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
         "X-Requested-With": "XMLHttpRequest",
-        ...options.headers,
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
+        ...headers,
       },
-      ...options,
+      ...(body === undefined ? {} : { body }),
+      ...(signal ? { signal } : {}),
     };
 
-    if (options.body instanceof FormData) {
-      delete config.headers["Content-Type"];
-    }
-
     const response = await fetch(url, config);
-    const responseData = await response.json();
+    const payload = await parseBody(response);
 
     if (
-      !response.ok &&
       response.status === 401 &&
-      !authPath.some((path) => window.location.pathname.startsWith(path))
+      !AUTH_PATHS.some((path) => window.location.pathname.startsWith(path))
     ) {
       clearUserQueries();
       setTimeout(() => (window.location.href = "/login"), 0);
     }
+
     if (!response.ok) {
-      throw new Error(responseData.message || "Something went wrong");
+      throw new ApiError(payload?.message || "Something went wrong", {
+        statusCode: response.status,
+        data: payload?.data ?? null,
+      });
     }
 
-    if (responseData.pagination) {
-      return { data: responseData.data, pagination: responseData.pagination };
-    }
-    return responseData.data;
+    return payload;
   }
 
-  get(endpoint) {
-    return this.request(endpoint);
+  async request(endpoint, options = {}) {
+    const payload = await this.requestRaw(endpoint, options);
+    return payload?.data ?? null;
   }
 
-  post(endpoint, payload) {
+  get(endpoint, options) {
+    return this.request(endpoint, { ...options, method: "GET" });
+  }
+
+  getPaginated(endpoint, options) {
+    return this.requestRaw(endpoint, { ...options, method: "GET" }).then(
+      (payload) => ({
+        data: payload?.data ?? null,
+        pagination: payload?.pagination ?? null,
+      }),
+    );
+  }
+
+  post(endpoint, payload, options) {
     return this.request(endpoint, {
+      ...options,
       method: "POST",
-      body: JSON.stringify(payload),
+      body: payload === undefined ? undefined : JSON.stringify(payload),
     });
   }
 
-  patch(endpoint, payload) {
+  patch(endpoint, payload, options) {
     return this.request(endpoint, {
+      ...options,
       method: "PATCH",
-      body: JSON.stringify(payload),
+      body: payload === undefined ? undefined : JSON.stringify(payload),
     });
   }
 
-  put(endpoint, payload) {
+  put(endpoint, payload, options) {
     return this.request(endpoint, {
+      ...options,
       method: "PUT",
-      body: JSON.stringify(payload),
+      body: payload === undefined ? undefined : JSON.stringify(payload),
     });
   }
 
-  delete(endpoint) {
-    return this.request(endpoint, { method: "DELETE" });
+  delete(endpoint, options) {
+    return this.request(endpoint, { ...options, method: "DELETE" });
   }
 
-  upload(endpoint, formData) {
-    return this.request(endpoint, {
-      method: "PATCH",
-      body: formData,
-    });
+  upload(endpoint, formData, method = "PATCH") {
+    return this.request(endpoint, { method, body: formData });
   }
 }
 

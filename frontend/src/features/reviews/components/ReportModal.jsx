@@ -22,7 +22,7 @@ const defaultValues = {
   reason: "",
   description: "",
 };
-export function ReportModal({ isOpen, onClose, reviewId, setIsReported }) {
+export function ReportModal({ isOpen, onClose, reviewId }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const {
@@ -47,7 +47,6 @@ export function ReportModal({ isOpen, onClose, reviewId, setIsReported }) {
       {
         onSuccess: () => {
           onClose();
-          setIsReported(true);
           reset();
         },
         onError: (error) => {

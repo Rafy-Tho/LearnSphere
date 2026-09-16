@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router-dom";
 import { learningApi } from "@/features/learning/services/learning";
+import { queryKeys } from "@/lib/queryKeys";
 import useAuth from "@/features/auth/hooks/useAuth";
 
 export function useCourseLearningData() {
   const { courseId } = useParams();
   return useQuery({
-    queryKey: ["course-learning-data", courseId],
-    queryFn: () => learningApi.getLearningData(courseId),
+    queryKey: queryKeys.courseLearningData(courseId),
+    queryFn: ({ signal }) => learningApi.getLearningData(courseId, { signal }),
     enabled: !!courseId,
     staleTime: 1000 * 60 * 10,
   });
@@ -16,8 +17,8 @@ export function useCourseLearningData() {
 export function useFirstLesson() {
   const { courseId } = useParams();
   return useQuery({
-    queryKey: ["first-lesson", courseId],
-    queryFn: () => learningApi.getFirstLesson(courseId),
+    queryKey: queryKeys.firstLesson(courseId),
+    queryFn: ({ signal }) => learningApi.getFirstLesson(courseId, { signal }),
     enabled: !!courseId,
     staleTime: 1000 * 60 * 10,
   });
@@ -27,8 +28,8 @@ export function useEnrollment() {
   const { courseId } = useParams();
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["enrolled", courseId],
-    queryFn: () => learningApi.getEnrollment(courseId),
+    queryKey: queryKeys.enrollment(courseId),
+    queryFn: ({ signal }) => learningApi.getEnrollment(courseId, { signal }),
     enabled: !!courseId && !!user,
   });
 }
@@ -37,8 +38,8 @@ export function useCourseProgress() {
   const { courseId } = useParams();
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["course-progress", courseId],
-    queryFn: () => learningApi.getCourseProgress(courseId),
+    queryKey: queryKeys.courseProgress(courseId),
+    queryFn: ({ signal }) => learningApi.getCourseProgress(courseId, { signal }),
     enabled: !!courseId && !!user,
   });
 }
@@ -46,8 +47,8 @@ export function useCourseProgress() {
 export function useCertificate() {
   const { courseId } = useParams();
   return useQuery({
-    queryKey: ["certificate", courseId],
-    queryFn: () => learningApi.getCertificate(courseId),
+    queryKey: queryKeys.certificate(courseId),
+    queryFn: ({ signal }) => learningApi.getCertificate(courseId, { signal }),
     enabled: !!courseId,
   });
 }
@@ -55,8 +56,9 @@ export function useCertificate() {
 export function useCertificateEligibility() {
   const { courseId } = useParams();
   return useQuery({
-    queryKey: ["certificate-eligibility", courseId],
-    queryFn: () => learningApi.checkCertificateEligibility(courseId),
+    queryKey: queryKeys.certificateEligibility(courseId),
+    queryFn: ({ signal }) =>
+      learningApi.checkCertificateEligibility(courseId, { signal }),
     enabled: !!courseId,
   });
 }
@@ -65,8 +67,9 @@ export function useCourseLessonCompletions() {
   const { courseId } = useParams();
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["course-lesson-completions", courseId],
-    queryFn: () => learningApi.getCourseLessonCompletions(courseId),
+    queryKey: queryKeys.courseLessonCompletions(courseId),
+    queryFn: ({ signal }) =>
+      learningApi.getCourseLessonCompletions(courseId, { signal }),
     enabled: !!courseId && !!user,
   });
 }
@@ -74,18 +77,17 @@ export function useCourseLessonCompletions() {
 export function useMyCertificates() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["my-certificates"],
-    queryFn: () => learningApi.getMyCertificates(),
+    queryKey: queryKeys.myCertificates(),
+    queryFn: ({ signal }) => learningApi.getMyCertificates({ signal }),
     enabled: !!user,
-    select: (response) =>
-      Array.isArray(response) ? response : response?.data ?? [],
+    select: (response) => response?.data ?? [],
   });
 }
 
 export function useCertificateById(id) {
   return useQuery({
-    queryKey: ["certificate-by-id", id],
-    queryFn: () => learningApi.getCertificateById(id),
+    queryKey: queryKeys.certificateById(id),
+    queryFn: ({ signal }) => learningApi.getCertificateById(id, { signal }),
     enabled: !!id,
     staleTime: 1000 * 60 * 10,
   });

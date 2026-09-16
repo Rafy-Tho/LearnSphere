@@ -28,6 +28,10 @@ Decisions that block or shape dependent work. Record a decision here **before** 
 | D-20 | Frontend refactor scope | Structure-only vs structure + targeted fixes vs full remediation | ✅ | Structure + targeted fixes | 2026-09-15 | Behavior-preserving moves, plus audit fixes FE-14–FE-19. Blocks FE-20 |
 | D-21 | Admin app scope | Include vs exclude | ✅ | Exclude | 2026-09-15 | This refactor covers `frontend/` only. |
 | D-22 | Frontend component standards | Consolidate duplicates only vs add shared primitives vs no new abstractions | ✅ | Add shared primitives | 2026-09-15 | `components/ui/{Button,Modal,Card,Input,EmptyState,ProgressBar}` built with React + Tailwind + lucide (no new deps). Learner app only. Blocks FC-2…FC-16 |
+| D-23 | Frontend API response contract | Keep auto-detected `data` vs `{data,pagination}` vs normalize | ✅ | Normalize + update consumers | 2026-09-16 | Default methods return unwrapped `data`; list endpoints opt into `{ data, pagination }` via `getPaginated`. Blocks FS-2 |
+| D-24 | Frontend query keys | Inline literals vs central factory | ✅ | Central factory (`lib/queryKeys.js`) | 2026-09-16 | All keys + invalidation go through the factory; `clearUserQueries` roots derived from it. Blocks FS-3/FS-4 |
+| D-25 | Frontend optimistic updates | Invalidate-only vs optimistic + rollback | ✅ | Optimistic + rollback | 2026-09-16 | Used only for immediate interactions (helpful vote, report); lists stay refetch. Blocks FS-6/FS-9 |
+| D-26 | Frontend state taxonomy | Server-state-first vs global store | ✅ | Server-state-first | 2026-09-16 | Only global client state is theme + server-derived auth; no new state managers. Learner app only. Blocks FS-5/FS-6 |
 
 ## Related
 

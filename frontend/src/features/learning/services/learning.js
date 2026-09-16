@@ -1,22 +1,28 @@
 import { api } from "@/lib/apiClient";
 
 export const learningApi = {
-  getLearningData: (id) => api.get(`/courses/${id}/curriculum`),
-  getFirstLesson: (id) => api.get(`/courses/${id}/first-lesson`),
+  getLearningData: (id, options) =>
+    api.get(`/courses/${id}/curriculum`, options),
+  getFirstLesson: (id, options) =>
+    api.get(`/courses/${id}/first-lesson`, options),
   enrollCourse: (courseId) => api.post(`/courses/${courseId}/enrollments`),
-  getEnrollment: (courseId) => api.get(`/courses/${courseId}/enrollments`),
+  getEnrollment: (courseId, options) =>
+    api.get(`/courses/${courseId}/enrollments`, options),
   createCourseProgress: (courseId) =>
     api.post(`/courses/${courseId}/progress`),
-  getCourseProgress: (courseId) => api.get(`/courses/${courseId}/progress`),
+  getCourseProgress: (courseId, options) =>
+    api.get(`/courses/${courseId}/progress`, options),
   updateCourseProgress: (courseId, payload) =>
     api.patch(`/courses/${courseId}/progress`, payload),
-  getCourseLessonCompletions: (courseId) =>
-    api.get(`/courses/${courseId}/completions`),
+  getCourseLessonCompletions: (courseId, options) =>
+    api.get(`/courses/${courseId}/completions`, options),
   claimCertificate: (courseId) =>
     api.post(`/courses/${courseId}/certificates`),
-  getCertificate: (courseId) => api.get(`/courses/${courseId}/certificates`),
-  checkCertificateEligibility: (courseId) =>
-    api.get(`/courses/${courseId}/certificates/check`),
-  getMyCertificates: () => api.get("/users/me/certificates"),
-  getCertificateById: (id) => api.get(`/certificates/${id}`),
+  getCertificate: (courseId, options) =>
+    api.get(`/courses/${courseId}/certificates`, options),
+  checkCertificateEligibility: (courseId, options) =>
+    api.get(`/courses/${courseId}/certificates/check`, options),
+  getMyCertificates: (options) =>
+    api.getPaginated("/users/me/certificates", options),
+  getCertificateById: (id, options) => api.get(`/certificates/${id}`, options),
 };

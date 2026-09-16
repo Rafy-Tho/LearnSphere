@@ -4,7 +4,7 @@ export const authApi = {
   login: (payload) => api.post("/auth/login", payload),
   register: (payload) => api.post("/auth/register", payload),
   logout: () => api.post("/auth/logout"),
-  getMe: () => api.get("/users/me"),
+  getMe: (options) => api.get("/users/me", options),
   sendResetPasswordCode: (payload) => api.post("/auth/password-resets", payload),
   verifyPasswordResetCode: (payload) =>
     api.post("/auth/password-resets/verify", payload),

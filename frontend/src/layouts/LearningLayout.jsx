@@ -40,14 +40,16 @@ function LearningLayout() {
       />
     );
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="flex h-[100dvh] flex-col bg-background text-foreground">
       <LearningNavigation
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
         isRatingOpen={isRatingOpen}
         setIsRatingOpen={setIsRatingOpen}
       />
-      <Outlet context={outletContext} />
+      <div className="relative min-h-0 flex-1">
+        <Outlet context={outletContext} />
+      </div>
       <AppToastContainer />
     </div>
   );

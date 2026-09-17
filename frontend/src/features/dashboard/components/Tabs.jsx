@@ -13,7 +13,7 @@ const tabs = [
 export default function Tabs() {
   return (
     <nav
-      className="mb-8 flex gap-6 overflow-x-auto border-b border-border pb-0"
+      className="-mx-4 mb-8 flex gap-4 overflow-x-auto border-b border-border px-4 pb-0 sm:-mx-6 sm:gap-6 sm:px-6"
       aria-label="Main"
     >
       {tabs.map((t) => (

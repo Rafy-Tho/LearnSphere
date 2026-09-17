@@ -31,24 +31,26 @@ export default function CertificateView() {
         </Link>
 
         <div className="bg-surface rounded-2xl shadow-lg overflow-hidden">
-          <div className="bg-primary p-8 text-center">
-            <Award className="w-16 h-16 text-warning mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-white">Certificate of Completion</h1>
+          <div className="bg-primary p-6 text-center sm:p-8">
+            <Award className="mx-auto mb-4 h-14 w-14 text-warning sm:h-16 sm:w-16" />
+            <h1 className="text-2xl font-bold text-white sm:text-3xl">
+              Certificate of Completion
+            </h1>
           </div>
 
-          <div className="p-8 sm:p-12">
-            <div className="border-2 border-primary/30 rounded-xl p-8 sm:p-12">
+          <div className="p-5 sm:p-12">
+            <div className="rounded-xl border-2 border-primary/30 p-5 sm:p-12">
               <div className="text-center space-y-6">
                 <p className="text-sm uppercase tracking-widest text-foreground-muted">
                   This certifies that
                 </p>
-                <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+                <h2 className="break-words text-3xl font-bold text-foreground sm:text-4xl">
                   {certificate.user_name}
                 </h2>
                 <p className="text-sm uppercase tracking-widest text-foreground-muted">
                   has successfully completed the course
                 </p>
-                <h3 className="text-2xl sm:text-3xl font-semibold text-primary">
+                <h3 className="break-words text-2xl font-semibold text-primary sm:text-3xl">
                   {certificate.course_name}
                 </h3>
                 <div className="w-24 h-0.5 bg-primary/30 mx-auto" />
@@ -56,7 +58,7 @@ export default function CertificateView() {
                   Issued on {issuedDate}
                 </p>
                 <div className="pt-4">
-                  <p className="text-xs text-foreground-muted font-mono">
+                  <p className="break-all font-mono text-xs text-foreground-muted">
                     Certificate ID: {certificate.certificate_number}
                   </p>
                 </div>

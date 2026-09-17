@@ -22,7 +22,7 @@ function SocialButtons() {
         );
       })}
 
-      <div className="relative my-8">
+      <div className="relative my-2 md:my-8">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border"></div>
         </div>

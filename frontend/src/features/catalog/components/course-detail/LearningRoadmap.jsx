@@ -101,7 +101,10 @@ export default function LearningRoadmap({ sectionRef }) {
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
   return (
-    <div ref={sectionRef} className="max-w-6xl mx-auto  py-12 sm:py-16">
+    <div
+      ref={sectionRef}
+      className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8"
+    >
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
@@ -154,7 +157,7 @@ export default function LearningRoadmap({ sectionRef }) {
           >
             <button
               onClick={() => toggleSection(module.id)}
-              className="w-full px-6 py-5 flex items-start justify-between hover:bg-surface-muted transition-colors cursor-pointer"
+              className="flex w-full items-start justify-between px-4 py-4 transition-colors hover:bg-surface-muted sm:px-6 sm:py-5 cursor-pointer"
             >
               <div className="flex-1 text-left">
                 <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
@@ -176,7 +179,7 @@ export default function LearningRoadmap({ sectionRef }) {
             </button>
 
             {expandedSections.includes(module.id) && (
-              <div className="px-6 pb-5 space-y-3">
+              <div className="space-y-3 px-4 pb-4 sm:px-6 sm:pb-5">
                 {module.lessons.map((lesson) => {
                   const isCompleted = completedIds.has(lesson.id);
                   const Icon = isCompleted

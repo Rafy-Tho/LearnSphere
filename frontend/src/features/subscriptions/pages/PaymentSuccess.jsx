@@ -53,7 +53,7 @@ export default function PaymentSuccess() {
             </div>
           </div>
 
-          <div className="px-8 py-6 space-y-5">
+          <div className="space-y-5 px-5 py-6 sm:px-8">
             {isPending ? (
               <div className="flex justify-center py-8">
                 <SpinnerLoader />
@@ -89,10 +89,10 @@ export default function PaymentSuccess() {
                       key={label}
                       className="flex justify-between items-center px-5 py-3"
                     >
-                      <span className="text-xs text-foreground-muted font-medium">
+                      <span className="shrink-0 text-xs font-medium text-foreground-muted">
                         {label}
                       </span>
-                      <span className="text-xs font-semibold text-foreground font-mono">
+                      <span className="min-w-0 break-all text-right font-mono text-xs font-semibold text-foreground">
                         {value}
                       </span>
                     </div>
@@ -101,7 +101,7 @@ export default function PaymentSuccess() {
               </>
             )}
 
-            <div className="flex gap-3 pt-1">
+            <div className="flex flex-col gap-3 pt-1 sm:flex-row">
               <Button
                 fullWidth
                 size="lg"

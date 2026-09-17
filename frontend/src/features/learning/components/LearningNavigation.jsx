@@ -25,7 +25,7 @@ export function LearningNavigation({
           : "border-b border-border/60 bg-surface/80 backdrop-blur-sm"
       }`}
     >
-      <div className="mx-auto flex max-w-[100vw] flex-row flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 md:gap-4 lg:px-6">
+      <div className="mx-auto flex w-full flex-row flex-wrap items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 md:gap-4 lg:px-6">
         {/* Left cluster - shared across all devices */}
         <LeftCluster
           courseId={courseId}

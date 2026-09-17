@@ -37,8 +37,8 @@ export const ReviewCard = memo(function ReviewCard({ review }) {
           </div>
         </div>
 
-        <div className="flex-1">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-2 mb-2 sm:flex-row sm:items-center">
             <h3 className="font-semibold text-foreground">
               {review.user_name}
             </h3>
@@ -54,7 +54,7 @@ export const ReviewCard = memo(function ReviewCard({ review }) {
             {review.review}
           </p>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             {helpfulVote === null && (
               <span className="text-sm text-foreground-muted">
                 Was this review helpful?

@@ -36,7 +36,7 @@ const QuizReviewItem = ({ result, index }) => {
                         : "border-border text-foreground-muted",
                   )}
                 >
-                  <span>{option.text}</span>
+                  <span className="min-w-0 break-words">{option.text}</span>
                   {isCorrect && (
                     <span className="shrink-0 text-xs font-medium text-success">
                       Correct

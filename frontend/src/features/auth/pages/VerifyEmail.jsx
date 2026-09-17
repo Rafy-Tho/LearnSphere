@@ -84,10 +84,10 @@ const VerifyEmail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="flex min-h-[calc(100dvh-64px)] items-center justify-center bg-background p-4">
       <div className="max-w-md w-full bg-surface rounded-2xl shadow-xl border border-border overflow-hidden">
         <div className="h-1 bg-primary"></div>
-        <div className="p-8">
+        <div className="p-5 sm:p-8">
           <div className="text-center mb-6">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg

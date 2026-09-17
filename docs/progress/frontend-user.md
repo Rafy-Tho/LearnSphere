@@ -20,9 +20,10 @@
 | XP display | Reusable `XpSummaryCard` (dashboard + account settings): level + progress bar (`utils/xpLevel.js`), today's XP, current day streak, and recent XP gains from `useXpTransactions`. XP summary endpoint now also returns `streak_days`. |
 | Learning flow UI | Course-detail `HeroSection` shows enrollment status, course progress (`ProgressBar` + `n / total lessons completed`), current lesson, and switches between Start / Continue / Review. Lesson footer (`NextPrevious`) shows completion, next lesson, and a certificate claim/view action when the course is complete. |
 | Billing & subscriptions | Pricing now renders plans from `GET /plans` (removed hardcoded `constants/plans.js` and UUIDs). New `Checkout` page (`/checkout/:planId`) with coupon apply/remove and server-calculated subtotal/discount/total. New Billing tab (`/learning-dashboard/billing`) showing current/expired plan, dates, days remaining, and paginated payment history (table → cards on mobile) with a payment-details modal (refund breakdown). Shared `BillingStatusBadge` (icon + label); `PaymentSuccess` uses real payment data. Settings subscription panel uses API plans. |
+| Responsive pass | Mobile-first audit across catalog, course detail, auth, dashboard, learning, settings, subscriptions. Removed forced min-widths (`AppLayout` `min-w-sm`, `Home` `min-w-xs`) and horizontal overflow (catalog `LearningRoadmap`/lesson content padding, OTP boxes, theme dropdown, footer). Viewport units switched to `dvh` for fixed learning/catalog shells; learning sidebar now overlays the content area instead of using a `pt-15` hack; filters/results keep one scroll region. UI primitives (`Modal`, `Card`, `Input`/`Select`/`Textarea`) use responsive padding, `max-h-[90dvh]`, and 16px mobile font to avoid iOS zoom; stacked forms/buttons (`Checkout`, payment pages), full-bleed scrollable dashboard tabs, 2-up footer, and 44px-ish nav touch targets. |
 
 ## Remaining / Residuals
 
-- Manual browser pass for light/dark and responsive behavior.
+- Manual browser pass for light/dark across small mobile, normal mobile, tablet, desktop, and large desktop (responsive classes audited statically, not device-tested).
 - `Skeleton` rollout is incremental (used where it matters, not everywhere).
 - Browser smoke test against the live API is manual.

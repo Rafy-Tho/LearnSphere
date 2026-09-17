@@ -27,7 +27,7 @@ const QuizOption = ({ index, option, isSelected, onSelect }) => {
       </span>
       <span
         className={cn(
-          "text-sm sm:text-base",
+          "min-w-0 break-words text-sm sm:text-base",
           isSelected ? "font-medium text-foreground" : "text-foreground",
         )}
       >

@@ -38,7 +38,7 @@ const ResetPasswordFlow = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="flex min-h-[calc(100dvh-64px)] items-center justify-center bg-background p-4">
       <div className="max-w-md w-full">
         {/* Progress Steps */}
         <ProgressStep currentStep={step} totalSteps={3} />
@@ -47,7 +47,7 @@ const ResetPasswordFlow = () => {
         <div className="bg-surface rounded-2xl shadow-xl border border-border overflow-hidden">
           <div className="h-1 bg-primary"></div>
 
-          <div className="p-8">
+          <div className="p-5 sm:p-8">
             {step > 1 && (
               <button
                 onClick={() => setFlow((prev) => ({ ...prev, step: prev.step - 1 }))}

@@ -33,7 +33,7 @@ const Select = forwardRef(function Select(
           aria-invalid={error ? true : undefined}
           aria-describedby={error || helperText ? messageId : undefined}
           className={cn(
-            "w-full appearance-none rounded-lg border bg-surface text-foreground text-sm py-2.5 pl-4 pr-10 focus:outline-none focus:ring-2 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
+            "w-full min-w-0 appearance-none rounded-lg border bg-surface text-foreground text-base py-2.5 pl-4 pr-10 focus:outline-none focus:ring-2 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer sm:text-sm",
             error
               ? "border-destructive focus:ring-destructive/50"
               : "border-border focus:ring-ring/50",

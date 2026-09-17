@@ -79,7 +79,7 @@ function Modal({
 
   return createPortal(
     <div
-      className="animate-overlay-in fixed inset-0 z-[100] flex items-center justify-center bg-black/50 dark:bg-black/70 p-4"
+      className="animate-overlay-in fixed inset-0 z-[100] flex items-center justify-center bg-black/50 dark:bg-black/70 p-4 sm:p-6"
       onMouseDown={(event) => {
         if (closeOnOverlay && event.target === event.currentTarget) onClose?.();
       }}
@@ -91,17 +91,17 @@ function Modal({
         aria-labelledby={title ? titleId : undefined}
         tabIndex={-1}
         className={cn(
-          "animate-dialog-in bg-surface rounded-xl shadow-xl w-full max-h-[90vh] flex flex-col focus:outline-none",
+          "animate-dialog-in bg-surface rounded-xl shadow-xl w-full max-h-[90dvh] flex flex-col focus:outline-none",
           sizeClasses[size],
           className,
         )}
       >
         {(title || showClose) && (
-          <div className="flex items-center justify-between gap-3 px-6 py-4 border-b border-border">
+          <div className="flex items-center justify-between gap-3 px-4 py-3.5 border-b border-border sm:px-6 sm:py-4">
             {title && (
               <h2
                 id={titleId}
-                className="text-lg font-semibold text-foreground"
+                className="min-w-0 truncate text-lg font-semibold text-foreground"
               >
                 {title}
               </h2>
@@ -111,16 +111,20 @@ function Modal({
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
+                className="-mr-1 ml-auto shrink-0 rounded-md p-1 text-foreground-muted hover:text-foreground transition-colors cursor-pointer"
               >
                 <X size={22} />
               </button>
             )}
           </div>
         )}
-        <div className={cn("p-6 overflow-y-auto", bodyClassName)}>{children}</div>
+        <div className={cn("overflow-y-auto p-4 sm:p-6", bodyClassName)}>
+          {children}
+        </div>
         {footer && (
-          <div className="px-6 py-4 border-t border-border">{footer}</div>
+          <div className="border-t border-border px-4 py-3.5 sm:px-6 sm:py-4">
+            {footer}
+          </div>
         )}
       </div>
     </div>,

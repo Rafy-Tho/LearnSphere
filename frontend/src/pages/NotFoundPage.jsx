@@ -3,7 +3,7 @@ import Button from "@/components/ui/Button";
 
 export default function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-surface-muted flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center overflow-hidden bg-surface-muted p-4">
       <div className="max-w-2xl w-full text-center">
         {/* 404 with illustration */}
         <div className="relative mb-8">

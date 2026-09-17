@@ -7,9 +7,7 @@ import Testimonial from "@/features/catalog/components/home/Testimonial";
 import TopCourse from "@/features/catalog/components/home/TopCourse";
 const Home = () => {
   return (
-    <div
-      className={`bg-background text-foreground text-sm min-w-xs`}
-    >
+    <div className="bg-background text-foreground text-sm">
       {/* ========== HERO SECTION (e-learning) ========== */}
       <Hero />
       {/*  ========== FEATURES SECTION (e-learning themed) ========== */}

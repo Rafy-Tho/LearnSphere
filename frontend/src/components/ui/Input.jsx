@@ -60,7 +60,7 @@ const Input = forwardRef(function Input(
           aria-invalid={error ? true : undefined}
           aria-describedby={error || helperText ? messageId : undefined}
           className={cn(
-            "w-full rounded-lg border bg-surface text-foreground placeholder:text-foreground-muted text-sm py-2.5 focus:outline-none focus:ring-2 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+            "w-full min-w-0 rounded-lg border bg-surface text-foreground placeholder:text-foreground-muted text-base py-2.5 focus:outline-none focus:ring-2 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm",
             icon ? "pl-10" : "pl-4",
             toggle ? "pr-10" : "pr-4",
             error

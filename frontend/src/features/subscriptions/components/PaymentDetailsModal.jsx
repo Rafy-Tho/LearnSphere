@@ -12,8 +12,10 @@ import {
 function Row({ label, value, valueClassName = "" }) {
   return (
     <div className="flex items-center justify-between gap-4 py-2">
-      <span className="text-sm text-foreground-muted">{label}</span>
-      <span className={`text-sm font-medium text-foreground ${valueClassName}`}>
+      <span className="shrink-0 text-sm text-foreground-muted">{label}</span>
+      <span
+        className={`min-w-0 break-all text-right text-sm font-medium text-foreground ${valueClassName}`}
+      >
         {value}
       </span>
     </div>

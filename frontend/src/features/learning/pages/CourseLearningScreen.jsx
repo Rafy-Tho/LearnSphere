@@ -30,23 +30,22 @@ const CourseLearningScreen = () => {
   }, [lessonId, startLesson]);
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-background">
+    <div className="flex h-full overflow-hidden bg-background">
       {/* rating modal */}
       <CourseRating />
       {/* Mobile overlay */}
       {!isDesktop && isSidebarOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/20"
+          className="absolute inset-0 z-30 bg-black/30"
           onClick={closeSidebar}
         />
       )}
       {/* Mobile sidebar (overlay) */}
       {!isDesktop && (
         <div
-          className={`fixed top-0 left-0 h-full z-40 w-[320px]
-        transition-transform duration-200 ease-out pt-15
-        ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-      `}
+          className={`absolute inset-y-0 left-0 z-40 w-[min(20rem,85vw)] transition-transform duration-200 ease-out ${
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         >
           <CourseSidebar onClose={closeSidebar} />
         </div>
@@ -68,7 +67,7 @@ const CourseLearningScreen = () => {
         )}
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <main
             key={location.pathname}
             className="flex-1 overflow-y-auto"

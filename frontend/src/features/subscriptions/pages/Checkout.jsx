@@ -152,7 +152,7 @@ export default function Checkout() {
                 </div>
               ) : (
                 <>
-                  <div className="flex items-end gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
                     <Input
                       label="Coupon code"
                       icon={<BadgePercent size={18} />}
@@ -167,13 +167,14 @@ export default function Checkout() {
                           applyCoupon();
                         }
                       }}
-                      containerClassName="flex-1"
+                      containerClassName="min-w-0 flex-1"
                       autoComplete="off"
                     />
                     <Button
                       variant="secondary"
                       onClick={applyCoupon}
                       isLoading={validateCoupon.isPending}
+                      className="w-full sm:w-auto"
                     >
                       Apply
                     </Button>

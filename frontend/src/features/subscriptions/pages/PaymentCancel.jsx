@@ -39,7 +39,7 @@ export default function PaymentCancel() {
             </div>
           </div>
 
-          <div className="px-8 py-6 space-y-5">
+          <div className="space-y-5 px-5 py-6 sm:px-8">
             <div className="flex items-start gap-3 bg-warning/10 border border-warning/20 rounded-2xl px-4 py-3">
               <ShieldAlert className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />
               <p className="text-warning text-sm font-medium">
@@ -105,7 +105,7 @@ export default function PaymentCancel() {
               </div>
             </div>
 
-            <div className="flex gap-3 pt-1">
+            <div className="flex flex-col gap-3 pt-1 sm:flex-row">
               <button
                 onClick={() => {
                   navigate("/learning-dashboard");
@@ -128,7 +128,7 @@ export default function PaymentCancel() {
               </button>
             </div>
 
-            <div className="rounded-2xl border border-border px-5 py-4 flex items-center justify-between">
+            <div className="flex flex-col items-start gap-3 rounded-2xl border border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold text-foreground">
                   Need help?

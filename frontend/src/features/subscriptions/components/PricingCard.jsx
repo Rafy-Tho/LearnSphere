@@ -43,7 +43,7 @@ function PricingCard({ plan, activeSubscription, highlighted = false }) {
   return (
     <div
       className={`
-        relative flex flex-col rounded-2xl p-8 transition-colors duration-300 max-w-[340px] w-full
+        relative flex w-full max-w-[340px] flex-col rounded-2xl p-6 transition-colors duration-300 sm:p-8
         ${isActivePlan || dimmed ? "bg-surface-muted opacity-75" : "bg-surface"}
         ${
           highlighted && !hasActiveSubscription

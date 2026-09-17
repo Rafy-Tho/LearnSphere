@@ -40,9 +40,12 @@ function LessonContent() {
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       {safeCSS && <style>{safeCSS}</style>}
-      <div dangerouslySetInnerHTML={{ __html: cleanHTML }} />
+      <div
+        className="break-words [&_img]:h-auto [&_img]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:max-w-full [&_table]:overflow-x-auto"
+        dangerouslySetInnerHTML={{ __html: cleanHTML }}
+      />
     </div>
   );
 }

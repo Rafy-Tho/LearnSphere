@@ -15,9 +15,9 @@ const Footer = () => {
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-12">
+        <div className="grid grid-cols-2 gap-8 sm:gap-10 lg:grid-cols-6 lg:gap-12">
           {/* Brand */}
-          <div className="sm:col-span-2 lg:col-span-2 space-y-5">
+          <div className="col-span-2 space-y-5 lg:col-span-2">
             <Link
               to="/"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}

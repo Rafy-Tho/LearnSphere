@@ -35,7 +35,7 @@ const Textarea = forwardRef(function Textarea(
         aria-invalid={error ? true : undefined}
         aria-describedby={error || helperText ? messageId : undefined}
         className={cn(
-          "w-full rounded-lg border bg-surface text-foreground placeholder:text-foreground-muted text-sm px-4 py-2.5 focus:outline-none focus:ring-2 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-y",
+          "w-full min-w-0 rounded-lg border bg-surface text-foreground placeholder:text-foreground-muted text-base px-4 py-2.5 focus:outline-none focus:ring-2 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-y sm:text-sm",
           error
             ? "border-destructive focus:ring-destructive/50"
             : "border-border focus:ring-ring/50",

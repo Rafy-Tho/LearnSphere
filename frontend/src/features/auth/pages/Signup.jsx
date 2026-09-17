@@ -53,11 +53,11 @@ const Signup = () => {
     }
   };
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="flex min-h-[calc(100dvh-64px)] items-center justify-center bg-background p-4">
       <div className="bg-surface max-w-5xl w-full grid md:grid-cols-2 rounded-2xl shadow-xl border border-border overflow-hidden">
         {/* Left Side - Social Login Options */}
-        <div className="p-8 md:p-12 flex flex-col justify-between">
-          <div>
+        <div className="flex flex-col justify-between p-6 sm:p-8 md:p-12">
+          <div className="hidden md:block">
             <h2 className="text-foreground text-3xl font-bold mb-4">
               Instantly Register
             </h2>
@@ -68,7 +68,7 @@ const Signup = () => {
           </div>
           {/* Social Login Buttons */}
           <SocialButtons />
-          <div className="mt-8">
+          <div className="hidden md:block mt-8">
             <p className="text-foreground-muted text-xs leading-relaxed">
               By continuing, you agree to our{" "}
               <a
@@ -89,7 +89,7 @@ const Signup = () => {
         </div>
 
         {/* Right Side - Registration Form */}
-        <div className="p-8 md:p-12 border-t md:border-t-0 md:border-l border-border">
+        <div className="border-t border-border p-6 sm:p-8 md:border-l md:border-t-0 md:p-12">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground">
               Create Account

@@ -64,7 +64,7 @@ const ThemeSelector = () => {
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute left-1/2 top-full mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg py-1 z-50"
+          className="absolute left-0 top-full z-50 mt-2 w-48 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-surface py-1 shadow-lg"
         >
           {themes.map((item) => {
             const Icon = item.icon;

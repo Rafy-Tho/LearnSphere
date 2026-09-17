@@ -109,16 +109,16 @@ export function CourseSidebar({ onClose }) {
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
   return (
-    <aside className="flex flex-col lg:h-[calc(100vh-64px)] h-full bg-surface border-r border-border">
+    <aside className="relative flex h-full flex-col border-r border-border bg-surface">
       <button
         onClick={onClose}
         aria-label="Close sidebar"
-        className="text-foreground-muted absolute top-3 right-3 text-2xl cursor-pointer lg:hidden"
+        className="absolute right-2 top-2 z-10 cursor-pointer rounded-md p-2 text-foreground-muted transition-colors hover:bg-surface-muted hover:text-foreground lg:hidden"
       >
-        <X size={16} />
+        <X size={18} />
       </button>
       <div className="p-5 pb-4">
-        <h2 className="text-lg font-semibold text-foreground mb-4">
+        <h2 className="mb-4 pr-8 text-lg font-semibold text-foreground">
           {course.name}
         </h2>
         <div className="relative mb-3">

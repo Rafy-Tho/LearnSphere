@@ -39,7 +39,7 @@ function ProfileHeader({
         />
       </div>
 
-      <div className="px-6 pb-6">
+      <div className="px-4 pb-6 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-10 mb-4">
           <div className="relative w-fit">
             <Avatar src={preview || field("image")} name={field("name")} />

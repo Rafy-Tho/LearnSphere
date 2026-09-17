@@ -26,22 +26,28 @@ function Card({
       )}
     >
       {(title || action) && (
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 sm:px-6 sm:py-4">
+          <div className="flex min-w-0 items-center gap-3">
             {icon && (
-              <div className="w-8 h-8 rounded-lg bg-surface-muted flex items-center justify-center text-foreground-muted">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-muted text-foreground-muted">
                 {icon}
               </div>
             )}
             {title && (
-              <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+              <h2 className="min-w-0 truncate text-sm font-semibold text-foreground">
+                {title}
+              </h2>
             )}
           </div>
           {action}
         </div>
       )}
-      <div className={cn("p-6", bodyClassName)}>{children}</div>
-      {footer && <div className="px-6 py-4 border-t border-border">{footer}</div>}
+      <div className={cn("p-4 sm:p-6", bodyClassName)}>{children}</div>
+      {footer && (
+        <div className="border-t border-border px-4 py-3.5 sm:px-6 sm:py-4">
+          {footer}
+        </div>
+      )}
     </div>
   );
 }

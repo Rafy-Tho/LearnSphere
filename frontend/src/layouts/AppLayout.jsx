@@ -21,9 +21,11 @@ function AppLayout() {
     );
    
   return (
-    <div className="min-w-sm bg-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navigation user={user} onLogout={logout} />
-      <Outlet />
+      <div className="flex-1">
+        <Outlet />
+      </div>
       <Footer />
       <AppToastContainer />
     </div>

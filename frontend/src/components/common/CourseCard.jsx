@@ -54,7 +54,7 @@ function CourseCard({
   return (
     <article
       className={cn(
-        "flex h-full w-full shrink-0 cursor-pointer flex-col rounded-xl border border-border bg-surface p-6 shadow-sm transition-all",
+        "flex h-full w-full shrink-0 cursor-pointer flex-col rounded-xl border border-border bg-surface p-4 shadow-sm transition-all sm:p-6",
         isCarousel
           ? "relative overflow-hidden hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
           : "hover:shadow-md",

@@ -46,10 +46,8 @@ export default function Checkout() {
           <ErrorMessage
             title="We couldn't load this plan"
             message={error?.message || "Plan not found"}
+            onRetry={() => refetch()}
           />
-          <Button className="mt-4" onClick={() => refetch()}>
-            Try Again
-          </Button>
         </div>
       </div>
     );

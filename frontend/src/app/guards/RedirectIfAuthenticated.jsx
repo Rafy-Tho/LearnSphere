@@ -5,7 +5,7 @@ import SpinnerLoader from "@/components/ui/SpinnerLoader";
 function RedirectIfAuthenticated() {
   const { user, isLoading } = useAuth();
 
-  if (isLoading) return <SpinnerLoader />;
+  if (isLoading) return <SpinnerLoader fullScreen />;
   if (user) return <Navigate to="/learning-dashboard" replace />;
 
   return <Outlet />;

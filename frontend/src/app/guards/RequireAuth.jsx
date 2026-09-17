@@ -5,7 +5,7 @@ import SpinnerLoader from "@/components/ui/SpinnerLoader";
 function RequireAuth() {
   const { user, isLoading } = useAuth();
 
-  if (isLoading) return <SpinnerLoader />;
+  if (isLoading) return <SpinnerLoader fullScreen label="Checking your session…" />;
   if (!user) return <Navigate to="/login" replace />;
 
   return <Outlet />;

@@ -10,13 +10,15 @@ function AppLayout() {
   
   const { user, isLoading, error } = useAuth();
   const { logout } = useLogout();
-  if (isLoading) return (
-    <div className="w-full h-screen flex items-center justify-center bg-background">
-      <SpinnerLoader />
-    </div>
-  );
+  if (isLoading) return <SpinnerLoader fullScreen label="Loading…" />;
 
-  if (error) return <div className="w-full h-screen flex items-center justify-center bg-background text-foreground-muted"><ErrorMessage className="w-full" message={error?.message || 'Server error'} /></div>
+  if (error)
+    return (
+      <ErrorMessage
+        fullScreen
+        message={error?.message || "Server error"}
+      />
+    );
    
   return (
     <div className="min-w-sm bg-background">

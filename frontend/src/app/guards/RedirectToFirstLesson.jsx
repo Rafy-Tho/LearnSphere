@@ -6,7 +6,7 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 function RedirectToFirstLesson() {
   const params = useParams();
   const { data, isPending, error } = useGetFirstLesson();
-  if (isPending) return <SpinnerLoader />;
+  if (isPending) return <SpinnerLoader className="min-h-[50vh]" label="Loading lesson…" />;
   if (error) return <ErrorMessage message={error.message} />;
   return (
     <Navigate

@@ -58,6 +58,7 @@ function Button({
     >
       {isLoading ? (
         <SpinnerLoader
+          bare
           size="sm"
           color={solidVariants.includes(variant) ? "white" : "muted"}
         />

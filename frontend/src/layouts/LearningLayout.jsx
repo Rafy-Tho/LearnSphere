@@ -30,20 +30,14 @@ function LearningLayout() {
     [isSidebarOpen, isRatingOpen],
   );
   if (isLoading)
-    return (
-      <div className="w-full h-screen flex items-center justify-center bg-background">
-        <SpinnerLoader />
-      </div>
-    );
+    return <SpinnerLoader fullScreen label="Loading…" />;
 
   if (error)
     return (
-      <div className="w-full h-screen flex items-center justify-center bg-background text-foreground-muted">
-        <ErrorMessage
-          className="w-full"
-          message={error?.message || "Server error"}
-        />
-      </div>
+      <ErrorMessage
+        fullScreen
+        message={error?.message || "Server error"}
+      />
     );
   return (
     <div className="min-h-screen bg-background text-foreground">

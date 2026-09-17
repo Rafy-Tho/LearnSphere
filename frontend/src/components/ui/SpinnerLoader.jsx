@@ -1,3 +1,5 @@
+import cn from "@/utils/cn";
+
 const sizeClasses = {
   sm: "w-4 h-4",
   md: "w-8 h-8",
@@ -6,27 +8,74 @@ const sizeClasses = {
 };
 
 const colorClasses = {
-  primary: "border-primary",
-  muted: "border-foreground-muted",
-  white: "border-white",
+  primary: "text-primary",
+  muted: "text-foreground-muted",
+  white: "text-white",
+  success: "text-success",
+  destructive: "text-destructive",
 };
 
-const borderClasses = {
-  sm: "border-2",
-  md: "border-4",
-  lg: "border-4",
-  xl: "border-4",
-};
+const SpinnerLoader = ({
+  size = "md",
+  color = "primary",
+  label,
+  fullScreen = false,
+  bare = false,
+  className = "",
+}) => {
+  const spinner = (
+    <svg
+      className={cn(
+        "animate-spin",
+        sizeClasses[size] || sizeClasses.md,
+        colorClasses[color] || colorClasses.primary,
+      )}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="3"
+        className="opacity-20"
+      />
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeDasharray="62.832"
+        strokeDashoffset="47.124"
+      />
+    </svg>
+  );
 
-const SpinnerLoader = ({ size = "md", color = "primary" }) => {
+  if (bare) return spinner;
+
   return (
-    <div className="flex items-center justify-center">
-      <div
-        className={`${sizeClasses[size]} ${colorClasses[color] || colorClasses.primary} ${borderClasses[size]} border-t-transparent rounded-full animate-spin`}
-        role="status"
-        aria-label="Loading"
-      ></div>
-    </div>
+    <span
+      role="status"
+      aria-live="polite"
+      className={cn(
+        "flex flex-col items-center justify-center gap-2 py-8",
+        fullScreen && "min-h-screen w-full bg-background",
+        className,
+      )}
+    >
+      {spinner}
+      {label ? (
+        <span className="text-sm font-medium text-foreground-muted">
+          {label}
+        </span>
+      ) : (
+        <span className="sr-only">Loading…</span>
+      )}
+    </span>
   );
 };
 

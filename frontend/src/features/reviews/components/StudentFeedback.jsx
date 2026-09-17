@@ -131,7 +131,7 @@ export function StudentFeedback() {
           >
             {isFetchingNextPage ? (
               <span className="inline-flex items-center gap-2">
-                <SpinnerLoader size="sm" color="primary" />
+                <SpinnerLoader bare size="sm" color="primary" />
                 Loading...
               </span>
             ) : (

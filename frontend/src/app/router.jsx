@@ -77,7 +77,7 @@ const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 function AppRouter() {
   return (
-    <Suspense fallback={<SpinnerLoader />}>
+    <Suspense fallback={<SpinnerLoader fullScreen label="Loading…" />}>
       <Routes>
         {/* App Layout */}
         <Route path="/" element={<AppLayout />}>

@@ -146,7 +146,6 @@ class CourseRepository {
     const filterMap = {
       level: "c.level",
       category: "c.category_id",
-      skill: "c.slug",
       rating: "rv.avg_rating",
       duration: "ld.total_duration",
       isFree: "c.access_type",
@@ -678,7 +677,6 @@ class CourseRepository {
     const filterMap = {
       level: "c.level",
       category: "c.category_id",
-      skill: "c.slug",
       isFree: "c.access_type",
     };
 

@@ -1,7 +1,8 @@
 import { Filter, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { durations, filters, levels, ratings, skills } from "@/features/catalog/constants/courseFilterData";
+import { durations, filters, levels, ratings } from "@/features/catalog/constants/courseFilterData";
+import { useCategories } from "@/features/catalog/hooks/useCategories";
 import RatingStars from "@/components/common/RatingStars";
 
 // ---------------- RANGE CONFIG ----------------
@@ -20,7 +21,7 @@ const rangeConfig = {
 };
 
 const isRange = ["rating", "duration"];
-const queryFields = ["isFree", "level", "rating", "duration", "skill"];
+const queryFields = ["isFree", "level", "rating", "duration", "category"];
 
 // ✅ Derive initial state directly from URL params — no useEffect needed
 function getInitialSelected(searchParams) {
@@ -35,12 +36,11 @@ function getInitialSelected(searchParams) {
 // ---------------- COMPONENT ----------------
 export function Sidebar({ setShowMobileFilter }) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { data: categories = [] } = useCategories();
   const [selectedFilters, setSelectedFilters] = useState(() =>
     getInitialSelected(searchParams),
   );
-  const [selectedSkill, setSelectedSkill] = useState(
-    () => searchParams.getAll("skill") || [],
-  );
+  const selectedCategories = searchParams.getAll("category");
   // ---------------- RADIO ----------------
   const handleSelectOne = useCallback(
     (e) => {
@@ -84,12 +84,10 @@ export function Sidebar({ setShowMobileFilter }) {
         const params = new URLSearchParams(prev);
         if (checked) {
           params.append(name, value);
-          setSelectedSkill((p) => [...p, value]);
         } else {
           const updated = params.getAll(name).filter((v) => v !== value);
           params.delete(name);
           updated.forEach((v) => params.append(name, v));
-          setSelectedSkill((p) => p.filter((v) => v !== value));
         }
         params.delete("page");
         params.delete("limit");
@@ -114,7 +112,6 @@ export function Sidebar({ setShowMobileFilter }) {
     params.delete("limit");
     setSearchParams(params);
     setSelectedFilters({ isFree: "", level: "", rating: "", duration: "" });
-    setSelectedSkill([]);
   }, [searchParams, setSearchParams]);
   // ---------------- UI ----------------
   return (
@@ -189,20 +186,20 @@ export function Sidebar({ setShowMobileFilter }) {
       </Section>
 
       <Section title="Topics">
-        {skills.map((s) => (
+        {categories.map((category) => (
           <label
-            key={s.value}
+            key={category.id}
             className="flex items-center gap-3 cursor-pointer"
           >
             <input
               type="checkbox"
-              name={s.name}
-              value={s.value}
-              checked={selectedSkill.includes(s.value)}
+              name="category"
+              value={category.id}
+              checked={selectedCategories.includes(category.id)}
               onChange={handleSelectMany}
               className="w-4 h-4 accent-primary cursor-pointer"
             />
-            <span className="text-sm">{s.label}</span>
+            <span className="text-sm">{category.name}</span>
           </label>
         ))}
       </Section>

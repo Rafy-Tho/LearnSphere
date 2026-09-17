@@ -8,11 +8,11 @@ export function FilterTab() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data, isPending, error } = useGetCategories();
   const tabs = [all, ...(data || [])];
-  const activeTab = searchParams.get("category") || "all";
+  const activeCategories = searchParams.getAll("category");
   const handleClick = (tab) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (tab.id === "all") params.delete("category");
-    else params.set("category", tab.id);
+    params.delete("category");
+    if (tab.id !== "all") params.set("category", tab.id);
     params.delete("page");
     params.delete("limit");
     setSearchParams(params);
@@ -27,7 +27,9 @@ export function FilterTab() {
             key={tab.id}
             onClick={() => handleClick(tab)}
             className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors border-b-2 cursor-pointer ${
-              activeTab === tab.id
+              (tab.id === "all"
+                ? activeCategories.length === 0
+                : activeCategories.includes(tab.id))
                 ? "border-primary text-primary"
                 : "border-transparent text-foreground-muted hover:text-foreground"
             }`}

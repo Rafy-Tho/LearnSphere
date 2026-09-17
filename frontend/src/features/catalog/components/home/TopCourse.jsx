@@ -10,10 +10,7 @@ function TopCourse() {
   const navigate = useNavigate();
   const param = new URLSearchParams({});
   param.append("limit", 4);
-  param.append("skill", "javascript-mastery");
-  param.append("skill", "c-programming-mastery");
-  param.append("skill", "python-programming-for-beginners");
-  param.append("skill", "cpp-programming-for-beginners");
+  param.append("sort", "-avg_rating");
   const { data, isPending, error } = useGetCourses(param);
   return (
     <section className="py-12 px-4 sm:px-6 lg:px-8 bg-background">

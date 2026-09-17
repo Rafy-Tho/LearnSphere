@@ -76,7 +76,7 @@ sequenceDiagram
   F-->>U: Render course grid
 ```
 
-Filters supported by `CourseRepository` include `level`, `category`, `skill` (mapped to category slug), `rating`, `duration`, and `isFree` (access type). Sorting uses `-field` for descending.
+Filters supported by `CourseRepository` include `level`, `category`, `rating`, `duration`, and `isFree` (access type). Sorting uses `-field` for descending.
 
 ## 4. Enrollment Workflow
 

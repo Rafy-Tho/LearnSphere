@@ -1,17 +1,3 @@
-const skills = [
-  {
-    name: "skill",
-    label: "System Design",
-    value: "introduction-to-computer-science",
-  },
-  { name: "skill", label: "Python", value: "python-programming-for-beginners" },
-  { name: "skill", label: "C", value: "c-programming-mastery" },
-  { name: "skill", label: "Java", value: "java-programming-for-beginners" },
-  { name: "skill", label: "PHP", value: "php-programming-for-beginners" },
-  { name: "skill", label: "JavaScript", value: "javascript-mastery" },
-  { name: "skill", label: "C++", value: "cpp-programming-for-beginners" },
-];
-
 const levels = [
   { name: "level", label: "Beginner", value: "BEGINNER" },
   { name: "level", label: "Intermediate", value: "INTERMEDIATE" },
@@ -40,4 +26,4 @@ const durations = [
   { name: "duration", label: "10+", value: "600" },
 ];
 
-export { skills, filters, levels, ratings, durations };
+export { filters, levels, ratings, durations };

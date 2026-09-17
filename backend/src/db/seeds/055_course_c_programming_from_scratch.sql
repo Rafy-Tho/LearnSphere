@@ -839,4 +839,191 @@ do {
 </html>
 $html$
 ),
+(
+  '03700000-0000-4000-8000-000000000413',
+  '03700000-0000-4000-8000-000000000313',
+  1,
+  'Functions',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Functions</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Functions</h1>
+  <p>A function is a named block of code that performs one task. Functions let you avoid repetition, name your intent, and test logic in isolation.</p>
+  <h2>Prototype, definition, and call</h2>
+  <p>A <strong>prototype</strong> tells the compiler a function exists before it is used. The <strong>definition</strong> contains the body.</p>
+  <pre class="code-block">#include &lt;stdio.h&gt;
+
+double rectangle_area(double width, double height);   // prototype
+
+int main(void) {
+    double area = rectangle_area(4.0, 2.5);           // call
+    printf("Area = %.2f\n", area);
+    return 0;
+}
+
+double rectangle_area(double width, double height) {  // definition
+    return width * height;
+}</pre>
+  <h2>Return values and void</h2>
+  <ul>
+    <li>A function returns a single value with <span class="ic">return</span>.</li>
+    <li><span class="ic">return</span> ends the function immediately.</li>
+    <li>Use <span class="ic">void</span> when a function returns nothing.</li>
+  </ul>
+  <pre class="code-block">void print_line(int length) {
+    for (int i = 0; i &lt; length; i++) {
+        putchar('-');
+    }
+    putchar('\n');
+}</pre>
+  <h2>Pass by value</h2>
+  <p>C passes arguments by value: the function receives a <em>copy</em>. Changing a parameter never changes the caller variable.</p>
+  <pre class="code-block">void double_it(int n) {
+    n = n * 2;               // changes only the local copy
+}
+
+int main(void) {
+    int value = 5;
+    double_it(value);
+    printf("%d\n", value);   // still 5
+    return 0;
+}</pre>
+  <div class="callout">
+    <strong>To change the caller, pass an address</strong>
+    <p>Because arguments are copied, functions that must modify the caller value take a pointer and dereference it. You will do this in the pointers module.</p>
+  </div>
+  <div class="callout callout-tip">
+    <strong>One task, one name</strong>
+    <p>A function called <span class="ic">compute_invoice_total</span> should do exactly that. If you struggle to name it without the word &ldquo;and&rdquo;, split it in two.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
+(
+  '03700000-0000-4000-8000-000000000414',
+  '03700000-0000-4000-8000-000000000314',
+  1,
+  'Scope & Recursion',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scope &amp; Recursion</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Scope &amp; Recursion</h1>
+  <p>Where a name can be seen, and for how long it lives, is its <strong>scope</strong>. Recursion, in turn, is a technique where a function solves a problem by calling itself on a smaller version of it.</p>
+  <h2>Local variables</h2>
+  <p>A variable declared inside a function exists only during that call. Each call gets a fresh copy.</p>
+  <pre class="code-block">void count_up(void) {
+    int counter = 0;      // created on every call
+    counter++;
+    printf("%d\n", counter);
+}
+
+count_up();   // 1
+count_up();   // 1 — it did not remember</pre>
+  <h2>Global variables</h2>
+  <p>Declared outside every function, globals are visible everywhere and live for the whole program. Use them sparingly — they make programs hard to reason about.</p>
+  <pre class="code-block">int total = 0;            // global
+
+void add(int n) {
+    total += n;           // reaches the global
+}</pre>
+  <h2>static — remember between calls</h2>
+  <pre class="code-block">void tick(void) {
+    static int calls = 0; // initialized once, keeps its value
+    calls++;
+    printf("Call number %d\n", calls);
+}</pre>
+  <div class="callout callout-info">
+    <strong>Block scope</strong>
+    <p>A variable declared inside <span class="ic">{ }</span> is visible only until the closing brace. Reusing a short name like <span class="ic">i</span> in separate loops is therefore fine.</p>
+  </div>
+  <h2>Recursion</h2>
+  <p>Every recursive function needs a <strong>base case</strong> that stops the recursion, plus a step that moves closer to it.</p>
+  <pre class="code-block">long factorial(int n) {
+    if (n &lt;= 1) return 1;          // base case
+    return n * factorial(n - 1);   // recursive case
+}
+
+printf("%ld\n", factorial(5));     // 120</pre>
+  <h2>The call stack</h2>
+  <p>Each call adds a frame to the call stack. <span class="ic">factorial(5)</span> stacks five frames before any multiplication happens, then unwinds them on the way back.</p>
+  <pre class="code-block">factorial(5)
+  factorial(4)
+    factorial(3)
+      factorial(2)
+        factorial(1)  -> returns 1
+      returns 2
+    returns 6
+  returns 24
+returns 120</pre>
+  <div class="callout">
+    <strong>Stack overflow</strong>
+    <p>Recursion without a reachable base case — or too deep for the stack — crashes the program. Always verify the base case and that each call gets smaller.</p>
+  </div>
+  <div class="callout callout-tip">
+    <strong>When to use recursion</strong>
+    <p>Recursion shines on tree-shaped problems and divide-and-conquer algorithms. For simple counting, an ordinary loop is usually clearer and faster.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
 -- @@CONTENT@@

@@ -1,5 +1,6 @@
 import { useSearchParams } from "react-router-dom";
 import { useCategories as useGetCategories } from "@/features/catalog/hooks/useCategories";
+import { COURSE_QUERY_PARAMS } from "@/features/catalog/constants/queryParams";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 
@@ -8,11 +9,13 @@ export function FilterTab() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data, isPending, error } = useGetCategories();
   const tabs = [all, ...(data || [])];
-  const activeCategories = searchParams.getAll("category");
+  const activeCategories = searchParams.getAll(COURSE_QUERY_PARAMS.CATEGORY_ID);
   const handleClick = (tab) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.delete("category");
-    if (tab.id !== "all") params.set("category", tab.id);
+    params.delete(COURSE_QUERY_PARAMS.CATEGORY_ID);
+    if (tab.id !== "all") {
+      params.set(COURSE_QUERY_PARAMS.CATEGORY_ID, tab.id);
+    }
     params.delete("page");
     params.delete("limit");
     setSearchParams(params);

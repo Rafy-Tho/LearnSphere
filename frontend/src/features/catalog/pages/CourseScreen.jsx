@@ -36,7 +36,7 @@ export default function CourseScreen() {
 
         {/* Mobile Sidebar - Slide in from left on mobile */}
         <div
-          className={`fixed left-0 top-0 w-64 bg-background border-r border-border z-50 transform transition-transform duration-300 ease-in-out md:hidden h-full overflow-y-auto py-15 ${
+          className={`fixed left-0 top-0 w-72 bg-background border-r border-border z-50 transform transition-transform duration-300 ease-in-out md:hidden h-full overflow-y-auto ${
             showMobileFilter ? "translate-x-0" : "-translate-x-full"
           }`}
         >

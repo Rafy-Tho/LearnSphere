@@ -1,5 +1,15 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect } from "react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import scrollToTop from "@/utils/scrollToTop";
+
+const navButtonClass =
+  "inline-flex size-9 items-center justify-center rounded-lg text-foreground-muted transition-colors hover:bg-surface-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-40";
 
 const Pagination = ({
   totalItems = 0,
@@ -13,8 +23,11 @@ const Pagination = ({
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Don't render pagination if there's only one page or no items
-  if (totalPages <= 1) return null;
+  useEffect(() => {
+    scrollToTop();
+  }, [currentPage]);
+
+  if (!totalItems || !itemsPerPage || totalPages <= 1) return null;
 
   const handlePageChange = (page) => {
     if (page === currentPage) return;
@@ -35,27 +48,22 @@ const Pagination = ({
     const showLeftEllipsis = leftSiblingIndex > 2;
     const showRightEllipsis = rightSiblingIndex < totalPages - 1;
 
-    // Always show first page
     pageNumbers.push(1);
 
-    // Left ellipsis
     if (showLeftEllipsis) {
       pageNumbers.push("...");
     }
 
-    // Middle pages
     for (let i = leftSiblingIndex; i <= rightSiblingIndex; i++) {
       if (i !== 1 && i !== totalPages) {
         pageNumbers.push(i);
       }
     }
 
-    // Right ellipsis
     if (showRightEllipsis) {
       pageNumbers.push("...");
     }
 
-    // Always show last page if totalPages > 1
     if (totalPages > 1) {
       pageNumbers.push(totalPages);
     }
@@ -64,114 +72,105 @@ const Pagination = ({
   };
 
   const pageNumbers = getPageNumbers();
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <nav className="flex flex-col gap-4 border-t border-border pt-6 mt-6">
-      {/* Page Numbers Row - Shows on all screens */}
-      <div className="flex justify-center">
-        <div className="flex items-center flex-wrap justify-center gap-1 sm:gap-2">
-          {/* First page button */}
-          {showFirstLast && currentPage !== 1 && totalPages > 1 && (
+    <nav aria-label="Pagination" className="mt-8 border-t border-border pt-6">
+      <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+        <p className="text-sm text-foreground-muted">
+          Showing{" "}
+          <span className="font-medium text-foreground">{startItem}</span>
+          {"–"}
+          <span className="font-medium text-foreground">{endItem}</span> of{" "}
+          <span className="font-medium text-foreground">{totalItems}</span>{" "}
+          results
+        </p>
+
+        <div className="flex items-center gap-1">
+          {showFirstLast && (
             <button
+              type="button"
               onClick={() => handlePageChange(1)}
-              className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-foreground-muted rounded-md transition-colors duration-200 cursor-pointer"
+              disabled={currentPage === 1}
+              aria-label="Go to first page"
+              className={navButtonClass}
             >
-              First
+              <ChevronsLeft className="size-4" />
             </button>
           )}
 
-          {/* Page numbers */}
-          {pageNumbers.map((page, index) => {
-            if (page === "...") {
-              return (
-                <span
-                  key={`ellipsis-${index}`}
-                  className="px-1.5 sm:px-2 py-1.5 sm:py-2 text-xs sm:text-sm text-foreground-muted"
-                >
-                  ...
-                </span>
-              );
-            }
-
-            return (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`
-              min-w-8 sm:min-w-9 px-1.5 sm:px-3 py-1.5 sm:py-2 
-              text-xs sm:text-sm font-medium rounded-md transition-colors duration-200 cursor-pointer
-              ${
-                currentPage === page
-                  ? "bg-primary text-white shadow-sm hover:bg-primary-hover"
-                  : "text-foreground-muted hover:bg-surface-muted"
-              }
-            `}
-              >
-                {page}
-              </button>
-            );
-          })}
-
-          {/* Last page button */}
-          {showFirstLast && currentPage !== totalPages && totalPages > 1 && (
+          {showPrevNext && (
             <button
-              onClick={() => handlePageChange(totalPages)}
-              className="px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-foreground-muted rounded-md transition-colors duration-200 cursor-pointer"
+              type="button"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              aria-label="Go to previous page"
+              className={navButtonClass}
             >
-              Last
+              <ChevronLeft className="size-4" />
+            </button>
+          )}
+
+          <div className="hidden items-center gap-1 sm:flex">
+            {pageNumbers.map((page, index) => {
+              if (page === "...") {
+                return (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="inline-flex size-9 items-center justify-center text-sm text-foreground-muted"
+                  >
+                    …
+                  </span>
+                );
+              }
+
+              return (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => handlePageChange(page)}
+                  aria-current={currentPage === page ? "page" : undefined}
+                  className={`inline-flex size-9 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                    currentPage === page
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-foreground-muted hover:bg-surface-muted hover:text-foreground"
+                  }`}
+                >
+                  {page}
+                </button>
+              );
+            })}
+          </div>
+
+          <span className="px-2 text-sm font-medium text-foreground sm:hidden">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          {showPrevNext && (
+            <button
+              type="button"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              aria-label="Go to next page"
+              className={navButtonClass}
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          )}
+
+          {showFirstLast && (
+            <button
+              type="button"
+              onClick={() => handlePageChange(totalPages)}
+              disabled={currentPage === totalPages}
+              aria-label="Go to last page"
+              className={navButtonClass}
+            >
+              <ChevronsRight className="size-4" />
             </button>
           )}
         </div>
-      </div>
-
-      {/* Previous/Next Buttons Row */}
-      <div className="flex items-center justify-between gap-3 sm:gap-4">
-        {/* Previous button */}
-        {showPrevNext && (
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`
-          flex-1 sm:flex-none sm:w-32 px-4 py-2.5 sm:py-2 
-          text-sm font-medium rounded-lg transition-colors duration-200
-          flex items-center justify-center gap-2
-          ${
-            currentPage === 1
-              ? "text-foreground-muted opacity-50 cursor-not-allowed"
-              : "text-foreground-muted hover:text-foreground cursor-pointer"
-          }
-        `}
-          >
-            <ChevronLeft className="w-6 h-6" />
-            <span>Previous</span>
-          </button>
-        )}
-
-        {/* Page Info - Mobile */}
-        <div className="text-sm text-foreground-muted font-medium whitespace-nowrap">
-          Page {currentPage} of {totalPages}
-        </div>
-
-        {/* Next button */}
-        {showPrevNext && (
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`
-          flex-1 sm:flex-none sm:w-32 px-4 py-2.5 sm:py-2 
-          text-sm font-medium rounded-lg transition-colors duration-200
-          flex items-center justify-center gap-2
-          ${
-            currentPage === totalPages
-              ? "text-foreground-muted opacity-50 cursor-not-allowed"
-              : "text-foreground-muted hover:text-foreground cursor-pointer"
-          }
-        `}
-          >
-            <span>Next</span>
-            <ChevronRight className="w-6 h-6" />
-          </button>
-        )}
       </div>
     </nav>
   );

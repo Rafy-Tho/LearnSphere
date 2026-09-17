@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { useCourses as useGetCourses } from "@/features/catalog/hooks/useCourses";
@@ -6,17 +7,26 @@ import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import EmptyState from "@/components/ui/EmptyState";
 import Pagination from "@/components/common/Pagination";
+import scrollToTop from "@/utils/scrollToTop";
 
 export function SearchResult() {
   const [searchParams] = useSearchParams();
+  const scrollRef = useRef(null);
+  const queryKey = searchParams.toString();
   const { data, isPending, error } = useGetCourses(searchParams);
   const courses = data?.data || [];
   const pagination = data?.pagination || {};
+
+  useEffect(() => {
+    scrollToTop(scrollRef.current);
+    scrollToTop();
+  }, [queryKey]);
+
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div ref={scrollRef} className="flex-1 overflow-y-auto">
       <div className="p-4 md:p-8">
         <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-6">
           Search Results ({pagination?.totalItems || 0})
@@ -34,15 +44,13 @@ export function SearchResult() {
             ))}
           </div>
         )}
-        {Number(pagination?.totalPages) > 1 && (
-          <Pagination
-            totalItems={Number(pagination?.totalItems)}
-            itemsPerPage={Number(pagination?.limit)}
-            siblingCount={1}
-            showFirstLast={true}
-            showPrevNext={true}
-          />
-        )}
+        <Pagination
+          totalItems={Number(pagination?.totalItems)}
+          itemsPerPage={Number(pagination?.limit)}
+          siblingCount={1}
+          showFirstLast={true}
+          showPrevNext={true}
+        />
       </div>
     </div>
   );

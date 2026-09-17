@@ -110,6 +110,8 @@ export function Sidebar({ setShowMobileFilter }) {
         params.delete(f);
       }
     });
+    params.delete("page");
+    params.delete("limit");
     setSearchParams(params);
     setSelectedFilters({ isFree: "", level: "", rating: "", duration: "" });
     setSelectedSkill([]);

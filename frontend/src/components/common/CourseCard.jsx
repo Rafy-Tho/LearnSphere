@@ -5,6 +5,7 @@ import formatMinutes from "@/utils/formatMinutes";
 import formatCapitalize from "@/utils/formatCapitalize";
 import truncateText from "@/utils/truncateText";
 import cn from "@/utils/cn";
+import Badge from "@/components/ui/Badge";
 import ProgressBar from "@/components/ui/ProgressBar";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { useSavedCourseIds } from "@/features/saved/hooks/useSavedCourses";
@@ -30,6 +31,7 @@ function CourseCard({
   const enrollCount = Number(course.enroll_count) || 0;
   const showRating = isCarousel && totalReviews > 0;
   const showEnrollments = isCarousel && enrollCount > 0;
+  const isPaid = course.access_type === "SUBSCRIPTION";
 
   const handleClick = () => {
     navigate(
@@ -66,10 +68,15 @@ function CourseCard({
         />
       )}
       <div className="mb-4 flex items-start justify-between">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-          <BookOpen className="size-3.5" aria-hidden />
-          Course
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+            <BookOpen className="size-3.5" aria-hidden />
+            Course
+          </span>
+          <Badge variant={isPaid ? "warning" : "success"}>
+            {isPaid ? "Paid" : "Free"}
+          </Badge>
+        </div>
         <button
           type="button"
           className={cn(

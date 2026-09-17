@@ -5,6 +5,7 @@ import formatCapitalize from "@/utils/formatCapitalize";
 import formatMinutes from "@/utils/formatMinutes";
 import formatTimeAgo from "@/utils/formatTimeAgo";
 import cn from "@/utils/cn";
+import Badge from "@/components/ui/Badge";
 import useAuth from "@/features/auth/hooks/useAuth";
 import { useSavedCourseIds } from "@/features/saved/hooks/useSavedCourses";
 import { useToggleSaveCourse } from "@/features/saved/hooks/useSavedMutations";
@@ -15,6 +16,7 @@ export const CourseCardDetailed = memo(function CourseCardDetailed({ course }) {
   const { data: savedCourseIds } = useSavedCourseIds();
   const { mutate: toggleSave, isPending: isSaving } = useToggleSaveCourse();
   const isSaved = Array.isArray(savedCourseIds) && savedCourseIds.includes(course.id);
+  const isPaid = course.access_type === "SUBSCRIPTION";
 
   const handleToggleSave = (e) => {
     e.preventDefault();
@@ -38,6 +40,9 @@ export const CourseCardDetailed = memo(function CourseCardDetailed({ course }) {
             <BookOpen className="w-3 h-3" />
             Course
           </span>
+          <Badge variant={isPaid ? "warning" : "success"}>
+            {isPaid ? "Paid" : "Free"}
+          </Badge>
           <div className="hidden lg:flex items-center gap-3 text-sm text-foreground-muted">
             <span className="flex items-center gap-1">
               <BarChart3 className="w-4 h-4" />

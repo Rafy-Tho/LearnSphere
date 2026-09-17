@@ -16,12 +16,19 @@ function Desktop({ closeAll }) {
               className={({ isActive }) =>
                 `${
                   isActive
-                    ? "border-b-2 border-primary text-primary"
+                    ? "text-primary"
                     : "text-foreground-muted hover:text-foreground"
-                } whitespace-nowrap px-1 pb-3 text-sm font-medium transition-colors`
+                } relative whitespace-nowrap px-1 pb-3 text-sm font-medium transition-colors`
               }
             >
-              {link.label}
+              {({ isActive }) => (
+                <>
+                  {link.label}
+                  {isActive && (
+                    <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-primary" />
+                  )}
+                </>
+              )}
             </NavLink>
           </li>
         ))}

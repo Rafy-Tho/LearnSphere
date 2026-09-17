@@ -63,7 +63,7 @@ function CourseCard({
     >
       {isCarousel && (
         <span
-          className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-primary to-primary-hover"
+          className="absolute inset-x-0 top-0 h-1.5 bg-primary"
           aria-hidden
         />
       )}

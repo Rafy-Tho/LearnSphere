@@ -5,7 +5,6 @@ function LoginSignupButton() {
   const location = useLocation();
 
   const isLoginActive = location.pathname === "/login";
-  const isSignupActive = location.pathname === "/signup";
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -24,7 +23,7 @@ function LoginSignupButton() {
       <Button
         as={Link}
         to="/signup"
-        variant={isSignupActive ? "outline" : "primary"}
+        variant={isLoginActive ? "outline" : "primary"}
         size="md"
         className="hidden sm:inline-flex"
         onClick={scrollTop}

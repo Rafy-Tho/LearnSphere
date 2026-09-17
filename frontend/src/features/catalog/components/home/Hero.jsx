@@ -1,54 +1,74 @@
+import { Link } from "react-router-dom";
+import { ArrowRight, Play, Sparkles } from "lucide-react";
+
 import banner from "@/assets/banner.jpg";
+import Button from "@/components/ui/Button";
+
+const stats = [
+  { value: "500+", label: "Expert Instructors" },
+  { value: "50K+", label: "Active Learners" },
+  { value: "1.5K+", label: "Courses Available" },
+];
 
 function Hero() {
   return (
-    <section className="xl:min-h-[500px] bg-surface-muted px-4 sm:px-10 py-10">
-      <div className="grid xl:grid-cols-2 justify-center items-center gap-10 max-w-7xl mx-auto">
-        <div>
-          <div className="max-w-3xl max-xl:mx-auto max-xl:text-center">
-            <p className="mb-2 font-semibold text-primary">
-              <span className="rotate-90 inline-block mr-2">|</span> LEARN
-              ANYTIME, ANYWHERE
-            </p>
-            <h1 className="md:text-5xl text-4xl font-bold md:!leading-[55px]">
-              Master new skills with expert-led courses
-            </h1>
-            <p className="text-base leading-relaxed mt-6">
-              Access 1000+ interactive courses, live workshops, and earn
-              certificates. Learn at your own pace with personalized
-              recommendations.
-            </p>
+    <section className="bg-background px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto grid xl:grid-cols-2 items-center gap-12 py-16 md:py-24">
+        <div className="max-w-2xl max-xl:mx-auto max-xl:text-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+            <Sparkles className="h-3.5 w-3.5" />
+            Learn anytime, anywhere
+          </span>
+
+          <h1 className="mt-5 text-4xl sm:text-5xl font-bold tracking-tight leading-[1.1]">
+            Master new skills with{" "}
+            <span className="text-primary">expert-led</span> courses
+          </h1>
+
+          <p className="mt-6 text-base leading-relaxed text-foreground-muted">
+            Access 1000+ interactive courses, live workshops, and earn
+            certificates. Learn at your own pace with personalized
+            recommendations.
+          </p>
+
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 max-xl:justify-center">
+            <Button
+              as={Link}
+              to="/courses"
+              size="lg"
+              rightIcon={<ArrowRight className="h-5 w-5" />}
+            >
+              Explore Courses
+            </Button>
+            <Button
+              as={Link}
+              to="/signup"
+              size="lg"
+              variant="outline"
+              leftIcon={<Play className="h-4 w-4" />}
+            >
+              Get Started Free
+            </Button>
           </div>
 
-          {/* Stats */}
-          <section className="mt-12 container mx-auto">
-            <div className="grid min-[450px]:grid-cols-2 md:grid-cols-3 gap-8 text-center">
-              <div>
-                <h3 className="text-3xl font-semibold text-primary">
-                  500+
-                </h3>
-                <p className="mt-3 font-medium">Expert Instructors</p>
+          <div className="mt-12 grid grid-cols-1 min-[450px]:grid-cols-3 gap-6 rounded-2xl border border-border bg-surface p-6 shadow-sm">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <p className="text-3xl font-semibold text-primary">
+                  {stat.value}
+                </p>
+                <p className="mt-1 text-sm font-medium text-foreground-muted">
+                  {stat.label}
+                </p>
               </div>
-              <div>
-                <h3 className="text-3xl font-semibold text-primary">
-                  50K+
-                </h3>
-                <p className="mt-3 font-medium">Active Learners</p>
-              </div>
-              <div>
-                <h3 className="text-3xl font-semibold text-primary">
-                  1.5K+
-                </h3>
-                <p className="mt-3 font-medium">Courses Available</p>
-              </div>
-            </div>
-          </section>
+            ))}
+          </div>
         </div>
 
         <div className="xl:aspect-[350/251]">
           <img
             src={banner}
-            alt="e-learning"
+            alt="Learners studying online with LearnSphere"
             className="w-full h-full object-contain max-xl:object-top"
           />
         </div>

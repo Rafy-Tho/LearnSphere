@@ -1,43 +1,64 @@
 import { useState } from "react";
-import { faqQuestions } from "@/constants/faqQuestions";
 import { Minus, Plus } from "lucide-react";
+
+import { faqQuestions } from "@/constants/faqQuestions";
+import Section from "@/components/common/Section";
+import SectionHeading from "@/components/common/SectionHeading";
 
 function FaqSection() {
   const [openFaq, setOpenFaq] = useState(null);
 
   return (
-    <section id="faq" className="md:mt-28 mt-16 px-4 sm:px-10">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center max-w-4xl mx-auto pb-10">
-          <p className="text-primary font-semibold mb-2">
-            QUESTIONS?
-          </p>
-          <h2 className="text-2xl md:text-3xl font-bold leading-relaxed">
-            Frequently asked questions
-          </h2>
-        </div>
-        <div className="divide-y divide-border">
-          {faqQuestions.map((item, idx) => (
-            <div key={idx} className="accordion py-2">
+    <Section id="faq" background="background">
+      <SectionHeading
+        eyebrow="Questions?"
+        title="Frequently asked questions"
+        subtitle="Everything you need to know about learning with LearnSphere."
+      />
+
+      <div className="mt-12 max-w-3xl mx-auto rounded-2xl border border-border bg-surface shadow-sm divide-y divide-border overflow-hidden">
+        {faqQuestions.map((item, idx) => {
+          const isOpen = openFaq === idx;
+          return (
+            <div key={idx}>
               <button
-                onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                className="w-full text-left font-semibold py-4 hover:text-primary flex items-center justify-between cursor-pointer"
+                onClick={() => setOpenFaq(isOpen ? null : idx)}
+                aria-expanded={isOpen}
+                className="w-full flex items-center justify-between gap-4 px-5 sm:px-6 py-5 text-left font-semibold text-foreground transition-colors hover:text-primary cursor-pointer"
               >
                 <span>{item.q}</span>
-                {openFaq === idx ? <Minus /> : <Plus />}
+                <span
+                  className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                    isOpen
+                      ? "bg-primary text-white"
+                      : "bg-surface-muted text-foreground-muted"
+                  }`}
+                >
+                  {isOpen ? (
+                    <Minus className="h-4 w-4" />
+                  ) : (
+                    <Plus className="h-4 w-4" />
+                  )}
+                </span>
               </button>
               <div
-                className={`overflow-hidden transition-all duration-300 ${
-                  openFaq === idx ? "max-h-40 pb-4" : "max-h-0"
+                className={`grid transition-all duration-300 ${
+                  isOpen
+                    ? "grid-rows-[1fr] opacity-100"
+                    : "grid-rows-[0fr] opacity-0"
                 }`}
               >
-                <p className="leading-relaxed text-foreground-muted">{item.a}</p>
+                <div className="overflow-hidden">
+                  <p className="px-5 sm:px-6 pb-5 leading-relaxed text-foreground-muted">
+                    {item.a}
+                  </p>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
-    </section>
+    </Section>
   );
 }
 

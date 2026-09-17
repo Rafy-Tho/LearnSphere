@@ -1,23 +1,41 @@
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+
+import Button from "@/components/ui/Button";
+
 function StartLearning() {
   return (
-    <div className="py-16 bg-primary md:mt-28 mt-16 px-4 sm:px-10">
-      <div className="container mx-auto text-center">
-        <h2 className="text-white text-2xl md:text-3xl font-bold leading-relaxed">
+    <section className="bg-primary px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+      <div className="max-w-3xl mx-auto text-center">
+        <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
           Start your learning journey today
         </h2>
-        <p className="mt-6 text-white/90">
-          Join thousands of learners and upgrade your skills.
+        <p className="mt-4 text-base text-white/90">
+          Join thousands of learners and upgrade your skills with LearnSphere.
         </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mt-12">
-          <button className="cursor-pointer bg-surface px-6 py-3 rounded-lg hover:bg-surface-muted transition-colors font-medium text-foreground">
+
+        <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+          <Button
+            as={Link}
+            to="/signup"
+            size="lg"
+            className="bg-surface! text-foreground! hover:bg-surface-muted!"
+          >
             Get Started Free
-          </button>
-          <button className="cursor-pointer bg-transparent border border-white/70 text-white px-6 py-3 rounded-lg hover:bg-white/10 transition-colors font-medium">
+          </Button>
+          <Button
+            as={Link}
+            to="/courses"
+            size="lg"
+            variant="outline"
+            rightIcon={<ArrowRight className="h-5 w-5" />}
+            className="border-white/70! bg-transparent! text-white! hover:bg-white/10! hover:text-white!"
+          >
             View Courses
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

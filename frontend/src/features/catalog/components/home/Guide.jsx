@@ -1,30 +1,33 @@
 import { guideSteps } from "@/constants/guideSteps";
+import Section from "@/components/common/Section";
+import SectionHeading from "@/components/common/SectionHeading";
 
 function Guide() {
   return (
-    <section id="how-it-works" className="md:mt-28 mt-16 px-4 sm:px-10 mb-16">
-      <div className="container mx-auto">
-        <div className="text-center max-w-4xl mx-auto">
-          <p className="text-primary font-semibold mb-2">
-            YOUR LEARNING JOURNEY
-          </p>
-          <h2 className="text-2xl md:text-3xl font-bold leading-relaxed">
-            Start in three simple steps
-          </h2>
-        </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
-          {guideSteps.map((step, index) => (
-            <div className="text-center" key={step.title}>
-              <div className="w-14 h-14 bg-primary rounded-full flex items-center justify-center mx-auto mb-6 text-white text-2xl font-bold">
-                {index + 1}
-              </div>
-              <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
-              <p className="leading-relaxed text-foreground-muted">{step.description}</p>
+    <Section id="how-it-works" background="background">
+      <SectionHeading
+        eyebrow="Your learning journey"
+        title="Start in three simple steps"
+      />
+
+      <div className="relative grid sm:grid-cols-2 lg:grid-cols-3 gap-10 mt-14">
+        <div
+          aria-hidden="true"
+          className="hidden lg:block absolute top-7 left-[16%] right-[16%] h-px bg-border"
+        />
+        {guideSteps.map((step, index) => (
+          <div key={step.title} className="relative text-center">
+            <div className="relative z-10 w-14 h-14 mx-auto mb-6 rounded-full bg-primary text-white text-xl font-bold flex items-center justify-center">
+              {index + 1}
             </div>
-          ))}
-        </div>
+            <h3 className="text-lg font-semibold mb-2">{step.title}</h3>
+            <p className="leading-relaxed text-foreground-muted">
+              {step.description}
+            </p>
+          </div>
+        ))}
       </div>
-    </section>
+    </Section>
   );
 }
 

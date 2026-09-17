@@ -15,9 +15,12 @@ const environment = {
   CLIENT_URL_2: process.env.CLIENT_URL_2,
   // proxy: number of trusted hops, or a comma-separated CIDR list (optional)
   TRUST_PROXY: process.env.TRUST_PROXY,
-  // mail
-  BREVO_API_KEY: process.env.BREVO_API_KEY,
-  SENDER_EMAIL: process.env.SENDER_EMAIL,
+  // mail (Hostinger Mail API)
+  HOSTINGER_MAIL_API_KEY: process.env.HOSTINGER_MAIL_API_KEY,
+  HOSTINGER_MAIL_MAILBOX_ID: process.env.HOSTINGER_MAIL_MAILBOX_ID,
+  HOSTINGER_MAIL_DISPLAY_NAME:
+    process.env.HOSTINGER_MAIL_DISPLAY_NAME || "LearnSphere",
+  HOSTINGER_MAIL_API_URL: process.env.HOSTINGER_MAIL_API_URL,
   // Google OAuth
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
@@ -36,6 +39,8 @@ const environment = {
 // instead of preventing the whole API from booting.
 const OPTIONAL_KEYS = [
   "TRUST_PROXY",
+  "HOSTINGER_MAIL_DISPLAY_NAME",
+  "HOSTINGER_MAIL_API_URL",
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
   "GOOGLE_CALLBACK_URL",

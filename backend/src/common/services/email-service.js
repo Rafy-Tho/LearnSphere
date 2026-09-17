@@ -1,37 +1,141 @@
 import environment from "../../config/environment.js";
+import logger from "../logger.js";
+
+const DEFAULT_API_URL = "https://api.mail.hostinger.com";
+const REQUEST_TIMEOUT_MS = 10_000;
+const MAX_ATTEMPTS = 3;
+const BASE_BACKOFF_MS = 300;
+const MAX_BACKOFF_MS = 5_000;
+
+class EmailDeliveryError extends Error {
+  constructor(
+    message,
+    { statusCode, code, retryable = false, retryAfterMs, correlationId } = {},
+  ) {
+    super(message);
+    this.name = "EmailDeliveryError";
+    this.statusCode = statusCode;
+    this.code = code;
+    this.retryable = retryable;
+    this.retryAfterMs = retryAfterMs;
+    this.correlationId = correlationId;
+  }
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Exponential backoff with jitter, capped so a hung provider cannot stall callers.
+function backoffDelay(attempt) {
+  const base = Math.min(BASE_BACKOFF_MS * 2 ** attempt, MAX_BACKOFF_MS);
+  return Math.round(base / 2 + Math.random() * (base / 2));
+}
+
+function parseRetryAfter(headerValue) {
+  if (!headerValue) return null;
+  const seconds = Number(headerValue);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000);
+  const date = Date.parse(headerValue);
+  if (Number.isNaN(date)) return null;
+  return Math.max(0, date - Date.now());
+}
+
+// Transient failures only: network/timeout, 429 and 5xx. Client errors (400,
+// 401, 403, 404, 422) are permanent and retrying them would just repeat.
+const isRetryableStatus = (statusCode) => statusCode === 429 || statusCode >= 500;
 
 class EmailService {
-  async send({ to, subject, text, html }) {
+  async #request(payload) {
+    const baseUrl = environment.HOSTINGER_MAIL_API_URL || DEFAULT_API_URL;
+    const url = `${baseUrl}/api/v1/mailboxes/${environment.HOSTINGER_MAIL_MAILBOX_ID}/send`;
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
     try {
-      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "api-key": environment.BREVO_API_KEY,
+          Authorization: `Bearer ${environment.HOSTINGER_MAIL_API_KEY}`,
         },
-        body: JSON.stringify({
-          sender: {
-            name: "Learning Platform",
-            email: environment.SENDER_EMAIL,
-          },
-          to: [{ email: to }],
-          subject: subject,
-          textContent: text,
-          htmlContent: html || `<p>${text}</p>`,
-        }),
+        body: JSON.stringify(payload),
+        signal: controller.signal,
       });
 
-      const data = await res.json();
+      // 204 No Content means the message was accepted.
+      if (res.status === 204) return;
 
-      if (!res.ok) {
-        throw new Error(JSON.stringify(data));
+      // Read the error envelope for metadata only. The body is never surfaced
+      // in the thrown error or logs, so message content cannot leak.
+      let body = null;
+      try {
+        body = await res.json();
+      } catch {
+        body = null;
       }
 
-      console.log("✅ Email sent:", data.messageId);
-      return data;
-    } catch (err) {
-      console.error("❌ Email error:", err.message);
-      throw err;
+      throw new EmailDeliveryError("Hostinger Mail API rejected the message", {
+        statusCode: res.status,
+        code: body?.code,
+        retryable: isRetryableStatus(res.status),
+        retryAfterMs: parseRetryAfter(res.headers.get("retry-after")),
+        correlationId: body?.correlation_id,
+      });
+    } catch (error) {
+      if (error instanceof EmailDeliveryError) throw error;
+      if (error?.name === "AbortError") {
+        throw new EmailDeliveryError("Hostinger Mail API request timed out", {
+          retryable: true,
+        });
+      }
+      throw new EmailDeliveryError("Hostinger Mail API request failed", {
+        retryable: true,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async #sendViaHostinger(payload) {
+    let lastError;
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+      try {
+        return await this.#request(payload);
+      } catch (error) {
+        lastError = error;
+        if (!error.retryable || attempt === MAX_ATTEMPTS - 1) break;
+        const delay =
+          error.retryAfterMs != null
+            ? Math.min(error.retryAfterMs, MAX_BACKOFF_MS)
+            : backoffDelay(attempt);
+        await sleep(delay);
+      }
+    }
+    throw lastError;
+  }
+
+  async send({ to, subject, text, html }) {
+    const payload = {
+      to: [to],
+      displayName: environment.HOSTINGER_MAIL_DISPLAY_NAME,
+      subject,
+      text,
+      html: html || `<p>${text}</p>`,
+    };
+
+    try {
+      await this.#sendViaHostinger(payload);
+      logger.info("Email sent");
+      return { success: true };
+    } catch (error) {
+      // Log non-sensitive metadata only. Never the API key, verification/reset
+      // codes, tokens, recipients, or email content.
+      logger.error("Email delivery failed", {
+        statusCode: error.statusCode,
+        code: error.code,
+        correlationId: error.correlationId,
+      });
+      throw error;
     }
   }
 
@@ -142,5 +246,5 @@ class EmailService {
 
 const emailService = new EmailService();
 
-export { EmailService };
+export { EmailService, EmailDeliveryError };
 export default emailService;

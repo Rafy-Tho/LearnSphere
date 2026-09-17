@@ -45,6 +45,18 @@ class ProgressController {
       message: "Learning progress retrieved successfully",
     });
   });
+
+  startLesson = asyncHandler(async (req, res) => {
+    const progress = await this.progressService.startLesson({
+      lessonId: req.params.lessonId,
+      userId: req.session.user.id,
+    });
+
+    return sendSuccess(res, progress, {
+      statusCode: StatusCode.OK,
+      message: "Lesson started successfully",
+    });
+  });
 }
 
 export { ProgressController };

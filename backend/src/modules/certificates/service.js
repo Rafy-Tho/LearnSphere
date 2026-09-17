@@ -6,8 +6,12 @@ import {
   parsePagination,
 } from "../../common/query/pagination.js";
 import environment from "../../config/environment.js";
+import { withTransaction } from "../../config/database.js";
 import courseRepository from "../courses/repository.js";
 import enrollmentRepository from "../learning/enrollment.repository.js";
+import activityService, {
+  ACTIVITY_TYPE,
+} from "../learning/activity.service.js";
 import certificateRepository from "./repository.js";
 
 const CERTIFICATE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -23,10 +27,16 @@ function generateCertificateNumber() {
 }
 
 class CertificateService {
-  constructor({ certificateRepository, courseRepository, enrollmentRepository }) {
+  constructor({
+    certificateRepository,
+    courseRepository,
+    enrollmentRepository,
+    activityService,
+  }) {
     this.certificateRepository = certificateRepository;
     this.courseRepository = courseRepository;
     this.enrollmentRepository = enrollmentRepository;
+    this.activityService = activityService;
   }
 
   async claimCertificate({ courseId, userId }) {
@@ -62,11 +72,29 @@ class CertificateService {
 
     const certificateNumber = generateCertificateNumber();
 
-    const certificate = await this.certificateRepository.create({
-      userId,
-      courseId,
-      certificateNumber,
-      certificateUrl: `${environment.CLIENT_URL_1}/certificates/{id}`,
+    const certificate = await withTransaction(async (client) => {
+      const created = await this.certificateRepository.create(
+        {
+          userId,
+          courseId,
+          certificateNumber,
+          certificateUrl: `${environment.CLIENT_URL_1}/certificates/{id}`,
+        },
+        client,
+      );
+
+      await this.activityService.record(
+        {
+          userId,
+          type: ACTIVITY_TYPE.EARN_CERTIFICATE,
+          courseId,
+          metadata: { certificateNumber: created.certificate_number },
+          once: true,
+        },
+        client,
+      );
+
+      return created;
     });
 
     certificate.certificate_url = `${environment.CLIENT_URL_1}/certificates/${certificate.id}`;
@@ -137,4 +165,5 @@ export default new CertificateService({
   certificateRepository,
   courseRepository,
   enrollmentRepository,
+  activityService,
 });

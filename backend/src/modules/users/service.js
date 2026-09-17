@@ -3,13 +3,11 @@ import fs from "fs";
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
 import logger from "../../common/logger.js";
-import courseRepository from "../courses/repository.js";
 import userRepository from "./repository.js";
 
 class UserService {
-  constructor({ userRepository, courseRepository }) {
+  constructor({ userRepository }) {
     this.userRepository = userRepository;
-    this.courseRepository = courseRepository;
   }
 
   async getProfile(userId) {
@@ -68,14 +66,7 @@ class UserService {
 
     return { ...updatedUser, ...updatedProfile };
   }
-
-  async getXpEarnings(userId) {
-    const user = await this.userRepository.findById(userId);
-    if (!user) throw new ApiError(StatusCode.NOT_FOUND, "User Doesn't Exist");
-
-    return this.courseRepository.getXpEarning(userId);
-  }
 }
 
 export { UserService };
-export default new UserService({ userRepository, courseRepository });
+export default new UserService({ userRepository });

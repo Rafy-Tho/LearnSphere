@@ -42,14 +42,6 @@ class UserController {
     });
   });
 
-  getXpEarnings = asyncHandler(async (req, res) => {
-    const earnings = await this.userService.getXpEarnings(req.session.user.id);
-
-    return sendSuccess(res, earnings, {
-      message: "Earning retrieved successfully",
-    });
-  });
-
   updatePassword = asyncHandler(async (req, res) => {
     const userId = req.session.user.id;
     const { oldPassword, newPassword } = req.body;

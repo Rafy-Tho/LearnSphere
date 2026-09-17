@@ -23,6 +23,9 @@ import {
 import { optionCollectionRoute, optionItemRoute } from "../modules/content/option.routes.js";
 import quizAttemptRoute from "../modules/quiz/quiz-attempt.routes.js";
 import completionRoute from "../modules/learning/completion.routes.js";
+import startLessonRoute from "../modules/learning/start.routes.js";
+import meActivitiesRoute from "../modules/learning/activity.routes.js";
+import meXpRoute from "../modules/learning/xp.routes.js";
 import { reviewsItemRoute } from "../modules/reviews/routes.js";
 import {
   certificateItemRoute,
@@ -43,6 +46,8 @@ export function registerRoutes(app) {
   app.use("/api/v1/users/me/courses", meCoursesRoute);
   app.use("/api/v1/users/me/saved-courses", meSavedCoursesRoute);
   app.use("/api/v1/users/me/certificates", meCertificatesRoute);
+  app.use("/api/v1/users/me/activities", meActivitiesRoute);
+  app.use("/api/v1/users/me/xp", meXpRoute);
   app.use("/api/v1/users/me/subscription", meSubscriptionRoute);
   app.use("/api/v1/users", usersRoute);
 
@@ -64,6 +69,7 @@ export function registerRoutes(app) {
   app.use("/api/v1/lessons/:lessonId/quiz-submissions", quizSubmissionRoute);
   app.use("/api/v1/lessons/:lessonId/quiz-attempts", quizAttemptRoute);
   app.use("/api/v1/lessons/:lessonId/completions", completionRoute);
+  app.use("/api/v1/lessons/:lessonId/start", startLessonRoute);
   app.use("/api/v1/questions", questionItemRoute);
   app.use("/api/v1/questions/:questionId/options", optionCollectionRoute);
   app.use("/api/v1/options", optionItemRoute);

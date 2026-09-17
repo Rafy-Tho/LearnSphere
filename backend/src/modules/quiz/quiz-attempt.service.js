@@ -201,13 +201,7 @@ class QuizAttemptService {
   }
 
   async markLessonComplete({ lessonId, userId }) {
-    const existing = await this.completionService.getCompletion({
-      lessonId,
-      userId,
-    });
-    if (existing) return existing;
-
-    return this.completionService.createCompletion({ lessonId, userId });
+    return this.completionService.markLessonComplete({ lessonId, userId });
   }
 }
 

@@ -1,13 +1,14 @@
-// src/components/ActivitySection.tsx
-import { Rocket, Star } from "lucide-react";
+import { Flame, Rocket, Star } from "lucide-react";
 import { useXpEarned as useGetExpEarned } from "@/features/settings/hooks/useUsers";
+import ActivityFeed from "@/features/activity/components/ActivityFeed";
 import ErrorMessage from "@/components/ui/ErrorMessage";
-import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import Skeleton from "@/components/ui/Skeleton";
 
 export default function ActivitySection() {
   const { data, isPending, error } = useGetExpEarned();
+
   return (
-    <div>
+    <div className="my-8 md:my-16">
       <h2 className="mb-4 flex items-center gap-2 text-lg font-bold">
         <span className="flex size-9 items-center justify-center rounded-full bg-primary/10">
           <Rocket className="size-4 text-primary" />
@@ -15,50 +16,50 @@ export default function ActivitySection() {
         Your Activity
       </h2>
       {error && <ErrorMessage message={error.message} />}
-      {isPending && <SpinnerLoader />}
-      {!isPending && !error && (
-        <div className="rounded-xl border border-border bg-surface p-6">
-          <div className="mb-6 flex items-center justify-between">
-            <span className="font-bold">Learning Streak</span>
-            <a
-              href="#"
-              className="text-sm font-medium text-primary"
-            >
-              View All
-            </a>
-          </div>
-          <div className="grid grid-cols-1 divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
-            <div className="flex items-center gap-4 pb-6 md:pb-0 md:pr-6">
-              <div className="flex size-14 items-center justify-center rounded-full border-2 border-border">
-                <span className="text-warning">🔥</span>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {data?.today_xp || 0}
-                </p>
-                <p className="text-sm text-foreground-muted">
-                  Current Streak
-                </p>
-              </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="rounded-xl border border-border bg-surface p-6 lg:col-span-1">
+          <p className="mb-4 text-sm font-semibold text-foreground-muted">
+            XP Earned
+          </p>
+          {isPending ? (
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-24" />
+              <Skeleton className="h-8 w-24" />
             </div>
-            <div className="flex items-center gap-4 pt-6 md:pl-6 md:pt-0">
-              <div className="flex size-14 items-center justify-center rounded-full border-2 border-border">
-                <span className="text-lg">
-                  <Star className="size-6" color="white" fill="orange" />
+          ) : (
+            <div className="space-y-5">
+              <div className="flex items-center gap-3">
+                <span className="flex size-10 items-center justify-center rounded-full bg-primary/10">
+                  <Star className="size-5 text-primary" fill="currentColor" />
                 </span>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">
+                    {data?.total_xp ?? 0}
+                  </p>
+                  <p className="text-sm text-foreground-muted">Total XP</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold">
-                  {data?.total_xp || 0}
-                </p>
-                <p className="text-sm text-foreground-muted">
-                  Longest Streak
-                </p>
+              <div className="flex items-center gap-3">
+                <span className="flex size-10 items-center justify-center rounded-full bg-warning/10">
+                  <Flame className="size-5 text-warning" />
+                </span>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">
+                    {data?.today_xp ?? 0}
+                  </p>
+                  <p className="text-sm text-foreground-muted">Earned today</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
-      )}
+        <div className="rounded-xl border border-border bg-surface p-6 lg:col-span-2">
+          <p className="mb-2 text-sm font-semibold text-foreground-muted">
+            Recent Activity
+          </p>
+          <ActivityFeed />
+        </div>
+      </div>
     </div>
   );
 }

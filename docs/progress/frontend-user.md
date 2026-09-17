@@ -15,6 +15,8 @@
 | Email verification | `/verify-email` page with 6-box OTP input (auto-advance, paste), resend + 60s cooldown, error states, and auto-login on success. Signup/Login route unverified users here via `requiresEmailVerification`. |
 | Google login | "Continue with Google" on Login/Signup redirects to the backend `/auth/google`. `/auth/callback` page handles success (refreshes `["me"]`, then dashboard), cancelled/failed OAuth, and maps backend error codes to messages (`features/auth/utils/googleOAuth.js`). |
 | Saved courses | `features/saved/` services + hooks (`useSavedCourses`, `useSavedCourseIds`, `useToggleSaveCourse` with optimistic update + success/error toasts). Bookmark buttons on `CourseCard`, `CourseCardDetailed`, and the course-detail `HeroSection` fill when saved (guests are sent to `/login`). New "Saved Courses" tab at `/learning-dashboard/saved` reuses `CourseGridSection`. |
+| Activity & XP | `features/activity/` (`ActivityFeed`, `ActivityItem`, `useActivities`) backed by `GET /users/me/activities`. Dashboard `ActivitySection` replaced the mock streak with a real recent-activity feed plus XP summary (`total_xp`/`today_xp`). Lesson completion toasts `+N XP` and invalidates activity/XP queries. `POST /lessons/:lessonId/start` fires on lesson open to advance progress. |
+| Learning flow UI | Course-detail `HeroSection` shows enrollment status, course progress (`ProgressBar` + `n / total lessons completed`), current lesson, and switches between Start / Continue / Review. Lesson footer (`NextPrevious`) shows completion, next lesson, and a certificate claim/view action when the course is complete. |
 
 ## Remaining / Residuals
 

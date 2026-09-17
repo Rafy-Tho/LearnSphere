@@ -1,20 +1,33 @@
-import { useCallback, useRef } from "react";
-import { Outlet, useLocation, useOutletContext } from "react-router-dom";
+import { useCallback, useEffect, useRef } from "react";
+import {
+  Outlet,
+  useLocation,
+  useOutletContext,
+  useParams,
+} from "react-router-dom";
 import useMediaQuery from "@/hooks/useMediaQuery";
 import { CourseSidebar } from "@/features/learning/components/course-learning/CourseSidebar";
 import NextPrevious from "@/features/learning/components/course-learning/NextPrevious";
 import CourseRating from "@/features/learning/components/course-learning/CourseRating";
+import { useStartLesson } from "@/features/learning/hooks/useLearningMutations";
 
 const CourseLearningScreen = () => {
   const { isSidebarOpen, setIsSidebarOpen } = useOutletContext();
   const isDesktop = useMediaQuery("(min-width: 1024px)");
   const sectionRef = useRef(null);
   const location = useLocation();
+  const { lessonId } = useParams();
+  const { mutate: startLesson } = useStartLesson();
   const isQuizRoute = location.pathname.endsWith("/quiz");
   const closeSidebar = useCallback(
     () => setIsSidebarOpen(false),
     [setIsSidebarOpen],
   );
+
+  // Record lesson start / advance the current lesson whenever a lesson opens.
+  useEffect(() => {
+    if (lessonId) startLesson();
+  }, [lessonId, startLesson]);
 
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-background">

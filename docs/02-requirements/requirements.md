@@ -67,7 +67,7 @@ Requirements are grouped by domain. Each requirement has an ID, a description, a
 | FR-LRN-01 | An authenticated user shall be able to enroll in a course. | Must |
 | FR-LRN-02 | Enrollment shall be unique per (user, course). | Must |
 | FR-LRN-03 | The system shall track a learner's current/last lesson per course. | Must |
-| FR-LRN-04 | The system shall record lesson completion with time spent and XP earned. | Must |
+| FR-LRN-04 | The system shall record lesson completion and award XP once via `user_xp_transactions`; time spent is not tracked. | Must |
 | FR-LRN-05 | Lesson completion shall be unique per (user, lesson). | Must |
 | FR-LRN-06 | The system shall return learning data (hierarchy + content + completion) for a course. | Must |
 | FR-LRN-07 | Subscription-only lesson content shall be blocked without an active subscription. | Must |

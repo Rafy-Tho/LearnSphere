@@ -5,8 +5,11 @@ class CertificateRepository {
     this.db = db;
   }
 
-  async create({ userId, courseId, certificateNumber, certificateUrl }) {
-    const result = await this.db.query(
+  async create(
+    { userId, courseId, certificateNumber, certificateUrl },
+    client = this.db,
+  ) {
+    const result = await client.query(
       `INSERT INTO certificates (user_id, course_id, certificate_number, certificate_url)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,

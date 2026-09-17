@@ -1,9 +1,14 @@
-import { useNavigate, useParams } from "react-router-dom";
-import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Award, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import {
+  useClaimCertificate,
   useCreateCompletedLesson,
   useUpdateCourseProgress,
 } from "@/features/learning/hooks/useLearningMutations";
+import {
+  useCertificate,
+  useCertificateEligibility,
+} from "@/features/learning/hooks/useLearning";
 import { useCompletedLesson as useGetCompletedLesson } from "@/features/learning/hooks/useLessons";
 import { useLessonNavigation } from "@/features/learning/hooks/useLessonNavigation";
 import Button from "@/components/ui/Button";
@@ -17,6 +22,10 @@ function NextPrevious() {
     useCreateCompletedLesson();
   const { mutate: updateProgress } = useUpdateCourseProgress();
   const { data: completedLesson } = useGetCompletedLesson();
+  const { data: certificate } = useCertificate();
+  const { data: eligibility } = useCertificateEligibility();
+  const { mutate: claimCertificate, isPending: isClaiming } =
+    useClaimCertificate();
   const {
     currentLessonIndex,
     totalLessons,
@@ -29,6 +38,7 @@ function NextPrevious() {
 
   const isCompleted = Boolean(completedLesson);
   const hasNext = Boolean(nextLessonId);
+  const isCourseCompleted = !hasNext && isCompleted;
 
   const goToNextPage = () => {
     if (!nextLessonId) return;
@@ -111,17 +121,44 @@ function NextPrevious() {
               Completed
             </Badge>
           )}
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handlePrimaryAction}
-            isLoading={isCompleting}
-            disabled={isPrimaryDisabled}
-            rightIcon={hasNext ? <ChevronRight size={16} /> : undefined}
-            className="flex-1 sm:flex-none"
-          >
-            {primaryLabel}
-          </Button>
+          {isCourseCompleted ? (
+            certificate ? (
+              <Button
+                as={Link}
+                to={`/certificates/${certificate.id}`}
+                variant="primary"
+                size="md"
+                leftIcon={<Award size={16} />}
+                className="flex-1 sm:flex-none"
+              >
+                View Certificate
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => claimCertificate()}
+                isLoading={isClaiming}
+                disabled={!eligibility?.isComplete}
+                leftIcon={<Award size={16} />}
+                className="flex-1 sm:flex-none"
+              >
+                Claim Certificate
+              </Button>
+            )
+          ) : (
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handlePrimaryAction}
+              isLoading={isCompleting}
+              disabled={isPrimaryDisabled}
+              rightIcon={hasNext ? <ChevronRight size={16} /> : undefined}
+              className="flex-1 sm:flex-none"
+            >
+              {primaryLabel}
+            </Button>
+          )}
         </div>
       </div>
     </div>

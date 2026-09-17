@@ -6,6 +6,7 @@ import courseRepository from "../courses/repository.js";
 import subscriptionRepository from "../subscriptions/subscription.repository.js";
 import enrollmentRepository from "./enrollment.repository.js";
 import learningProgressRepository from "./progress.repository.js";
+import activityService, { ACTIVITY_TYPE } from "./activity.service.js";
 
 class EnrollmentService {
   constructor({
@@ -14,12 +15,14 @@ class EnrollmentService {
     lessonRepository,
     enrollmentRepository,
     learningProgressRepository,
+    activityService,
   }) {
     this.courseRepository = courseRepository;
     this.subscriptionRepository = subscriptionRepository;
     this.lessonRepository = lessonRepository;
     this.enrollmentRepository = enrollmentRepository;
     this.learningProgressRepository = learningProgressRepository;
+    this.activityService = activityService;
   }
 
   async enrollCourse({ courseId, userId }) {
@@ -71,6 +74,17 @@ class EnrollmentService {
         client,
       );
 
+      await this.activityService.record(
+        {
+          userId,
+          type: ACTIVITY_TYPE.ENROLL_COURSE,
+          courseId,
+          metadata: { courseName: course.name },
+          once: true,
+        },
+        client,
+      );
+
       return enrollment;
     });
   }
@@ -90,4 +104,5 @@ export default new EnrollmentService({
   lessonRepository,
   enrollmentRepository,
   learningProgressRepository,
+  activityService,
 });

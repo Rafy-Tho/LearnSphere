@@ -351,7 +351,7 @@ class CourseRepository {
          c.*,
 
          -- Learn progress
-         lp.lesson_id AS last_lesson,
+         lp.current_lesson_id AS last_lesson,
          lp.updated_at AS last_activity,
 
          -- Total duration (minutes)
@@ -375,7 +375,7 @@ class CourseRepository {
 
       GROUP BY 
           c.id,
-          lp.lesson_id,
+          lp.current_lesson_id,
           lp.updated_at
 
       ORDER BY lp.updated_at DESC
@@ -475,25 +475,6 @@ class CourseRepository {
     const result = await this.db.query(query);
     return result.rows;
   }
-  async getXpEarning(userId) {
-    const query = `
-    SELECT 
-      COALESCE(SUM(xp_earned), 0) AS total_xp,
-
-      COALESCE(SUM(
-    CASE 
-      WHEN created_at >= CURRENT_DATE 
-      THEN xp_earned 
-      ELSE 0 
-       END
-      ), 0) AS today_xp
-
-    FROM lesson_completion
-    WHERE user_id = $1;
-      `;
-    const result = await this.db.query(query, [userId]);
-    return result.rows[0];
-  }
   async getCourseInProgress({ userId, queryString }) {
     // -------------------------------
     // Pagination params
@@ -540,7 +521,7 @@ class CourseRepository {
         SELECT
           c.*,
           lp.updated_at AS last_activity,
-          lp.lesson_id AS lesson_progress,
+          lp.current_lesson_id AS lesson_progress,
           COUNT(DISTINCT lc.lesson_id) AS completed_lessons,
           COUNT(DISTINCT l.id) AS total_lessons,
           COALESCE(SUM(l.duration_minutes), 0) AS total_duration,
@@ -623,7 +604,7 @@ class CourseRepository {
         SELECT
           c.*,
           lp.updated_at AS last_activity,
-          lp.lesson_id AS lesson_progress,
+          lp.current_lesson_id AS lesson_progress,
   
           COUNT(DISTINCT lc.lesson_id) AS completed_lessons,
           COUNT(DISTINCT l.id) AS total_lessons,

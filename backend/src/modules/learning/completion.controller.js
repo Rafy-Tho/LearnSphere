@@ -9,14 +9,16 @@ class CompletionController {
   }
 
   createCompletion = asyncHandler(async (req, res) => {
-    const completion = await this.completionService.createCompletion({
+    const result = await this.completionService.createCompletion({
       lessonId: req.params.lessonId,
       userId: req.session.user.id,
     });
 
-    return sendSuccess(res, completion, {
-      statusCode: StatusCode.CREATED,
-      message: "Lesson completion created successfully",
+    return sendSuccess(res, result, {
+      statusCode: result.isNew ? StatusCode.CREATED : StatusCode.OK,
+      message: result.isNew
+        ? "Lesson completed successfully"
+        : "Lesson already completed",
     });
   });
 

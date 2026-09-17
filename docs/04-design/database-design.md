@@ -43,6 +43,10 @@ erDiagram
   lessons ||--o{ learn_progress : current
   users ||--o{ lesson_completion : completes
   lessons ||--o{ lesson_completion : completed
+  users ||--o{ user_activities : performs
+  courses ||--o{ user_activities : about
+  lessons ||--o{ user_activities : about
+  users ||--o{ user_xp_transactions : earns
   users ||--o{ certificates : earns
   courses ||--o{ certificates : grants
   subscription_plans ||--o{ user_subscriptions : chosen
@@ -67,6 +71,7 @@ erDiagram
 | `payment_status` | `PENDING`, `COMPLETED`, `FAILED`, `REFUNDED` |
 | `access_course_type` | `FREE`, `SUBSCRIPTION` |
 | `gender` | `MALE`, `FEMALE` |
+| `user_activity_type` | `ENROLL_COURSE`, `START_COURSE`, `START_LESSON`, `COMPLETE_LESSON`, `COMPLETE_COURSE`, `EARN_CERTIFICATE` |
 
 ## 4. Tables
 
@@ -336,7 +341,7 @@ Unique `(user_id, course_id)`. Indexes `idx_saved_courses_user`, `idx_saved_cour
 | id | UUID | PK |
 | user_id | UUID | NOT NULL, FK → users(id) CASCADE |
 | course_id | UUID | NOT NULL, FK → courses(id) CASCADE |
-| lesson_id | UUID | nullable, FK → lessons(id) **SET NULL** |
+| current_lesson_id | UUID | nullable, FK → lessons(id) **SET NULL** |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
 Unique `(user_id, course_id)`. Indexes `idx_learn_progress_user`, `idx_learn_progress_course`.
@@ -350,11 +355,38 @@ Unique `(user_id, course_id)`. Indexes `idx_learn_progress_user`, `idx_learn_pro
 | course_id | UUID | NOT NULL, FK → courses(id) CASCADE |
 | lesson_id | UUID | NOT NULL, FK → lessons(id) CASCADE |
 | completed_at | TIMESTAMP | NOT NULL, DEFAULT NOW() |
-| time_spent_minutes | INTEGER | DEFAULT 0 |
-| xp_earned | INTEGER | NOT NULL |
 | created_at | TIMESTAMP | NOT NULL, DEFAULT NOW() |
 
-Unique `(user_id, lesson_id)`. Indexes `idx_lesson_completion_user`, `idx_lesson_completion_lesson`. No `updated_at`/trigger.
+Unique `(user_id, lesson_id)`. Indexes `idx_lesson_completion_user`, `idx_lesson_completion_lesson`. No `updated_at`/trigger. Time spent is **not** tracked; XP lives in `user_xp_transactions`.
+
+#### `user_activities`
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| user_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| course_id | UUID | nullable, FK → courses(id) CASCADE |
+| lesson_id | UUID | nullable, FK → lessons(id) SET NULL |
+| type | user_activity_type | NOT NULL |
+| metadata | JSONB | NOT NULL, DEFAULT `{}` |
+| created_at | TIMESTAMPTZ | DEFAULT now |
+
+Append-only event log. Indexes `idx_user_activities_user_created`, `idx_user_activities_user_type`.
+
+#### `user_xp_transactions`
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| user_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| amount | INTEGER | NOT NULL |
+| reason | TEXT | NOT NULL |
+| reference_type | TEXT | nullable |
+| reference_id | UUID | nullable |
+| metadata | JSONB | NOT NULL, DEFAULT `{}` |
+| created_at | TIMESTAMPTZ | DEFAULT now |
+
+Single source of truth for XP. Partial unique index `unique_user_xp_reference (user_id, reason, reference_id) WHERE reference_id IS NOT NULL` prevents duplicate rewards. Index `idx_user_xp_transactions_user_created`.
 
 #### `certificates`
 
@@ -367,6 +399,7 @@ Unique `(user_id, lesson_id)`. Indexes `idx_lesson_completion_user`, `idx_lesson
 | certificate_number | VARCHAR(100) | UNIQUE, NOT NULL |
 | certificate_url | TEXT | nullable (unused) |
 | issued_at | TIMESTAMPTZ | DEFAULT now |
+| confirmed_at | TIMESTAMPTZ | nullable |
 
 Unique `(user_id, course_id)`. Indexes `idx_certificates_user`, `idx_certificates_course`. No `updated_at`.
 
@@ -454,17 +487,17 @@ Unique `(user_id, review_id)`.
 ### 4.6 Runtime Table
 
 #### `session`
-Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `backend/src/common/middleware/session-middleware.js`. Not in `schema.sql`; a fresh database has 28 tables after the server runs (27 from `schema.sql`).
+Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `backend/src/common/middleware/session-middleware.js`. Not in `schema.sql`; a fresh database has 30 tables after the server runs (29 from `schema.sql`).
 
 ## 5. Triggers & Functions
 
 - `set_updated_at()` — sets `NEW.updated_at = CURRENT_TIMESTAMP`.
 - 19 `BEFORE UPDATE` triggers, one per table with `updated_at`.
-- Tables without triggers: `lesson_completion`, `certificates`, `review_helpful_votes`, `review_reports`, `saved_courses`.
+- Tables without triggers: `lesson_completion`, `certificates`, `review_helpful_votes`, `review_reports`, `saved_courses`, `user_activities`, `user_xp_transactions`.
 
 ## 6. Indexes & Unique Constraints
 
-Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_saved_courses_user`, `idx_saved_courses_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, `idx_user_auth_providers_user`, `idx_quiz_attempts_user_lesson`, `idx_quiz_attempts_lesson`, `idx_quiz_answers_attempt`, `idx_quiz_answers_quiz`, plus the partial unique `one_active_subscription_per_user`.
+Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_saved_courses_user`, `idx_saved_courses_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, `idx_user_activities_user_created`, `idx_user_activities_user_type`, `idx_user_xp_transactions_user_created`, `idx_user_auth_providers_user`, `idx_quiz_attempts_user_lesson`, `idx_quiz_attempts_lesson`, `idx_quiz_answers_attempt`, `idx_quiz_answers_quiz`, plus the partial uniques `one_active_subscription_per_user` and `unique_user_xp_reference`.
 
 Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_attempt_quiz` (quiz_answers), `unique_user_course` (enrollments), `unique_user_saved_course` (saved_courses), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`, `uq_user_auth_provider`.
 
@@ -473,7 +506,8 @@ Composite unique constraints: `unique_modules_course_position`, `unique_chapters
 | FK | On Delete |
 |---|---|
 | courses.category_id → categories.id | **RESTRICT** |
-| learn_progress.lesson_id → lessons.id | **SET NULL** |
+| learn_progress.current_lesson_id → lessons.id | **SET NULL** |
+| user_activities.lesson_id → lessons.id | **SET NULL** |
 | All other child FKs | **CASCADE** |
 
 Deleting a user cascades to their courses, enrollments, progress, completions, certificates, reviews, and subscriptions. Deleting a course cascades to its entire content tree and learner data.
@@ -497,7 +531,9 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 | `OptionRepository` | quiz_options, quizzes, lessons, chapters, modules |
 | `EnrollmentRepository` | enrollments |
 | `LearningProgressRepository` | learn_progress |
-| `LessonCompletionRepository` | lesson_completion |
+| `LessonCompletionRepository` | lesson_completion, lessons, chapters, modules |
+| `ActivityRepository` | user_activities, courses, lessons |
+| `XpRepository` | user_xp_transactions |
 | `QuizAttemptRepository` | quiz_attempts, quiz_answers |
 | `CertificateRepository` | certificates, courses, users, lessons, chapters, modules, lesson_completion |
 | `SubscriptionRepository` | subscription_plans, user_subscriptions, subscription_payments, users |

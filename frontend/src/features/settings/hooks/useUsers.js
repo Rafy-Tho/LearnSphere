@@ -20,3 +20,13 @@ export function useXpEarned() {
     enabled: !!user,
   });
 }
+
+export function useXpTransactions(params = {}) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: queryKeys.xpTransactions(params),
+    queryFn: ({ signal }) => usersApi.getXpTransactions(params, { signal }),
+    enabled: !!user,
+    select: (response) => response?.data ?? [],
+  });
+}

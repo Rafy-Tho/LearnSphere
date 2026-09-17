@@ -111,7 +111,9 @@ Mounted at `/api/v1/users`.
 | GET | `/me` | — | Current user or `data: null` for guests |
 | GET | `/me/profile` | `auth` | Full profile |
 | PATCH | `/me/profile` | `auth`, upload, `val` | Update profile (+ avatar) |
-| GET | `/me/xp` | `auth` | Total XP earned |
+| GET | `/me/xp` | `auth` | XP summary (`total_xp`, `today_xp`) from the XP ledger |
+| GET | `/me/xp/transactions` | `auth` | XP transaction history (paginated) |
+| GET | `/me/activities` | `auth` | Activity feed (paginated) |
 | PATCH | `/me/password` | `auth`, `val` | Change password |
 | GET | `/me/courses/recently-viewed` | `auth` | Recently viewed courses |
 | GET | `/me/courses/recommended` | `auth` | Recommended courses |
@@ -299,13 +301,14 @@ Nested at `/api/v1/courses/:courseId/progress`.
 | GET | `/courses/:courseId/progress` | `auth` | Get progress |
 | PATCH | `/courses/:courseId/progress` | `auth`, `val` | Update current lesson |
 
-## 17. Lesson Completions
+## 17. Lesson Completions & Start
 
-Nested at `/api/v1/lessons/:lessonId/completions`.
+Nested at `/api/v1/lessons/:lessonId/completions` and `/api/v1/lessons/:lessonId/start`.
 
 | Method | Path | Middleware | Description |
 |---|---|---|---|
-| POST | `/lessons/:lessonId/completions` | `auth`, `val` | Record completion |
+| POST | `/lessons/:lessonId/start` | `auth`, `val` | Set current lesson, record `START_COURSE`/`START_LESSON` (idempotent) |
+| POST | `/lessons/:lessonId/completions` | `auth`, `val` | Record completion (idempotent), update progress, record `COMPLETE_LESSON`, award lesson XP, detect `COMPLETE_COURSE` |
 | GET | `/lessons/:lessonId/completions` | `auth` | Get completion |
 
 ## 18. Certificates

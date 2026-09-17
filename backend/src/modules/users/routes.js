@@ -18,7 +18,6 @@ usersRoute.patch(
   validateResult,
   userController.updateProfile,
 );
-usersRoute.get("/me/xp", requireAuth, userController.getXpEarnings);
 usersRoute.patch(
   "/me/password",
   requireAuth,

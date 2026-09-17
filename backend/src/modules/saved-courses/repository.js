@@ -58,7 +58,7 @@ class SavedCourseRepository {
       SELECT
         c.*,
         sc.created_at AS saved_at,
-        lp.lesson_id AS lesson_progress,
+        lp.current_lesson_id AS lesson_progress,
         COUNT(DISTINCT lc.lesson_id) AS completed_lessons,
         COUNT(DISTINCT l.id) AS total_lessons,
         COALESCE(SUM(l.duration_minutes), 0) AS total_duration,

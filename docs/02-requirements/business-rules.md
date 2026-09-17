@@ -52,12 +52,14 @@ Business rules define the constraints and policies the system enforces, independ
 | BR-LRN-01 | A learner may enroll at most once per course (`UNIQUE(user_id, course_id)`). |
 | BR-LRN-02 | Enrollment records an `access_type` (`FREE` or `SUBSCRIPTION`). |
 | BR-LRN-03 | On enrollment, a learning-progress row is seeded pointing at the first lesson. |
-| BR-LRN-04 | There is at most one learning-progress row per (user, course), tracking the current/last lesson. |
-| BR-LRN-05 | Lesson completion is unique per (user, lesson) and records time spent and XP earned. |
-| BR-LRN-06 | Lesson XP and duration are copied from the lesson definition at completion time. |
+| BR-LRN-04 | There is at most one learning-progress row per (user, course), tracking the current lesson (`current_lesson_id`). |
+| BR-LRN-05 | Lesson completion is unique per (user, lesson); time spent is not tracked. |
+| BR-LRN-06 | Lesson XP is copied from the lesson definition at completion time and recorded once in `user_xp_transactions`. |
 | BR-LRN-07 | A subscription-gated lesson's content is only returned when the learner has an active paid subscription. |
-| BR-LRN-08 | `learn_progress.lesson_id` is nullable and becomes `NULL` if the referenced lesson is deleted (`ON DELETE SET NULL`). |
+| BR-LRN-08 | `learn_progress.current_lesson_id` is nullable and becomes `NULL` if the referenced lesson is deleted (`ON DELETE SET NULL`). |
 | BR-LRN-09 | A course certificate is unique per (user, course). |
+| BR-LRN-10 | Important learner actions are recorded in `user_activities`; repeated actions do not create duplicate rows. |
+| BR-LRN-11 | `user_xp_transactions` is the single source of truth for XP; a partial unique index prevents duplicate rewards. |
 
 ## 5. Subscription & Payment Rules
 

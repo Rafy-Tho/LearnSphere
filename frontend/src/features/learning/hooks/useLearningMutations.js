@@ -87,6 +87,21 @@ export function useClaimCertificate() {
   });
 }
 
+export function useStartLesson() {
+  const { courseId, lessonId } = useParams();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ["start-lesson", lessonId],
+    mutationFn: () => lessonsApi.startLesson(lessonId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseProgress(courseId),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activitiesRoot() });
+    },
+  });
+}
+
 export function useCreateCompletedLesson() {
   const { courseId, lessonId } = useParams();
   const queryClient = useQueryClient();
@@ -96,8 +111,21 @@ export function useCreateCompletedLesson() {
     onError: (error) => {
       toast.error(error.message || "Failed to complete lesson");
     },
-    onSuccess: () => {
-      toast.success("Lesson completed successfully");
+    onSuccess: (data) => {
+      if (data?.isNew) {
+        toast.success(
+          data.xpEarned
+            ? `Lesson completed · +${data.xpEarned} XP`
+            : "Lesson completed",
+        );
+      } else {
+        toast.info("Lesson already completed");
+      }
+
+      if (data?.isCourseComplete) {
+        toast.success("Course completed! You can now claim your certificate.");
+      }
+
       queryClient.invalidateQueries({
         queryKey: queryKeys.completedLesson(lessonId),
       });
@@ -111,6 +139,10 @@ export function useCreateCompletedLesson() {
         queryKey: queryKeys.certificateEligibility(courseId),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.inProgress() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.completed() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activitiesRoot() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.xpEarned() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.xpTransactionsRoot() });
     },
   });
 }
@@ -146,6 +178,9 @@ export function useSubmitQuizAttempt() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.inProgress(),
       });
+      queryClient.invalidateQueries({ queryKey: queryKeys.activitiesRoot() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.xpEarned() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.xpTransactionsRoot() });
     },
   });
 }

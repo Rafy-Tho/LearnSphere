@@ -182,7 +182,7 @@ Full detail: `docs/04-design/database-design.md` and `docs/diagrams/erd.md`.
 
 ## 7. API Specification
 
-Base: `/api/v1`. Auth via session cookie. Pagination params: `page`, `limit`, `sort` (`-field` desc), `search`, `fields`, domain filters (some with `[gte]/[gt]/[lte]/[lt]`).
+Base: `/api/v1`. Auth via session cookie. List params: `page` (>=1), `limit` (1-100), `sort` (camelCase field, `-` prefix for desc), `search`, and camelCase domain filters (enums pass raw values; ranges use `min*`/`max*`; repeat a key for multi-value). See `docs/04-design/api-design.md` §1.3.
 
 | Domain | Base path |
 |---|---|

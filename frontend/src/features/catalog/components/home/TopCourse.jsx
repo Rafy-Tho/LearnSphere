@@ -10,7 +10,7 @@ function TopCourse() {
   const navigate = useNavigate();
   const param = new URLSearchParams({});
   param.append("limit", 4);
-  param.append("sort", "-avg_rating");
+  param.append("sort", "-avgRating");
   const { data, isPending, error } = useGetCourses(param);
   return (
     <section className="py-12 px-4 sm:px-6 lg:px-8 bg-background">

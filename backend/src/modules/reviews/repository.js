@@ -1,5 +1,6 @@
 import pgPool from "../../config/database.js";
 import AdvancedQuery from "../../common/query/advanced-query.js";
+import { reviewListQuerySpec } from "./review.query-spec.js";
 
 class ReviewRepository {
   constructor({ db = pgPool } = {}) {
@@ -20,15 +21,8 @@ class ReviewRepository {
 
     const features = new AdvancedQuery({
       baseQuery,
-      queryString: { ...queryString, course_id: courseId },
-      filterMap: {
-        rating: "cr.rating",
-        course_id: "cr.course_id",
-      },
-      sortMap: {
-        created_at: "cr.created_at",
-        rating: "cr.rating",
-      },
+      queryString: { ...queryString, courseId },
+      spec: reviewListQuerySpec,
       startIndex: 2,
     });
 
@@ -48,7 +42,7 @@ class ReviewRepository {
   END AS is_reported
   `;
 
-    await features.filter().search(["cr.review"]).sort().paginate([userId]);
+    await features.filter().search().sort().paginate([userId]);
 
     const { sql, values, pagination } = features.build();
 

@@ -94,3 +94,46 @@
 html {
   scroll-behavior: smooth;
 }
+
+.dark .lesson-page {
+  color: oklch(0.968 0.007 247.896);
+}
+
+.dark .lesson-page h1 {
+  color: oklch(0.984 0.003 247.858);
+  border-bottom-color: oklch(0.623 0.214 259.815);
+}
+
+.dark .lesson-page h2 {
+  color: oklch(0.623 0.214 259.815);
+}
+
+.dark .lesson-page .ic {
+  background: oklch(0.2 0.04 265);
+  color: oklch(0.75 0.15 262);
+}
+
+.dark .lesson-page .callout {
+  background: oklch(0.25 0.08 60);
+  border-left-color: oklch(0.75 0.15 70);
+}
+
+.dark .lesson-page .callout-info {
+  background: oklch(0.2 0.06 230);
+  border-left-color: oklch(0.65 0.15 220);
+}
+
+.dark .lesson-page .callout-tip {
+  background: oklch(0.2 0.06 155);
+  border-left-color: oklch(0.65 0.15 155);
+}
+
+.dark .lesson-page table th,
+.dark .lesson-page table td {
+  border-color: oklch(0.279 0.041 260.031);
+}
+
+.dark .lesson-page table th {
+  background: oklch(0.2 0.04 265);
+  color: oklch(0.75 0.15 262);
+}

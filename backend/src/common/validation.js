@@ -1,4 +1,11 @@
+import { JSDOM } from "jsdom";
 import DOMPurify from "isomorphic-dompurify";
+
+const CSS_STRIP = /url\(\s*(['"]?)[^)'"]*\1\s*\)|@import\s[^;]*;?|expression\s*\(/gi;
+
+function sanitizeCSS(raw) {
+  return raw.replace(CSS_STRIP, "");
+}
 export const emailValidator = (field, optional = false) => ({
   in: ["body"],
   trim: true,
@@ -201,8 +208,24 @@ export const htmlValidator = (field) => ({
         throw new Error(`${field} must contain valid HTML`);
       }
 
-      // sanitize and attach to request
-      req.body[field] = DOMPurify.sanitize(value);
+      // Extract <style> blocks before DOMPurify strips them
+      const doc = new JSDOM(value).window.document;
+      const styles = doc.querySelectorAll("style");
+      const cssParts = [];
+      for (const el of styles) {
+        cssParts.push(el.textContent);
+        el.remove();
+      }
+
+      const cleanHTML = DOMPurify.sanitize(doc.body.innerHTML);
+
+      // Re-inject sanitized CSS into the HTML
+      const safeCSS = sanitizeCSS(cssParts.join("\n"));
+      const sanitizedValue = safeCSS
+        ? `<style>${safeCSS}</style>${cleanHTML}`
+        : cleanHTML;
+
+      req.body[field] = sanitizedValue;
 
       return true;
     },

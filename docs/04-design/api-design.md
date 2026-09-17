@@ -54,15 +54,56 @@ In development the error body may also include `stack` and `error`.
 
 ### 1.3 Query Parameters (List Endpoints)
 
-| Param | Meaning |
-|---|---|
-| `page` | 1-based page number (non-finite values fall back to 1) |
-| `limit` | Page size, capped at 100 |
-| `sort` | Field name; prefix `-` for descending (e.g. `-created_at`) |
-| `search` | Full-text-ish `ILIKE` across mapped fields |
-| filters | Domain-specific keys, some with operators `[gte] [gt] [lte] [lt]` |
+Cross-cutting params accepted by every list endpoint:
 
-Examples: `?level=BEGINNER`, `?category=<uuid>`, `?duration[gte]=30`, `?rating[gte]=4`, `?isFree=true`.
+| Param | Type | Meaning |
+|---|---|---|
+| `page` | integer >= 1 | 1-based page number (invalid values fall back to 1) |
+| `limit` | integer 1-100 | Page size (capped at 100) |
+| `sort` | string | Comma-separated camelCase fields; `-` prefix for descending (e.g. `-avgRating`) |
+| `search` | string (>= 2 chars) | Case-insensitive `ILIKE` across the endpoint's search columns; `%`/`_` match literally |
+
+Domain filters are camelCase and named after the semantic field. Enum filters pass the raw enum value (not a boolean); ranges use explicit `min*`/`max*`; repeat a key to match multiple values (`IN`). Unknown parameters are rejected with `422`.
+
+Each endpoint derives its filters, sortable fields, and search columns from a query spec (e.g. `backend/src/modules/courses/course.query-spec.js`), which also drives validation and the tables below.
+
+#### `GET /courses`
+
+| Param | Type | Values | Description |
+|---|---|---|---|
+| `level` | enum | `BEGINNER`, `INTERMEDIATE`, `ADVANCED` | Course difficulty level |
+| `categoryId` | uuid (repeatable) | category UUIDs | Match any of the given categories |
+| `accessType` | enum | `FREE`, `SUBSCRIPTION` | Free or subscription-only access |
+| `minRating` | number 0-5 | | Minimum average rating |
+| `maxRating` | number 0-5 | | Maximum average rating |
+| `minDuration` | integer (minutes) | | Minimum total duration |
+| `maxDuration` | integer (minutes) | | Maximum total duration |
+| `sort` | enum | `createdAt`, `avgRating`, `totalDuration` | Sort field |
+
+Example: `?page=1&level=BEGINNER&accessType=FREE&categoryId=<uuid>&minRating=4&minDuration=180&sort=-avgRating`
+
+#### `GET /courses/:courseId/reviews`
+
+| Param | Type | Values | Description |
+|---|---|---|---|
+| `rating` | integer 1-5 | | Exact star rating |
+| `search` | string | | Search within review text |
+| `sort` | enum | `createdAt`, `rating` | Sort field |
+
+#### `GET /admin/courses`
+
+| Param | Type | Values | Description |
+|---|---|---|---|
+| `level` | enum | `BEGINNER`, `INTERMEDIATE`, `ADVANCED` | Course difficulty level |
+| `categoryId` | uuid (repeatable) | category UUIDs | Match any of the given categories |
+| `accessType` | enum | `FREE`, `SUBSCRIPTION` | Free or subscription-only access |
+| `sort` | enum | `createdAt` | Sort field |
+
+#### `GET /admin/users`
+
+| Param | Type | Values | Description |
+|---|---|---|---|
+| `role` | enum | `LEARNER`, `INSTRUCTOR`, `ADMIN` | Filter by role |
 
 ### 1.4 Middleware Legend
 

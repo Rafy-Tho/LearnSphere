@@ -7,7 +7,9 @@
     "dev": "node --watch src/server.js",
     "pro": "cross-env NODE_ENV=production node src/server.js",
     "db:migrate": "node src/db/migrate.js up",
-    "db:status": "node src/db/migrate.js status"
+    "db:status": "node src/db/migrate.js status",
+    "db:seed": "node src/db/seed.js up",
+    "db:seed:status": "node src/db/seed.js status"
   },
   "keywords": [],
   "author": "",

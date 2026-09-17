@@ -5,6 +5,7 @@ import reviewController from "./controller.js";
 import {
   helpfulVoteValidator,
   reportValidator,
+  reviewListQueryValidator,
   reviewValidator,
 } from "./validation.js";
 
@@ -13,7 +14,7 @@ export const reviewsCollectionRoute = express.Router({ mergeParams: true });
 
 reviewsCollectionRoute
   .route("/")
-  .get(reviewController.getReviews)
+  .get(reviewListQueryValidator, reviewController.getReviews)
   .post(requireAuth, reviewValidator, validateResult, reviewController.createReview);
 
 reviewsCollectionRoute.get("/summary", reviewController.getReviewDetail);

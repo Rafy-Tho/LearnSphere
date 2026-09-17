@@ -38,6 +38,7 @@ Follow these when writing or modifying code.
 - Repositories receive the pg pool via `constructor({ db = pgPool } = {})`; transaction methods accept a `client` override.
 - Use `RETURNING` on writes.
 - Never interpolate SQL; use placeholders.
+- List query params are camelCase and semantic: reserved `page`/`limit`/`sort`/`search`; enums pass raw values; ranges use `min*`/`max*`; repeat a key for multi-value. Declare them in a per-module `*.query-spec.js` and validate with `validateListQuery`; `AdvancedQuery` derives its maps from the same spec.
 
 ## 4. Frontend (both apps)
 

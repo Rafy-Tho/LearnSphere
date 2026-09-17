@@ -4,6 +4,7 @@ import {
   CONTENT_STATUS,
   COURSE_LEVEL,
 } from "../../common/constants/constants.js";
+import { validateListQuery } from "../../common/middleware/list-query-validator.js";
 import {
   enumValidator,
   numberValidator,
@@ -11,6 +12,15 @@ import {
   uuidParamValidator,
   uuidValidator,
 } from "../../common/validation.js";
+import {
+  adminCourseListQuerySpec,
+  courseListQuerySpec,
+} from "./course.query-spec.js";
+
+export const courseListQueryValidator = validateListQuery(courseListQuerySpec);
+export const adminCourseListQueryValidator = validateListQuery(
+  adminCourseListQuerySpec,
+);
 
 export const courseValidator = checkSchema({
   categoryId: uuidValidator("Category ID"),

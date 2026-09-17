@@ -67,7 +67,7 @@ sequenceDiagram
   participant DB as PostgreSQL
 
   U->>F: Set filters/search (URL params)
-  F->>A: GET /api/v1/courses?page=&limit=&search=&level=&sort=
+  F->>A: GET /api/v1/courses?page=&limit=&search=&level=&accessType=&sort=
   A->>Q: build filtered/sorted/paginated query
   Q->>DB: SELECT ... + COUNT
   DB-->>Q: rows + total
@@ -76,7 +76,7 @@ sequenceDiagram
   F-->>U: Render course grid
 ```
 
-Filters supported by `CourseRepository` include `level`, `category`, `rating`, `duration`, and `isFree` (access type). Sorting uses `-field` for descending.
+Filters supported by `CourseRepository` include `level`, `categoryId`, `accessType`, `minRating`/`maxRating`, and `minDuration`/`maxDuration`. Sorting uses camelCase field names with a `-` prefix for descending (e.g. `-avgRating`). Each list endpoint declares these in a query spec (`backend/src/modules/courses/course.query-spec.js`) that also drives validation.
 
 ## 4. Enrollment Workflow
 

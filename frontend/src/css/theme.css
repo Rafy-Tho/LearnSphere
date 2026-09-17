@@ -1,4 +1,4 @@
-/*
+/* 
  * Semantic design tokens (D-27).
  *
  * Light values live in :root, dark overrides in .dark. Exposed to Tailwind via

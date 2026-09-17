@@ -1,5 +1,9 @@
 import pgPool from "../../config/database.js";
 import AdvancedQuery from "../../common/query/advanced-query.js";
+import {
+  adminCourseListQuerySpec,
+  courseListQuerySpec,
+} from "./course.query-spec.js";
 
 // Shared aggregates over the module → chapter → lesson chain. Keeping them in
 // one place avoids drift between the many course read paths.
@@ -143,27 +147,11 @@ class CourseRepository {
     ) rv ON rv.course_id = c.id
   `;
 
-    const filterMap = {
-      level: "c.level",
-      category: "c.category_id",
-      rating: "rv.avg_rating",
-      duration: "ld.total_duration",
-      isFree: "c.access_type",
-    };
-
-    const sortMap = {
-      created_at: "c.created_at",
-      avg_rating: "rv.avg_rating",
-      total_duration: "ld.total_duration",
-    };
-
     const features = new AdvancedQuery({
       baseQuery,
       countBaseQuery: "FROM courses c",
-      countJoinAliases: ["rv", "ld"],
       queryString,
-      filterMap,
-      sortMap,
+      spec: courseListQuerySpec,
     });
 
     features.select = `
@@ -179,7 +167,7 @@ class CourseRepository {
       .addCondition(`c.status != 'DRAFT'`)
       .addCondition(`c.deleted_at IS NULL`)
       .filter()
-      .search(["c.name", "c.description"])
+      .search()
       .sort()
       .paginate();
 
@@ -674,22 +662,11 @@ class CourseRepository {
       ) AS en ON en.course_id = c.id
   `;
 
-    const filterMap = {
-      level: "c.level",
-      category: "c.category_id",
-      isFree: "c.access_type",
-    };
-
-    const sortMap = {
-      created_at: "c.created_at",
-    };
-
     const features = new AdvancedQuery({
       baseQuery,
       countBaseQuery: "FROM courses AS c",
       queryString,
-      filterMap,
-      sortMap,
+      spec: adminCourseListQuerySpec,
     });
 
     features.select = `
@@ -700,7 +677,7 @@ class CourseRepository {
     await features
       .addCondition(`c.deleted_at IS NULL`)
       .filter()
-      .search(["c.name", "c.description"])
+      .search()
       .sort()
       .paginate();
 

@@ -1,24 +1,40 @@
 import pgPool from "../../config/database.js";
 import { buildPagination, parsePagination } from "./pagination.js";
+import {
+  deriveCountJoinAliases,
+  deriveFilterMap,
+  deriveSearchFields,
+  deriveSortMap,
+} from "./query-spec.js";
 
 class AdvancedQuery {
   constructor({
     db = pgPool,
     baseQuery,
     countBaseQuery = null,
-    countJoinAliases = [],
+    countJoinAliases,
     queryString,
-    filterMap = {},
-    sortMap = {},
+    filterMap,
+    sortMap,
+    searchFields,
+    searchMode,
+    searchMinLength,
+    defaultSort,
+    spec = null,
     startIndex = 1,
   }) {
     this.db = db;
     this.baseQuery = baseQuery;
     this.countBaseQuery = countBaseQuery;
-    this.countJoinAliases = countJoinAliases;
+    this.countJoinAliases =
+      countJoinAliases ?? (spec ? deriveCountJoinAliases(spec) : []);
     this.queryString = queryString;
-    this.filterMap = filterMap;
-    this.sortMap = sortMap;
+    this.filterMap = filterMap ?? (spec ? deriveFilterMap(spec) : {});
+    this.sortMap = sortMap ?? (spec ? deriveSortMap(spec) : {});
+    this.searchFields = searchFields ?? (spec ? deriveSearchFields(spec) : []);
+    this.searchMode = searchMode ?? spec?.search?.mode ?? "ilike";
+    this.searchMinLength = searchMinLength ?? spec?.search?.minLength ?? 1;
+    this.defaultSort = defaultSort ?? spec?.defaultSort ?? null;
     this.where = [];
     this.values = [];
     this.order = "";
@@ -39,10 +55,13 @@ class AdvancedQuery {
     excludedKeys.forEach((excludedKey) => delete filters[excludedKey]);
 
     Object.keys(filters).forEach((queryKey) => {
-      const baseField = queryKey.split("[")[0];
-      const column = this.filterMap[baseField];
+      const mapping = this.filterMap[queryKey];
 
-      if (!column) return;
+      if (!mapping) return;
+
+      const column = typeof mapping === "string" ? mapping : mapping.column;
+      const operator =
+        typeof mapping === "string" ? "=" : (mapping.operator ?? "=");
 
       const filterValue = filters[queryKey];
 
@@ -69,27 +88,8 @@ class AdvancedQuery {
         return;
       }
 
-      // =========================
-      // 🔥 OPERATORS (gte, lte)
-      // =========================
-      if (queryKey.includes("[")) {
-        const operator = queryKey.match(/\[(.*)\]/)[1];
-
-        const sqlOperator = {
-          gte: ">=",
-          gt: ">",
-          lte: "<=",
-          lt: "<",
-        }[operator];
-
-        if (!sqlOperator) return;
-
-        this.values.push(filterValue);
-        this.where.push(`${column} ${sqlOperator} $${this.paramIndex++}`);
-      } else {
-        this.values.push(filterValue);
-        this.where.push(`${column} = $${this.paramIndex++}`);
-      }
+      this.values.push(filterValue);
+      this.where.push(`${column} ${operator} $${this.paramIndex++}`);
     });
 
     return this;
@@ -97,17 +97,35 @@ class AdvancedQuery {
   // =========================
   // 2️⃣ SEARCH (MULTI FIELD)
   // =========================
-  search(fields = []) {
-    if (this.queryString.search && fields.length) {
-      const searchValue = `%${this.queryString.search}%`;
+  search(fields = this.searchFields) {
+    const raw = this.queryString.search;
 
+    if (!raw || !fields.length) return this;
+
+    const term = String(raw).trim();
+    if (term.length < this.searchMinLength) return this;
+
+    if (this.searchMode === "fulltext") {
       const conditions = fields.map((field) => {
-        this.values.push(searchValue);
-        return `${field} ILIKE $${this.paramIndex++}`;
+        this.values.push(term);
+        return `to_tsvector('english', ${field}) @@ websearch_to_tsquery('english', $${this.paramIndex++})`;
       });
 
       this.where.push(`(${conditions.join(" OR ")})`);
+      return this;
     }
+
+    // "ilike" and "trigram" share the same SQL; trigram just relies on the
+    // pg_trgm GIN indexes. Wildcards are escaped so they match literally.
+    const escaped = term.replace(/[\\%_]/g, "\\$&");
+    const searchValue = `%${escaped}%`;
+
+    const conditions = fields.map((field) => {
+      this.values.push(searchValue);
+      return `${field} ILIKE $${this.paramIndex++} ESCAPE '\\'`;
+    });
+
+    this.where.push(`(${conditions.join(" OR ")})`);
 
     return this;
   }
@@ -120,8 +138,9 @@ class AdvancedQuery {
       const fields = this.queryString.sort
         .split(",")
         .map((sortField) => {
-          const direction = sortField.startsWith("-") ? "DESC" : "ASC";
-          const sortKey = sortField.replace("-", "");
+          const trimmed = sortField.trim();
+          const direction = trimmed.startsWith("-") ? "DESC" : "ASC";
+          const sortKey = trimmed.replace(/^-/, "");
 
           const column = this.sortMap[sortKey];
           if (!column) return null;
@@ -134,8 +153,13 @@ class AdvancedQuery {
       if (fields) this.order = `ORDER BY ${fields}`;
     } else {
       // default sort
-      if (this.sortMap.created_at) {
-        this.order = `ORDER BY ${this.sortMap.created_at} DESC`;
+      const defaultKey =
+        this.defaultSort ??
+        (this.sortMap.createdAt ? "createdAt" : "created_at");
+      const defaultColumn = this.sortMap[defaultKey];
+
+      if (defaultColumn) {
+        this.order = `ORDER BY ${defaultColumn} DESC`;
       }
     }
 

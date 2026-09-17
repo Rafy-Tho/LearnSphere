@@ -12,7 +12,11 @@ import { reviewsCollectionRoute } from "../reviews/routes.js";
 import { savedCourseRoute } from "../saved-courses/routes.js";
 import courseController from "./course.controller.js";
 import { objectivesCollectionRoute } from "./objectives.routes.js";
-import { courseIdParamValidator, courseValidator } from "./validation.js";
+import {
+  courseIdParamValidator,
+  courseListQueryValidator,
+  courseValidator,
+} from "./validation.js";
 
 const coursesRoute = express.Router();
 
@@ -27,7 +31,7 @@ coursesRoute.use("/:courseId/saved", savedCourseRoute);
 // Courses
 coursesRoute
   .route("/")
-  .get(courseController.listCourses)
+  .get(courseListQueryValidator, courseController.listCourses)
   .post(
     requireAuth,
     authorize(INSTRUCTOR, ADMIN),

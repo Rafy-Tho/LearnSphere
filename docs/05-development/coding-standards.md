@@ -52,12 +52,13 @@ Conventions derived from the existing codebase. New code should match these patt
 - Use `RETURNING *` / `RETURNING <cols>` on writes.
 - Filter soft-deleted courses with `deleted_at IS NULL`.
 - Prefer `LEFT JOIN` aggregates, `json_agg`/`jsonb_build_object`, and `COALESCE(..., 0)`.
-- For list endpoints, use `AdvancedQuery` with `filterMap`/`sortMap` rather than hand-building pagination.
+- For list endpoints, use `AdvancedQuery` with a per-module query spec (`*.query-spec.js`) rather than hand-building pagination. The spec drives `filterMap`/`sortMap`/search and validation.
 
 ### 3.5 Validation
 
 - Define validators in `backend/src/modules/<module>/validation.js` using shared builders from `backend/src/common/validation.js`.
 - Always follow a validator with `validateResult`.
+- Validate list query params with `validateListQuery(spec)` (camelCase names, raw enum values, `min*`/`max*` ranges, repeated keys for multi-value); unknown params are rejected.
 - Sanitize HTML through `htmlValidator`.
 
 ### 3.6 Authorization

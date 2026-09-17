@@ -5,6 +5,8 @@ import { planIdParamValidator } from "./validation.js";
 
 const plansRoute = express.Router();
 
+plansRoute.get("/", planController.getActivePlans);
+
 plansRoute.get(
   "/:planId",
   planIdParamValidator,

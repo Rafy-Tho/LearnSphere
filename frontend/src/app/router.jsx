@@ -47,6 +47,9 @@ const ActivityDashboard = lazy(
 const CertificatesDashboard = lazy(
   () => import("@/features/dashboard/pages/CertificatesDashboard"),
 );
+const BillingDashboard = lazy(
+  () => import("@/features/subscriptions/pages/BillingDashboard"),
+);
 const CourseLearningScreen = lazy(
   () => import("@/features/learning/pages/CourseLearningScreen"),
 );
@@ -65,6 +68,9 @@ const PaymentSuccess = lazy(
 );
 const PaymentCancel = lazy(
   () => import("@/features/subscriptions/pages/PaymentCancel"),
+);
+const Checkout = lazy(
+  () => import("@/features/subscriptions/pages/Checkout"),
 );
 const UserSetting = lazy(() => import("@/features/settings/pages/UserSetting"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
@@ -95,7 +101,9 @@ function AppRouter() {
               <Route path="saved" element={<SavedCoursesDashboard />} />
               <Route path="activity" element={<ActivityDashboard />} />
               <Route path="certificates" element={<CertificatesDashboard />} />
+              <Route path="billing" element={<BillingDashboard />} />
             </Route>
+            <Route path="/checkout/:planId" element={<Checkout />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />
             <Route path="/user-setting" element={<UserSetting />} />

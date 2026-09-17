@@ -6,21 +6,77 @@ import {
 } from "../../common/query/pagination.js";
 import environment from "../../config/environment.js";
 import stripe from "../../config/stripe.js";
+import userRepository from "../users/repository.js";
+import couponService from "./coupon.service.js";
+import planRepository from "./plan.repository.js";
 import subscriptionRepository from "./subscription.repository.js";
 
+function roundMoney(value) {
+  return Math.round(Number(value) * 100) / 100;
+}
+
+function daysRemaining(endDate) {
+  if (!endDate) return 0;
+  const ms = new Date(endDate).getTime() - Date.now();
+  return ms > 0 ? Math.ceil(ms / (1000 * 60 * 60 * 24)) : 0;
+}
+
 class SubscriptionService {
-  constructor({ subscriptionRepository }) {
+  constructor({
+    subscriptionRepository,
+    planRepository,
+    couponService,
+    userRepository,
+  }) {
     this.subscriptionRepository = subscriptionRepository;
+    this.planRepository = planRepository;
+    this.couponService = couponService;
+    this.userRepository = userRepository;
   }
 
   async getActiveSubscription(userId) {
     return this.subscriptionRepository.getActivePaidSubscription(userId);
   }
 
-  async createStripeSession({ planId, userId }) {
-    const plan = await this.subscriptionRepository.findById(planId);
+  async hasActiveSubscription(userId) {
+    if (!userId) return false;
+    const active =
+      await this.subscriptionRepository.getActivePaidSubscription(userId);
+    return Boolean(active);
+  }
+
+  async getMySubscription(userId) {
+    const active =
+      await this.subscriptionRepository.getActivePaidSubscription(userId);
+
+    if (active) {
+      return {
+        ...active,
+        has_subscription: true,
+        is_active: true,
+        days_remaining: daysRemaining(active.end_date),
+      };
+    }
+
+    const latest =
+      await this.subscriptionRepository.getLatestSubscription(userId);
+    if (!latest) return null;
+
+    return {
+      ...latest,
+      has_subscription: true,
+      is_active: false,
+      days_remaining: 0,
+    };
+  }
+
+  async createStripeSession({ planId, userId, couponCode }) {
+    const plan = await this.planRepository.findById(planId);
     if (!plan) {
       throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
+    }
+    if (!plan.is_active) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "Plan is not available");
     }
 
     const activeSubscription =
@@ -32,26 +88,54 @@ class SubscriptionService {
       );
     }
 
-    await this.subscriptionRepository.setUserSubscriptionStatusToExpired(
-      userId,
-    );
+    let coupon = null;
+    let subtotal = roundMoney(plan.price);
+    let discount = 0;
+    let currency = plan.currency || "usd";
+
+    if (couponCode) {
+      const result = await this.couponService.validate({
+        code: couponCode,
+        plan,
+        userId,
+      });
+      coupon = result.coupon;
+      subtotal = result.subtotal;
+      discount = result.discount;
+      currency = result.currency;
+    }
+
+    const total = roundMoney(subtotal - discount);
+    const unitAmount = Math.round(total * 100);
+    const user = await this.userRepository.findById(userId);
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
+      customer_email: user?.email || undefined,
       line_items: [
         {
           price_data: {
-            currency: "usd",
-            product_data: { name: plan.name },
-            unit_amount: plan.price * 100,
+            currency,
+            product_data: {
+              name: plan.name,
+              description: plan.description || undefined,
+            },
+            unit_amount: unitAmount,
           },
           quantity: 1,
         },
       ],
       success_url: `${environment.CLIENT_URL_1}/payment-success?session_id={CHECKOUT_SESSION_ID}&planId=${planId}`,
       cancel_url: `${environment.CLIENT_URL_1}/payment-cancel?planId=${planId}`,
-      metadata: { userId, subscriptionId: planId },
+      metadata: {
+        userId,
+        planId,
+        couponCode: coupon?.code || "",
+        subtotal: String(subtotal),
+        discount: String(discount),
+        amount: String(total),
+      },
     });
 
     return { session_url: session.url };
@@ -119,4 +203,9 @@ class SubscriptionService {
 }
 
 export { SubscriptionService };
-export default new SubscriptionService({ subscriptionRepository });
+export default new SubscriptionService({
+  subscriptionRepository,
+  planRepository,
+  couponService,
+  userRepository,
+});

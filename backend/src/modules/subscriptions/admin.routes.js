@@ -10,13 +10,15 @@ import {
   createPaymentValidator,
   createPlanValidator,
   createUserSubscriptionValidator,
-  paymentIdParamValidator,
-  planIdParamValidator,
   updatePaymentValidator,
   updatePlanValidator,
   updateUserSubscriptionValidator,
-  userSubscriptionIdParamValidator,
 } from "./admin.validation.js";
+import {
+  paymentIdParamValidator,
+  planIdParamValidator,
+  userSubscriptionIdParamValidator,
+} from "./validation.js";
 
 const guard = [requireAuth, authorize(ADMIN)];
 

@@ -48,6 +48,10 @@ export const queryKeys = {
 
   activeSubscription: () => ["active-subscription"],
   subscription: (planId) => ["subscription", planId],
+  plans: () => ["plans"],
+  paymentsRoot: () => ["payments"],
+  payments: (params) => ["payments", params],
+  payment: (id) => ["payment", id],
 
   recentlyViewed: () => ["get-recently-viewed-courses"],
   recommended: () => ["recommended-course"],
@@ -78,6 +82,8 @@ export const userScopedQueryRoots = new Set([
   queryKeys.myReview(null)[0],
   queryKeys.activeSubscription()[0],
   queryKeys.subscription(null)[0],
+  queryKeys.paymentsRoot()[0],
+  queryKeys.payment(null)[0],
   queryKeys.recentlyViewed()[0],
   queryKeys.recommended()[0],
   queryKeys.inProgress()[0],

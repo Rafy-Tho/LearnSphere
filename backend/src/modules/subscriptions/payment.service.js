@@ -5,22 +5,44 @@ import {
   buildPagination,
   parsePagination,
 } from "../../common/query/pagination.js";
-import subscriptionRepository from "./subscription.repository.js";
+import paymentRepository from "./payment.repository.js";
 
 class PaymentService {
-  constructor({ subscriptionRepository }) {
-    this.subscriptionRepository = subscriptionRepository;
+  constructor({ paymentRepository }) {
+    this.paymentRepository = paymentRepository;
   }
 
   async getPayments(query = {}) {
     const { page, limit, offset } = parsePagination(query, { defaultLimit: 20 });
 
     const [payments, total] = await Promise.all([
-      this.subscriptionRepository.findAllPayments({ limit, offset }),
-      this.subscriptionRepository.countPayments(),
+      this.paymentRepository.findAllPayments({ limit, offset }),
+      this.paymentRepository.countPayments(),
     ]);
 
     return { payments, pagination: buildPagination({ total, page, limit }) };
+  }
+
+  async getMyPayments(userId, query = {}) {
+    const { page, limit, offset } = parsePagination(query, { defaultLimit: 20 });
+
+    const [payments, total] = await Promise.all([
+      this.paymentRepository.findUserPayments({ userId, limit, offset }),
+      this.paymentRepository.countUserPayments(userId),
+    ]);
+
+    return { payments, pagination: buildPagination({ total, page, limit }) };
+  }
+
+  async getMyPayment(userId, paymentId) {
+    const payment = await this.paymentRepository.findUserPaymentById({
+      userId,
+      paymentId,
+    });
+    if (!payment) {
+      throw new ApiError(StatusCode.NOT_FOUND, "Payment not found");
+    }
+    return payment;
   }
 
   async createPayment({
@@ -35,7 +57,7 @@ class PaymentService {
         "user_subscription_id and amount are required",
       );
     }
-    const payment = await this.subscriptionRepository.adminCreatePayment({
+    const payment = await this.paymentRepository.adminCreatePayment({
       userSubscriptionId: user_subscription_id,
       amount,
       paymentStatus: payment_status,
@@ -51,12 +73,12 @@ class PaymentService {
 
   async updatePayment(paymentId, paymentData) {
     const existingPayment =
-      await this.subscriptionRepository.findPaymentById(paymentId);
+      await this.paymentRepository.findPaymentById(paymentId);
     if (!existingPayment) {
       throw new ApiError(StatusCode.NOT_FOUND, "Payment not found");
     }
 
-    const updatedPayment = await this.subscriptionRepository.updatePayment(
+    const updatedPayment = await this.paymentRepository.updatePayment(
       paymentId,
       {
         amount:
@@ -77,10 +99,10 @@ class PaymentService {
   }
 
   async deletePayment(paymentId) {
-    await this.subscriptionRepository.deletePayment(paymentId);
+    await this.paymentRepository.deletePayment(paymentId);
     logger.audit("payment.admin.delete", { paymentId });
   }
 }
 
 export { PaymentService };
-export default new PaymentService({ subscriptionRepository });
+export default new PaymentService({ paymentRepository });

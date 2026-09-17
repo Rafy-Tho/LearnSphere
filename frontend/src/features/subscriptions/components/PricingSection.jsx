@@ -1,74 +1,32 @@
-import { useActiveSubscription as useGetActiveSubscription } from "@/features/subscriptions/hooks/useSubscriptions";
-import useAuth from "@/features/auth/hooks/useAuth";
+import { useActiveSubscription, usePlans } from "@/features/subscriptions/hooks/useSubscriptions";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
+import EmptyState from "@/components/ui/EmptyState";
+import Button from "@/components/ui/Button";
 import PricingCard from "@/features/subscriptions/components/PricingCard";
-import { PLAN_IDS } from "@/constants/plans";
+import { PackageOpen } from "lucide-react";
 
-const plans = [
-  {
-    id: PLAN_IDS["1-Month"],
-    tier: "1 Month",
-    duration: 30,
-    price: 5,
-    description: "Perfect for getting started with your learning journey",
-    features: [
-      { text: "Access to 500+ Courses", hasInfo: true },
-      { text: "AI Learning Assistant", hasInfo: true },
-      { text: "Track Your Learning Progress" },
-      { text: "Certificate on Course Completion" },
-      { text: "Live Chat Support", hasInfo: true },
-    ],
-    highlighted: false,
-  },
-  {
-    id: PLAN_IDS["6-Months"],
-    tier: "6 Months",
-    duration: 180,
-    price: 20,
-    description: "Best value for consistent learners and skill builders",
-    features: [
-      { text: "Unlimited Access to All Courses", hasInfo: true },
-      { text: "AI Learning Assistant (Advanced)", hasInfo: true },
-      { text: "Personalized Learning Paths" },
-      { text: "Downloadable Resources & Materials" },
-      { text: "Priority Live Chat Support", hasInfo: true },
-    ],
-    highlighted: true,
-  },
-  {
-    id: PLAN_IDS["12-Months"],
-    tier: "12 Months",
-    duration: 360,
-    price: 30,
-    description: "Complete package for mastering skills and career growth",
-    features: [
-      { text: "Full Access to All Courses & Future Updates", hasInfo: true },
-      { text: "Advanced AI Assistant + Career Guidance", hasInfo: true },
-      { text: "1-on-1 Mentorship Sessions" },
-      { text: "Official Certificates & Career Support" },
-      { text: "24/7 Premium Support", hasInfo: true },
-    ],
-    highlighted: false,
-  },
-];
 export default function PricingSection() {
-  const { user } = useAuth();
-  const { data, isPending, error } = useGetActiveSubscription();
-  const activeSubscription = data || null;
-  if (user && isPending) return <SpinnerLoader />;
-  if (user && error) return <ErrorMessage message={error.message} />;
+  const {
+    data: plans,
+    isPending,
+    error,
+    refetch,
+  } = usePlans();
+  const { data: activeSubscription } = useActiveSubscription();
+
+  const list = plans || [];
+  const highlightedIndex = list.length > 0 ? Math.floor((list.length - 1) / 2) : -1;
+
   return (
     <section className="min-h-screen transition-colors duration-300 bg-surface-muted">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
-        {/* Header - Updated for E-Learning */}
         <div className="text-center mb-14 sm:mb-16 max-w-3xl mx-auto">
           <span className="text-sm font-semibold text-primary uppercase tracking-wider">
             Pricing Plans
           </span>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-4 text-foreground mt-2">
-            Start your{" "}
-            <span className="text-primary">learning journey</span>
+            Start your <span className="text-primary">learning journey</span>
           </h1>
           <p className="text-base sm:text-lg text-foreground-muted">
             Choose the perfect plan for your online course needs. Learn at your
@@ -76,20 +34,41 @@ export default function PricingSection() {
           </p>
         </div>
 
-        {/* Enhanced Grid Layout with better responsiveness and spacing */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 justify-items-center">
-          {plans.map((plan) => (
-            <PricingCard
-              key={plan.tier}
-              plan={plan}
-              activeSubscription={activeSubscription}
+        {isPending ? (
+          <div className="flex justify-center py-16">
+            <SpinnerLoader />
+          </div>
+        ) : error ? (
+          <div className="max-w-lg mx-auto text-center">
+            <ErrorMessage
+              title="We couldn't load the plans"
+              message={error.message}
             />
-          ))}
-        </div>
+            <Button className="mt-4" onClick={() => refetch()}>
+              Try Again
+            </Button>
+          </div>
+        ) : list.length === 0 ? (
+          <EmptyState
+            icon={<PackageOpen size={22} />}
+            title="No plans available"
+            description="Pricing plans will appear here once they are published."
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 justify-items-center">
+            {list.map((plan, index) => (
+              <PricingCard
+                key={plan.id}
+                plan={plan}
+                activeSubscription={activeSubscription}
+                highlighted={index === highlightedIndex}
+              />
+            ))}
+          </div>
+        )}
 
-        {/* Optional: Footer note for transparency */}
         <p className="text-center text-foreground-muted text-sm mt-12">
-          All plans include a 14-day free trial. No credit card required.
+          Payments are processed securely by Stripe.
         </p>
       </div>
     </section>

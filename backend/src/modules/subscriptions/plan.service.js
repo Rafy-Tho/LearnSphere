@@ -4,64 +4,85 @@ import {
   buildPagination,
   parsePagination,
 } from "../../common/query/pagination.js";
-import subscriptionRepository from "./subscription.repository.js";
+import planRepository from "./plan.repository.js";
 
 class PlanService {
-  constructor({ subscriptionRepository }) {
-    this.subscriptionRepository = subscriptionRepository;
+  constructor({ planRepository }) {
+    this.planRepository = planRepository;
   }
 
   async getPlan(planId) {
-    const plan = await this.subscriptionRepository.findById(planId);
+    const plan = await this.planRepository.findById(planId);
     if (!plan) {
       throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
     }
     return plan;
   }
 
+  async getActivePlans() {
+    return this.planRepository.findAll({ activeOnly: true });
+  }
+
   async getPlans(query = {}) {
     const { page, limit, offset } = parsePagination(query, { defaultLimit: 20 });
 
     const [plans, total] = await Promise.all([
-      this.subscriptionRepository.findAllPlans({ limit, offset }),
-      this.subscriptionRepository.countPlans(),
+      this.planRepository.findAll({ limit, offset }),
+      this.planRepository.count(),
     ]);
 
     return { plans, pagination: buildPagination({ total, page, limit }) };
   }
 
-  async createPlan({ name, duration_days, price }) {
+  async createPlan({ name, description, duration_days, price, currency }) {
     if (!name || !duration_days || price === undefined) {
       throw new ApiError(
         StatusCode.BAD_REQUEST,
         "Name, duration_days, and price are required",
       );
     }
-    return this.subscriptionRepository.createPlan({
+    return this.planRepository.create({
       name,
+      description,
       durationDays: duration_days,
       price,
+      currency,
     });
   }
 
-  async updatePlan(planId, { name, duration_days, price }) {
-    const existingPlan = await this.subscriptionRepository.findById(planId);
+  async updatePlan(
+    planId,
+    { name, description, duration_days, price, currency, is_active },
+  ) {
+    const existingPlan = await this.planRepository.findById(planId);
     if (!existingPlan) throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
 
-    return this.subscriptionRepository.updatePlan(planId, {
+    return this.planRepository.update(planId, {
       name: name || existingPlan.name,
+      description:
+        description !== undefined ? description : existingPlan.description,
       durationDays: duration_days || existingPlan.duration_days,
       price: price !== undefined ? price : existingPlan.price,
+      currency: currency || existingPlan.currency,
+      isActive:
+        is_active !== undefined ? is_active : existingPlan.is_active,
     });
   }
 
   async deletePlan(planId) {
-    const existingPlan = await this.subscriptionRepository.findById(planId);
+    const existingPlan = await this.planRepository.findById(planId);
     if (!existingPlan) throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
 
-    await this.subscriptionRepository.deletePlan(planId);
+    // Preserve billing history: deactivate a plan that has subscriptions.
+    const references = await this.planRepository.countReferences(planId);
+    if (references > 0) {
+      return this.planRepository.setActive(planId, false);
+    }
+
+    await this.planRepository.delete(planId);
+    return null;
   }
 }
 
 export { PlanService };
-export default new PlanService({ subscriptionRepository });
+export default new PlanService({ planRepository });

@@ -9,7 +9,7 @@ class SubscriptionController {
   }
 
   getActiveSubscription = asyncHandler(async (req, res) => {
-    const subscription = await this.subscriptionService.getActiveSubscription(
+    const subscription = await this.subscriptionService.getMySubscription(
       req.session.user.id,
     );
 
@@ -22,6 +22,7 @@ class SubscriptionController {
     const checkoutSession = await this.subscriptionService.createStripeSession({
       planId: req.params.planId,
       userId: req.session.user.id,
+      couponCode: req.body?.coupon_code,
     });
 
     return sendSuccess(res, checkoutSession, {

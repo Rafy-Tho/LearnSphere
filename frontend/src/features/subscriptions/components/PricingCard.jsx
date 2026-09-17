@@ -1,55 +1,52 @@
-import { CheckCircle2, Info } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { memo } from "react";
-import { useCreatePayment } from "@/features/subscriptions/hooks/useSubscriptionMutations";
 import useAuth from "@/features/auth/hooks/useAuth";
-import { toast } from "react-toastify";
 import Button from "@/components/ui/Button";
+import { formatMoney } from "@/features/subscriptions/utils/money";
 
-function PricingCard({ plan, activeSubscription }) {
-  const { id, tier, price, description, features, highlighted = false } = plan;
-  const { mutateAsync, isPending: isLoading } = useCreatePayment();
+const INCLUDED_FEATURES = [
+  "Unlimited access to all courses",
+  "Track your learning progress",
+  "Certificate on course completion",
+  "Priority support",
+];
+
+function durationLabel(days) {
+  const value = Number(days);
+  if (!value) return "—";
+  if (value % 30 === 0) {
+    const months = value / 30;
+    return `${months} ${months === 1 ? "month" : "months"}`;
+  }
+  return `${value} days`;
+}
+
+function PricingCard({ plan, activeSubscription, highlighted = false }) {
   const { user } = useAuth();
   const navigate = useNavigate();
-  // Check if this plan is the active subscription
-  const isActivePlan = activeSubscription?.plan_id === id;
-  // Check if user has ANY active subscription
-  const hasActiveSubscription = !!activeSubscription;
 
-  async function payment() {
+  const isActivePlan = activeSubscription?.plan_id === plan.id;
+  const hasActiveSubscription = !!activeSubscription?.is_active;
+
+  function startCheckout() {
     if (!user) {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return navigate("/login");
     }
-    // Don't allow payment if there's already an active subscription
     if (hasActiveSubscription) return;
-
-    try {
-      const data = await mutateAsync(id);
-      const paymentUrl = data?.session_url;
-      window.location.href = paymentUrl;
-    } catch (error) {
-      toast.error(error.message || "Failed to start checkout");
-    }
+    navigate(`/checkout/${plan.id}`);
   }
+
+  const dimmed = hasActiveSubscription && !isActivePlan;
 
   return (
     <div
       className={`
-        relative flex flex-col rounded-2xl p-8 transition-colors duration-300
+        relative flex flex-col rounded-2xl p-8 transition-colors duration-300 max-w-[340px] w-full
+        ${isActivePlan || dimmed ? "bg-surface-muted opacity-75" : "bg-surface"}
         ${
-          isActivePlan
-            ? "bg-surface-muted opacity-75"
-            : hasActiveSubscription
-              ? "bg-surface-muted opacity-60"
-              : "bg-surface"
-        }
-        max-w-[340px]
-        ${
-          highlighted && !isActivePlan && !hasActiveSubscription
+          highlighted && !hasActiveSubscription
             ? "ring-2 ring-primary shadow-md"
             : "ring-1 ring-border"
         }
@@ -58,18 +55,18 @@ function PricingCard({ plan, activeSubscription }) {
       <div className="mb-6">
         <h3
           className={`text-lg font-semibold mb-4 ${
-            highlighted && !isActivePlan && !hasActiveSubscription
+            highlighted && !hasActiveSubscription
               ? "text-primary"
               : "text-foreground"
           }`}
         >
-          {tier}
+          {plan.name}
           {isActivePlan && (
             <span className="ml-2 text-xs font-normal text-success">
               (Current Plan)
             </span>
           )}
-          {hasActiveSubscription && !isActivePlan && (
+          {dimmed && (
             <span className="ml-2 text-xs font-normal text-foreground-muted">
               (Unavailable)
             </span>
@@ -78,24 +75,24 @@ function PricingCard({ plan, activeSubscription }) {
 
         <div className="flex items-end gap-1 mb-4">
           <span
-            className={`text-6xl font-bold leading-none ${
-              hasActiveSubscription && !isActivePlan
-                ? "text-foreground-muted"
-                : "text-foreground"
+            className={`text-5xl font-bold leading-none ${
+              dimmed ? "text-foreground-muted" : "text-foreground"
             }`}
           >
-            ${price}
+            {formatMoney(plan.price, plan.currency)}
           </span>
-          <span className="mb-2 text-sm text-foreground-muted">/ price</span>
+          <span className="mb-2 text-sm text-foreground-muted">
+            / {durationLabel(plan.duration_days)}
+          </span>
         </div>
 
         <p className="text-sm leading-relaxed text-foreground-muted">
-          {description}
+          {plan.description || "Full access to the learning platform."}
         </p>
       </div>
 
       <ul className="flex-1 space-y-4 mb-8">
-        {features.map((feature) => (
+        {INCLUDED_FEATURES.map((feature) => (
           <li key={feature} className="flex items-center gap-3">
             <CheckCircle2
               size={18}
@@ -103,22 +100,18 @@ function PricingCard({ plan, activeSubscription }) {
             />
             <span
               className={`text-sm ${
-                hasActiveSubscription ? "text-foreground-muted" : "text-foreground"
+                dimmed ? "text-foreground-muted" : "text-foreground"
               }`}
             >
-              {feature.text}
+              {feature}
             </span>
-            {feature.hasInfo && (
-              <Info size={14} className="flex-shrink-0 text-foreground-muted" />
-            )}
           </li>
         ))}
       </ul>
 
       <Button
-        onClick={payment}
+        onClick={startCheckout}
         disabled={hasActiveSubscription}
-        isLoading={isLoading}
         variant={highlighted ? "primary" : "outline"}
         size="lg"
         fullWidth
@@ -128,9 +121,7 @@ function PricingCard({ plan, activeSubscription }) {
           ? "Current Plan"
           : hasActiveSubscription
             ? "Not Available"
-            : isLoading
-              ? "Redirecting..."
-              : "Get Started"}
+            : "Get Started"}
       </Button>
     </div>
   );

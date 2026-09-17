@@ -7,7 +7,7 @@ import lessonRepository from "../content/lesson.repository.js";
 import optionRepository from "../content/option.repository.js";
 import moduleRepository from "../content/module.repository.js";
 import questionRepository from "../content/question.repository.js";
-import subscriptionRepository from "../subscriptions/subscription.repository.js";
+import subscriptionService from "../subscriptions/subscription.service.js";
 import courseObjectiveRepository from "./objective.repository.js";
 import courseRepository from "./repository.js";
 
@@ -15,7 +15,7 @@ class CourseService {
   constructor({
     courseRepository,
     courseObjectiveRepository,
-    subscriptionRepository,
+    subscriptionService,
     moduleRepository,
     chapterRepository,
     lessonRepository,
@@ -25,7 +25,7 @@ class CourseService {
   }) {
     this.courseRepository = courseRepository;
     this.courseObjectiveRepository = courseObjectiveRepository;
-    this.subscriptionRepository = subscriptionRepository;
+    this.subscriptionService = subscriptionService;
     this.moduleRepository = moduleRepository;
     this.chapterRepository = chapterRepository;
     this.lessonRepository = lessonRepository;
@@ -76,9 +76,8 @@ class CourseService {
   }
 
   async getLearningData(courseId, userId) {
-    const activeSubscription = userId
-      ? await this.subscriptionRepository.getActivePaidSubscription(userId)
-      : null;
+    const hasActiveSubscription =
+      await this.subscriptionService.hasActiveSubscription(userId);
 
     const curriculum = await this.courseRepository.getLearningData(courseId);
     if (!curriculum) {
@@ -90,7 +89,7 @@ class CourseService {
       modules: curriculum.modules.map((courseModule) => ({
         ...courseModule,
         lessons: courseModule.lessons.map((lesson) =>
-          lesson.access_type === "SUBSCRIPTION" && activeSubscription
+          lesson.access_type === "SUBSCRIPTION" && hasActiveSubscription
             ? { ...lesson, access_type: "FREE" }
             : lesson,
         ),
@@ -177,7 +176,7 @@ export { CourseService };
 export default new CourseService({
   courseRepository,
   courseObjectiveRepository,
-  subscriptionRepository,
+  subscriptionService,
   moduleRepository,
   chapterRepository,
   lessonRepository,

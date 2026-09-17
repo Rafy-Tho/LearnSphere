@@ -163,7 +163,9 @@ Mounted at `/api/v1/users`.
 | GET | `/me/saved-courses` | `auth` | Saved courses (paginated) |
 | GET | `/me/saved-courses/ids` | `auth` | Saved course IDs (for bookmark state) |
 | GET | `/me/certificates` | `auth` | List my certificates (paginated) |
-| GET | `/me/subscription` | `auth` | Current user's active subscription |
+| GET | `/me/subscription` | `auth` | Current or latest subscription (`is_active`, `days_remaining`) or `data: null` |
+| GET | `/me/payments` | `auth` | My payment history (paginated, includes refund totals) |
+| GET | `/me/payments/:paymentId` | `auth`, `val` | My payment detail (ownership enforced) |
 
 ## 4. Admin
 
@@ -364,12 +366,16 @@ Course-scoped at `/api/v1/courses/:courseId/certificates`; item at `/api/v1/cert
 | GET | `/certificates/:certificateId` | `val` | Get certificate by ID |
 | GET | `/users/me/certificates` | `auth` | List my certificates (paginated) |
 
-## 19. Plans & Subscriptions
+## 19. Plans, Subscriptions & Coupons
 
 | Method | Path | Middleware | Description |
 |---|---|---|---|
+| GET | `/plans` | — | Active plans (public pricing) |
 | GET | `/plans/:planId` | `val` | Plan by ID |
-| POST | `/subscriptions/:planId/checkout` | `auth`, `val` | Create Stripe Checkout session |
+| POST | `/subscriptions/:planId/checkout` | `auth`, `val` | Create Stripe Checkout session; optional body `{ coupon_code }` |
+| POST | `/coupons/validate` | `auth`, `val` | Validate a coupon against a plan; returns discount preview |
+
+Amounts are always calculated server-side; the client never supplies price, discount, or status.
 
 ## 20. Stripe Webhook
 
@@ -377,7 +383,12 @@ Mounted at `/api/v1/webhooks/stripe`.
 
 | Method | Path | Middleware | Description |
 |---|---|---|---|
-| POST | `/` | `express.raw({ type: "application/json" })` | Verify signature, handle `checkout.session.completed` |
+| POST | `/` | `express.raw({ type: "application/json" })` | Verify signature; process idempotently by Stripe event id |
+
+Handled events: `checkout.session.completed` (provision subscription + payment +
+coupon redemption), `charge.refunded` and `refund.created` / `refund.updated`
+(record refunds, update payment status), `payment_intent.payment_failed` (logged).
+Duplicate deliveries are ignored via `stripe_webhook_events`.
 
 > The webhook is registered before `express.json()` in `app/middleware.js`.
 

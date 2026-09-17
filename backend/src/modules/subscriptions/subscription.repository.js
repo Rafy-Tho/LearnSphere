@@ -7,7 +7,7 @@ class SubscriptionRepository {
 
   async findById(id) {
     const result = await this.db.query(
-      "SELECT * FROM subscription_plans WHERE id = $1",
+      "SELECT * FROM user_subscriptions WHERE id = $1",
       [id],
     );
     return result.rows[0];
@@ -26,53 +26,36 @@ class SubscriptionRepository {
     return result.rows[0];
   }
 
-  async createPayment(
-    { userSubscriptionId, amount, stripePaymentIntentId },
-    client = this.db,
-  ) {
-    const result = await client.query(
-      `INSERT INTO subscription_payments 
-       (user_subscription_id, amount, stripe_payment_intent_id, payment_status)
-       VALUES ($1, $2, $3, 'COMPLETED')
-       RETURNING *`,
-      [userSubscriptionId, amount, stripePaymentIntentId],
-    );
-    return result.rows[0];
-  }
-
-  async findPaymentByIntentId(stripePaymentIntentId) {
-    const result = await this.db.query(
-      `SELECT * FROM subscription_payments WHERE stripe_payment_intent_id = $1`,
-      [stripePaymentIntentId],
-    );
-    return result.rows[0];
-  }
   async getActivePaidSubscription(userId) {
     const result = await this.db.query(
-      `SELECT 
+      `SELECT
         us.id AS subscription_id,
         us.user_id,
         us.plan_id,
         us.start_date,
         us.end_date,
         us.status AS subscription_status,
+        us.cancel_at_period_end,
+        us.cancelled_at,
         us.created_at AS subscription_created_at,
         us.updated_at AS subscription_updated_at,
         sp.id AS payment_id,
+        sp.subtotal,
+        sp.discount_amount,
         sp.amount,
+        sp.currency,
         sp.payment_status,
         sp.stripe_payment_intent_id,
+        sp.paid_at,
         sp.created_at AS payment_created_at,
-        p.id AS plan_id_ref,
         p.name,
+        p.description,
         p.duration_days,
         p.price,
-        p.created_at AS plan_created_at
+        p.currency AS plan_currency
      FROM user_subscriptions us
-     JOIN subscription_plans p 
-       ON us.plan_id = p.id
-     JOIN subscription_payments sp 
-       ON sp.user_subscription_id = us.id
+     JOIN subscription_plans p ON us.plan_id = p.id
+     JOIN subscription_payments sp ON sp.user_subscription_id = us.id
      WHERE us.user_id = $1
        AND us.status = 'ACTIVE'
        AND us.end_date > NOW()
@@ -85,60 +68,46 @@ class SubscriptionRepository {
     return result.rows[0];
   }
 
-  async setUserSubscriptionStatusToExpired(userId) {
+  async getLatestSubscription(userId) {
     const result = await this.db.query(
-      `UPDATE user_subscriptions
-     SET status = 'EXPIRED'
-     WHERE user_id = $1`,
+      `SELECT
+        us.id AS subscription_id,
+        us.user_id,
+        us.plan_id,
+        us.start_date,
+        us.end_date,
+        us.status AS subscription_status,
+        us.cancel_at_period_end,
+        us.cancelled_at,
+        us.created_at AS subscription_created_at,
+        us.updated_at AS subscription_updated_at,
+        p.name,
+        p.description,
+        p.duration_days,
+        p.price,
+        p.currency,
+        sp.id AS payment_id,
+        sp.subtotal,
+        sp.discount_amount,
+        sp.amount,
+        sp.currency AS payment_currency,
+        sp.payment_status,
+        sp.stripe_payment_intent_id,
+        sp.paid_at
+     FROM user_subscriptions us
+     JOIN subscription_plans p ON us.plan_id = p.id
+     LEFT JOIN LATERAL (
+       SELECT * FROM subscription_payments sp2
+       WHERE sp2.user_subscription_id = us.id
+       ORDER BY sp2.created_at DESC
+       LIMIT 1
+     ) sp ON TRUE
+     WHERE us.user_id = $1
+     ORDER BY us.created_at DESC
+     LIMIT 1`,
       [userId],
     );
 
-    return result.rows[0];
-  }
-
-  async findAllPlans({ limit = 20, offset = 0 } = {}) {
-    const result = await this.db.query(
-      `SELECT * FROM subscription_plans
-       ORDER BY created_at DESC
-       LIMIT $1 OFFSET $2`,
-      [limit, offset],
-    );
-    return result.rows;
-  }
-
-  async countPlans() {
-    const result = await this.db.query(
-      "SELECT COUNT(*) AS total FROM subscription_plans",
-    );
-    return Number(result.rows[0].total);
-  }
-
-  async createPlan({ name, durationDays, price }) {
-    const result = await this.db.query(
-      `INSERT INTO subscription_plans (name, duration_days, price)
-       VALUES ($1, $2, $3)
-       RETURNING *`,
-      [name, durationDays, price],
-    );
-    return result.rows[0];
-  }
-
-  async updatePlan(id, { name, durationDays, price }) {
-    const result = await this.db.query(
-      `UPDATE subscription_plans
-       SET name = $1, duration_days = $2, price = $3
-       WHERE id = $4
-       RETURNING *`,
-      [name, durationDays, price, id],
-    );
-    return result.rows[0];
-  }
-
-  async deletePlan(id) {
-    const result = await this.db.query(
-      "DELETE FROM subscription_plans WHERE id = $1 RETURNING id",
-      [id],
-    );
     return result.rows[0];
   }
 
@@ -160,6 +129,18 @@ class SubscriptionRepository {
       "SELECT COUNT(*) AS total FROM user_subscriptions",
     );
     return Number(result.rows[0].total);
+  }
+
+  async findUserSubscriptionById(id) {
+    const result = await this.db.query(
+      `SELECT us.*, u.name AS user_name, u.email AS user_email, sp.name AS plan_name
+       FROM user_subscriptions us
+       JOIN users u ON us.user_id = u.id
+       JOIN subscription_plans sp ON us.plan_id = sp.id
+       WHERE us.id = $1`,
+      [id],
+    );
+    return result.rows[0];
   }
 
   async adminCreateUserSubscription({
@@ -200,89 +181,14 @@ class SubscriptionRepository {
     return result.rows[0];
   }
 
-  async findAllPayments({ limit = 20, offset = 0 } = {}) {
+  async expireOverdueSubscriptions() {
     const result = await this.db.query(
-      `SELECT sp.*, u.name AS user_name, u.email AS user_email, pl.name AS plan_name
-       FROM subscription_payments sp
-       JOIN user_subscriptions us ON sp.user_subscription_id = us.id
-       JOIN users u ON us.user_id = u.id
-       JOIN subscription_plans pl ON us.plan_id = pl.id
-       ORDER BY sp.created_at DESC
-       LIMIT $1 OFFSET $2`,
-      [limit, offset],
+      `UPDATE user_subscriptions
+       SET status = 'EXPIRED'
+       WHERE status = 'ACTIVE' AND end_date <= NOW()
+       RETURNING id`,
     );
     return result.rows;
-  }
-
-  async countPayments() {
-    const result = await this.db.query(
-      "SELECT COUNT(*) AS total FROM subscription_payments",
-    );
-    return Number(result.rows[0].total);
-  }
-
-  async adminCreatePayment({
-    userSubscriptionId,
-    amount,
-    paymentStatus,
-    stripePaymentIntentId,
-  }) {
-    const result = await this.db.query(
-      `INSERT INTO subscription_payments (user_subscription_id, amount, payment_status, stripe_payment_intent_id)
-       VALUES ($1, $2, $3, $4)
-       RETURNING *`,
-      [
-        userSubscriptionId,
-        amount,
-        paymentStatus || "COMPLETED",
-        stripePaymentIntentId || null,
-      ],
-    );
-    return result.rows[0];
-  }
-
-  async updatePayment(id, { amount, paymentStatus, stripePaymentIntentId }) {
-    const result = await this.db.query(
-      `UPDATE subscription_payments
-       SET amount = $1, payment_status = $2, stripe_payment_intent_id = $3
-       WHERE id = $4
-       RETURNING *`,
-      [amount, paymentStatus, stripePaymentIntentId || null, id],
-    );
-    return result.rows[0];
-  }
-
-  async deletePayment(id) {
-    const result = await this.db.query(
-      "DELETE FROM subscription_payments WHERE id = $1 RETURNING id",
-      [id],
-    );
-    return result.rows[0];
-  }
-
-  async findUserSubscriptionById(id) {
-    const result = await this.db.query(
-      `SELECT us.*, u.name AS user_name, u.email AS user_email, sp.name AS plan_name
-       FROM user_subscriptions us
-       JOIN users u ON us.user_id = u.id
-       JOIN subscription_plans sp ON us.plan_id = sp.id
-       WHERE us.id = $1`,
-      [id],
-    );
-    return result.rows[0];
-  }
-
-  async findPaymentById(id) {
-    const result = await this.db.query(
-      `SELECT sp.*, u.name AS user_name, u.email AS user_email, pl.name AS plan_name
-       FROM subscription_payments sp
-       JOIN user_subscriptions us ON sp.user_subscription_id = us.id
-       JOIN users u ON us.user_id = u.id
-       JOIN subscription_plans pl ON us.plan_id = pl.id
-       WHERE sp.id = $1`,
-      [id],
-    );
-    return result.rows[0];
   }
 }
 

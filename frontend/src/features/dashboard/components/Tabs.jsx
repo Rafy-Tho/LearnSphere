@@ -8,6 +8,7 @@ const tabs = [
   { label: "Saved Courses", href: "/learning-dashboard/saved" },
   { label: "Activity", href: "/learning-dashboard/activity" },
   { label: "Certificates", href: "/learning-dashboard/certificates" },
+  { label: "Billing", href: "/learning-dashboard/billing" },
 ];
 export default function Tabs() {
   return (

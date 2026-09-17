@@ -1,148 +1,115 @@
 import { useState } from "react";
-import SectionCard from "@/features/settings/components/SectionCard";
-import { Check, Crown } from "lucide-react";
-import { useCreatePayment } from "@/features/subscriptions/hooks/useSubscriptionMutations";
-import useAuth from "@/features/auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { Check, Crown } from "lucide-react";
+import SectionCard from "@/features/settings/components/SectionCard";
+import { usePlans } from "@/features/subscriptions/hooks/useSubscriptions";
+import { formatMoney } from "@/features/subscriptions/utils/money";
+import useAuth from "@/features/auth/hooks/useAuth";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
-import { PLAN_IDS } from "@/constants/plans";
-
-const planConfig = {
-  "1-Month": {
-    id: PLAN_IDS["1-Month"],
-    label: "1 Month",
-    color: "bg-surface-muted text-foreground-muted border-border",
-    features: [
-      "5 projects",
-      "1 GB storage",
-      "Community support",
-      "Basic analytics",
-    ],
-  },
-  "6-Months": {
-    id: PLAN_IDS["6-Months"],
-    label: "6 Months",
-    color: "bg-primary/10 text-primary border-primary/30",
-    features: [
-      "Unlimited projects",
-      "50 GB storage",
-      "Priority support",
-      "Advanced analytics",
-      "Custom domains",
-    ],
-  },
-  "12-Months": {
-    id: PLAN_IDS["12-Months"],
-    label: "12 Months",
-    color: "bg-primary text-white border-primary",
-    features: [
-      "Unlimited everything",
-      "1 TB storage",
-      "24/7 dedicated support",
-      "SSO & audit logs",
-      "SLA guarantee",
-      "Custom integrations",
-    ],
-  },
-};
+import ErrorMessage from "@/components/ui/ErrorMessage";
 
 function Subscription() {
-  const [plan, setPlan] = useState("1-Month");
   const navigate = useNavigate();
-  const { mutateAsync, isPending: isLoading } = useCreatePayment();
   const { user } = useAuth();
-  const planInfo = planConfig[plan];
-  async function payment() {
+  const { data: plans, isPending, error } = usePlans();
+  const [selectedId, setSelectedId] = useState(null);
+
+  const list = plans || [];
+  const selected = list.find((plan) => plan.id === selectedId) || list[0];
+
+  function getStarted() {
     if (!user) {
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth",
-      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
       return navigate("/login");
     }
-    try {
-      const data = await mutateAsync(planInfo.id);
-      const paymentUrl = data?.session_url;
-      window.location.href = paymentUrl;
-    } catch (error) {
-      toast.error(error.message || "Failed to start checkout");
-    }
+    if (selected) navigate(`/checkout/${selected.id}`);
   }
-  if (!planInfo) {
-    return null;
-  }
+
   return (
     <SectionCard title="Subscription" icon={<Crown size={15} />}>
-      <div className="flex flex-col sm:flex-row gap-6">
-        <div className="flex-1 p-4 rounded-xl border border-border bg-surface-muted">
-          <div className="flex items-center gap-2 mb-3">
-            <span
-              className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${planInfo.color}`}
-            >
-              {planInfo.label}
+      {isPending ? (
+        <div className="flex justify-center py-8">
+          <SpinnerLoader />
+        </div>
+      ) : error ? (
+        <ErrorMessage
+          title="We couldn't load the plans"
+          message={error.message}
+        />
+      ) : list.length === 0 ? (
+        <p className="text-sm text-foreground-muted">
+          No plans are available right now.
+        </p>
+      ) : (
+        <div className="flex flex-col sm:flex-row gap-6">
+          <div className="flex-1 p-4 rounded-xl border border-border bg-surface-muted">
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border bg-primary/10 text-primary border-primary/30">
+              {selected.name}
             </span>
+            <p className="mt-3 text-2xl font-bold text-foreground">
+              {formatMoney(selected.price, selected.currency)}
+            </p>
+            <p className="text-xs text-foreground-muted mt-0.5">
+              for {selected.duration_days} days
+            </p>
+            <p className="mt-3 text-sm text-foreground-muted">
+              {selected.description ||
+                "Full access to every course on the platform."}
+            </p>
+            <ul className="mt-3 space-y-1.5">
+              {[
+                "Unlimited access to all courses",
+                "Track your learning progress",
+                "Certificate on course completion",
+              ].map((feature) => (
+                <li
+                  key={feature}
+                  className="flex items-center gap-2 text-sm text-foreground"
+                >
+                  <Check size={13} className="text-foreground-muted flex-shrink-0" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={getStarted}
+              className="w-full px-4 py-3 rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary-hover cursor-pointer transition-colors mt-5"
+            >
+              Get Started
+            </button>
           </div>
-          <p className="text-xs text-foreground-muted mb-3">
-            this plan includes:
-          </p>
-          <ul className="space-y-1.5">
-            {planInfo.features.map((feature) => (
-              <li
-                key={feature}
-                className="flex items-center gap-2 text-sm text-foreground"
-              >
-                <Check
-                  size={13}
-                  className="text-foreground-muted flex-shrink-0"
-                />
-                {feature}
-              </li>
-            ))}
-          </ul>
-          <button
-            onClick={payment}
-            disabled={isLoading}
-            className="w-full px-4 py-3 rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary-hover cursor-pointer transition-colors mt-5 inline-flex items-center justify-center gap-2 disabled:opacity-60"
-          >
-            {isLoading && <SpinnerLoader size="sm" color="muted" />}
-            {isLoading ? "Redirecting..." : "Get Started"}
-          </button>
-        </div>
 
-        <div className="flex-1 flex flex-col gap-2.5">
-          <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
-            choose Plan
-          </p>
-          {Object.keys(planConfig).map((p) => {
-            const isActive = plan === p;
-            return (
-              <button
-                key={p}
-                onClick={() => {
-                  if (!isActive) {
-                    setPlan(p);
-                  }
-                }}
-                disabled={isActive}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm transition-colors ${
-                  isActive
-                    ? "border-primary bg-primary text-white cursor-default"
-                    : "border-border bg-surface text-foreground hover:border-primary/30 hover:bg-surface-muted cursor-pointer"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{planConfig[p].label}</span>
-                </div>
-                {isActive && <Check size={14} />}
-              </button>
-            );
-          })}
-          <p className="text-xs text-foreground-muted mt-1">
-            Billing is managed securely. Changes take effect immediately.
-          </p>
+          <div className="flex-1 flex flex-col gap-2.5">
+            <p className="text-xs font-medium text-foreground-muted uppercase tracking-wider mb-1">
+              Choose plan
+            </p>
+            {list.map((plan) => {
+              const isActive = selected?.id === plan.id;
+              return (
+                <button
+                  key={plan.id}
+                  onClick={() => setSelectedId(plan.id)}
+                  disabled={isActive}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm transition-colors ${
+                    isActive
+                      ? "border-primary bg-primary text-white cursor-default"
+                      : "border-border bg-surface text-foreground hover:border-primary/30 hover:bg-surface-muted cursor-pointer"
+                  }`}
+                >
+                  <span className="font-medium">{plan.name}</span>
+                  <span className="flex items-center gap-2">
+                    {formatMoney(plan.price, plan.currency)}
+                    {isActive && <Check size={14} />}
+                  </span>
+                </button>
+              );
+            })}
+            <p className="text-xs text-foreground-muted mt-1">
+              Payments are processed securely by Stripe.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
     </SectionCard>
   );
 }

@@ -1,1349 +1,496 @@
-# Task: Complete and Improve the Billing & Subscription System
+# Billing & Subscription — Plan & Implementation (v2)
 
-We already have an existing billing/subscription implementation in our Learning Online Platform.
+> **Status:** implemented (DB `0018`–`0019`, backend, webhooks, learner frontend).
+> Admin coupon/refund endpoints and the admin billing UI remain deferred (D4).
 
-Your job is to **inspect the existing code, database schema, API, Stripe integration, and frontend first**, then improve and complete the billing system.
+Goal: make billing a complete, production-quality feature on top of the **existing
+prepaid, one-time Stripe Checkout** implementation. This document replaces the
+previous broad spec, which assumed recurring Stripe subscriptions. It was rewritten
+after inspecting the real code so the plan matches the architecture.
 
-Do NOT blindly rewrite the existing implementation. Preserve working functionality and existing project conventions where appropriate.
+> **Reviewed against:** `backend/src/modules/subscriptions/*`,
+> `backend/src/db/migrations/0007_billing.sql`, `backend/src/db/schema.sql` (§4.4),
+> `frontend/src/features/subscriptions/*`, `docs/04-design/{database-design,api-design}.md`.
 
-The goal is to make billing feel like a complete, production-quality feature while keeping the architecture simple and maintainable.
+## 0. Confirmed Decisions
 
----
+| # | Decision |
+|---|---|
+| D1 | **Billing model stays prepaid one-time.** Stripe Checkout `mode:"payment"` for a fixed `duration_days`. No auto-renew. |
+| D2 | **Recurring billing is out of scope.** No Stripe Subscriptions, no invoices, no `PAST_DUE`, no Stripe Billing Portal. |
+| D3 | **Cancel/reactivate is dropped.** There is no recurring charge to cancel; access ends at `end_date`. UI shows "Expires on…" and offers renew after expiry. |
+| D4 | **Admin backend + UI deferred.** Learner APIs, coupons validation, and webhook sync land now. Admin coupon/refund issuance is deferred. |
+| D5 | **Enums extended additively.** Keep `CANCELLED`/`COMPLETED`; add `PENDING` (subscription) and `PARTIALLY_REFUNDED` (payment). |
+| D6 | **Refunds:** schema + `charge.refunded`/`refund.updated` webhook sync + read-only display now; admin issuance deferred. |
+| D7 | **Keep `subscription_payments.amount`** as the final charged total to avoid breaking the working admin app; add `subtotal` and `discount_amount`. |
 
-## 1. Existing Billing Scope
+## 1. Current State (as implemented)
 
-We currently have:
+**Database** (`0007_billing.sql`, mirrored in `schema.sql`):
 
-- `subscription_plans`
-- `user_subscriptions`
-- `subscription_payments`
+- `subscription_plans`: `id, name, duration_days, price, created_at, updated_at`; unique `(name, duration_days)`.
+- `user_subscriptions`: `id, user_id, plan_id, start_date, end_date, status, timestamps`; partial unique `one_active_subscription_per_user`; both FKs `ON DELETE CASCADE`.
+- `subscription_payments`: `id, user_subscription_id, amount, payment_status, stripe_payment_intent_id (unique), timestamps`.
+- Enums: `subscription_status = ACTIVE|EXPIRED|CANCELLED`; `payment_status = PENDING|COMPLETED|FAILED|REFUNDED`.
 
-We use Stripe for payments/subscriptions.
+**Backend** (`modules/subscriptions/`): plans/subscriptions/payments admin CRUD, Stripe Checkout `mode:"payment"`, one webhook event (`checkout.session.completed`) with signature verification. Premium gating lives in `courses/course.service.js:78` (flips `access_type` when an active paid subscription exists).
 
-We now want to support:
+**Learner frontend**: pricing page with **hardcoded plans + DB UUIDs** (`frontend/src/constants/plans.js`, `PricingSection.jsx`), checkout, success/cancel pages. No billing management, history, coupons, or cancel UI.
 
-- Subscription plans
-- User subscriptions
-- Payments
-- Recurring billing where applicable
-- Subscription expiration
-- Subscription cancellation
-- Coupon codes
-- Percentage discounts
-- Fixed-amount discounts
-- Coupon redemption tracking
-- Payment refunds
-- Stripe webhook synchronization
-- Payment history
-- Subscription management
-- Good user-facing billing UI/UX
-- Admin billing management
+**Admin**: working subscription/payment/plan CRUD UI (not touched in this plan).
 
----
+## 2. Gaps vs. the Original Spec
 
-# 2. First: Inspect the Existing Project
+| Area | Status |
+|---|---|
+| `coupons`, `coupon_redemptions`, `payment_refunds`, `stripe_webhook_events` | Missing |
+| Plan `description` / `currency` / `is_active` | Missing |
+| Payment subtotal / discount / currency / invoice / paid_at / failure_reason | Missing |
+| Cancellation fields (`cancel_at_period_end`, `cancelled_at`) | Missing |
+| Stripe IDs (`customer_id`, `subscription_id`, `invoice_id`, `refund_id`) | Missing |
+| Webhook idempotency by event ID | Weak (relies on payment-intent uniqueness) |
+| Refunds / partial refunds | Missing |
+| Public plans list endpoint | Missing (`GET /plans/:planId` only) |
+| User payment history / subscription detail endpoints | Missing |
+| Learner billing UI (management, history, coupon, cancel) | Missing |
 
-Before changing anything:
+## 3. Bugs / Risks Found
 
-1. Inspect the current database schema.
-2. Inspect existing subscription models/tables.
-3. Inspect existing payment implementation.
-4. Inspect Stripe integration.
-5. Inspect Stripe checkout/payment code.
-6. Inspect Stripe webhook handling.
-7. Inspect subscription status enums.
-8. Inspect payment status enums.
-9. Inspect existing authentication/user relationships.
-10. Inspect existing frontend billing/subscription pages.
-11. Inspect existing admin dashboard.
-12. Inspect existing API conventions.
-13. Inspect validation/error-handling conventions.
-14. Inspect existing UI design system and Tailwind configuration.
+1. **Frontend hardcodes plans and their DB UUIDs** — the DB is not the source of truth; changing a plan breaks the pricing page.
+2. **Destructive admin deletes with `ON DELETE CASCADE`** on `plan_id` / `user_subscription_id` can wipe billing history.
+3. **`setUserSubscriptionStatusToExpired(userId)`** bulk-expires *all* of a user's rows before checkout (`subscription.service.js:35`).
+4. `createPayment` hardcodes `'COMPLETED'`; checkout stores no customer/email; metadata key `subscriptionId` actually holds a **plan id**.
+5. Pricing is fully client-supplied today; there is no server-side amount/coupon validation to trust.
 
-Do not introduce duplicate functionality.
+## 4. Scope
 
-Reuse existing utilities, components, hooks, services, middleware, validation, and API patterns whenever possible.
+### In scope
 
----
+- Database improvements: coupons, redemptions, refunds, webhook events, plan/payment fields, indexes, non-destructive FK.
+- Backend: public plans list, coupon validation, checkout with server-calculated amounts, payment history, richer subscription detail, premium gating helper, validators.
+- Webhook: event-id idempotency; `checkout.session.completed`, `charge.refunded`, `refund.updated`; failures logged.
+- Learner frontend: API-driven pricing, checkout with coupon UX, billing page with payment history, payment details, status states.
+- Docs + progress updates.
 
-# 3. Database Design
+### Out of scope (deferred)
 
-Improve the billing schema around these core tables:
-
-```text
-subscription_plans
-user_subscriptions
-subscription_payments
-payment_refunds
-coupons
-coupon_redemptions
-stripe_webhook_events
-```
-
-Keep the design normalized and avoid unnecessary tables.
+- True recurring Stripe subscriptions, Customers/Billing Portal, invoices, auto-renew, `PAST_DUE`, cancel/reactivate.
+- Admin coupon CRUD + redemptions, admin refund issuance, admin billing overview, admin billing UI.
+- Any unrelated refactor.
 
 ---
 
-# 4. Subscription Plans
+## 5. Phase 1 — Database
 
-Improve `subscription_plans` so plans can be managed safely.
+Two migrations (DDL and backfill separated per `backend/src/db/README.md`), mirrored into `schema.sql`. New enum values go in their **own migration** so they are not used in the same transaction that adds them.
 
-Recommended fields:
+### 5.1 `0018_billing_schema.sql` (DDL)
 
-```text
-id
-name
-description
-duration_days
-price
-currency
-is_active
-created_at
-updated_at
+```sql
+-- Enum additions (safe to re-run)
+ALTER TYPE subscription_status ADD VALUE IF NOT EXISTS 'PENDING';
+ALTER TYPE payment_status      ADD VALUE IF NOT EXISTS 'PARTIALLY_REFUNDED';
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'discount_type') THEN
+    CREATE TYPE discount_type AS ENUM ('PERCENTAGE','FIXED_AMOUNT');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'refund_status') THEN
+    CREATE TYPE refund_status AS ENUM ('PENDING','SUCCEEDED','FAILED');
+  END IF;
+END $$;
+
+-- subscription_plans: new columns
+ALTER TABLE subscription_plans
+  ADD COLUMN IF NOT EXISTS description TEXT,
+  ADD COLUMN IF NOT EXISTS currency VARCHAR(3) NOT NULL DEFAULT 'usd',
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+
+-- user_subscriptions: new columns
+ALTER TABLE user_subscriptions
+  ADD COLUMN IF NOT EXISTS cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
+  ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT;  -- reserved
+
+-- subscription_payments: new columns (amount stays the charged total)
+ALTER TABLE subscription_payments
+  ADD COLUMN IF NOT EXISTS subtotal NUMERIC(10,2),
+  ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10,2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS currency VARCHAR(3) NOT NULL DEFAULT 'usd',
+  ADD COLUMN IF NOT EXISTS coupon_id UUID,
+  ADD COLUMN IF NOT EXISTS stripe_invoice_id TEXT,
+  ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS failure_reason TEXT;
+
+-- coupons
+CREATE TABLE IF NOT EXISTS coupons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code VARCHAR(50) NOT NULL UNIQUE,          -- stored uppercase
+  discount_type discount_type NOT NULL,
+  discount_value NUMERIC(10,2) NOT NULL CHECK (discount_value >= 0),
+  max_redemptions INT CHECK (max_redemptions IS NULL OR max_redemptions > 0),
+  redemption_count INT NOT NULL DEFAULT 0 CHECK (redemption_count >= 0),
+  starts_at TIMESTAMPTZ,
+  expires_at TIMESTAMPTZ,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- coupon_redemptions
+CREATE TABLE IF NOT EXISTS coupon_redemptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  coupon_id UUID NOT NULL REFERENCES coupons(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  payment_id UUID NOT NULL,
+  discount_amount NUMERIC(10,2) NOT NULL CHECK (discount_amount >= 0),
+  redeemed_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT unique_coupon_per_user UNIQUE (coupon_id, user_id),
+  CONSTRAINT unique_coupon_redemption_payment UNIQUE (payment_id)
+);
+
+-- payment_refunds
+CREATE TABLE IF NOT EXISTS payment_refunds (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  payment_id UUID NOT NULL REFERENCES subscription_payments(id) ON DELETE CASCADE,
+  amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
+  currency VARCHAR(3) NOT NULL DEFAULT 'usd',
+  refund_status refund_status NOT NULL DEFAULT 'PENDING',
+  stripe_refund_id TEXT UNIQUE,
+  reason TEXT,
+  refunded_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- stripe_webhook_events (idempotency)
+CREATE TABLE IF NOT EXISTS stripe_webhook_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  stripe_event_id TEXT NOT NULL UNIQUE,
+  event_type TEXT NOT NULL,
+  processed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Non-destructive FK: plans cannot delete billing history
+ALTER TABLE user_subscriptions DROP CONSTRAINT IF EXISTS user_subscriptions_plan_id_fkey;
+ALTER TABLE user_subscriptions
+  ADD CONSTRAINT user_subscriptions_plan_id_fkey
+  FOREIGN KEY (plan_id) REFERENCES subscription_plans(id) ON DELETE RESTRICT;
+
+ALTER TABLE subscription_payments DROP CONSTRAINT IF EXISTS subscription_payments_coupon_id_fkey;
+ALTER TABLE subscription_payments
+  ADD CONSTRAINT subscription_payments_coupon_id_fkey
+  FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE SET NULL;
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_subscription_plans_active ON subscription_plans(is_active);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_status ON user_subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_user_subscriptions_stripe_sub ON user_subscriptions(stripe_subscription_id);
+CREATE INDEX IF NOT EXISTS idx_subscription_payments_status ON subscription_payments(payment_status);
+CREATE INDEX IF NOT EXISTS idx_subscription_payments_invoice ON subscription_payments(stripe_invoice_id);
+CREATE INDEX IF NOT EXISTS idx_coupons_active ON coupons(is_active);
+CREATE INDEX IF NOT EXISTS idx_coupon_redemptions_coupon ON coupon_redemptions(coupon_id);
+CREATE INDEX IF NOT EXISTS idx_coupon_redemptions_user ON coupon_redemptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_refunds_payment ON payment_refunds(payment_id);
+CREATE INDEX IF NOT EXISTS idx_payment_refunds_status ON payment_refunds(refund_status);
 ```
 
-Requirements:
+> Note: `amount` is the final charged total. `subtotal - discount_amount = amount`.
+> Enforce this in the service layer (not a hard CHECK) so the existing admin
+> payment update path keeps working.
 
-- Price must never be negative.
-- Duration must be greater than zero.
-- Currency should be stored explicitly.
-- Plans should be deactivated instead of deleted when they have historical subscriptions/payments.
-- Existing historical subscriptions must remain valid even if a plan becomes inactive.
-- Avoid destructive cascading deletes that could destroy billing history.
+### 5.2 `0019_billing_backfill.sql` (data)
 
-If the current schema already has equivalent functionality, improve it rather than duplicating it.
+```sql
+UPDATE subscription_payments
+   SET subtotal = COALESCE(subtotal, amount),
+       discount_amount = COALESCE(discount_amount, 0),
+       paid_at = COALESCE(paid_at, created_at)
+ WHERE subtotal IS NULL OR paid_at IS NULL;
+
+UPDATE subscription_plans SET currency = 'usd' WHERE currency IS NULL;
+UPDATE subscription_plans SET is_active = TRUE WHERE is_active IS NULL;
+```
+
+### 5.3 `schema.sql` sync
+
+Mirror all columns, tables, enum values, indexes, and the RESTRICT FK into the
+canonical baseline so a fresh install matches a migrated DB.
+
+Apply: `npm run db:migrate` / `npm run db:status` from `backend/`.
 
 ---
 
-# 5. User Subscriptions
+## 6. Phase 2 — Backend (`backend/src/modules/subscriptions/`)
 
-Improve `user_subscriptions`.
+Keep the module layering: `routes → validators → middlewares → controllers → services/repositories → pg pool`.
+Split the current god `subscription.repository.js` into focused repositories (class + constructor DI + default singleton).
 
-It should support:
+| File | Responsibility |
+|---|---|
+| `plan.repository.js` / `plan.service.js` / `plan.controller.js` | Plan reads/writes, active list, deactivate-instead-of-delete |
+| `subscription.repository.js` / `subscription.service.js` / `subscription.controller.js` | Subscription reads, detail, premium helper |
+| `payment.repository.js` / `payment.service.js` / `payment.controller.js` | Payment history, details, refund reads |
+| `coupon.repository.js` / `coupon.service.js` / `coupon.controller.js` | Coupon lookup + validation + redemption write |
+| `refund.repository.js` | Refund rows (used by webhook) |
+| `webhook.service.js` / `webhook.routes.js` | Event handling (extended) |
 
-- User
-- Plan
-- Start date
-- End date
-- Status
-- Cancellation scheduling
-- Actual cancellation timestamp
-- Stripe customer ID
-- Stripe subscription ID
-- Created/updated timestamps
+### 6.1 Plans
 
-Conceptually:
+- Public `GET /api/v1/plans` — active plans only, no auth. Returns `id, name, description, duration_days, price, currency`.
+- `GET /api/v1/plans/:planId` — unchanged behavior, includes new fields.
+- `DELETE /admin/plans/:planId` — refuse hard delete when subscriptions/payments reference the plan; deactivate (`is_active = false`) instead. Existing admin endpoints stay functional.
 
-```text
-user
-  ↓
-subscription
-  ↓
-plan
-```
+### 6.2 Checkout
 
-Support states such as:
+`POST /api/v1/subscriptions/:planId/checkout` (auth + validation), body `{ coupon_code? }`:
 
-```text
-ACTIVE
-CANCELED
-EXPIRED
-PENDING
-PAST_DUE
-```
+1. Load the plan; reject inactive/missing.
+2. Reject if the user already has an active, unexpired, paid subscription.
+3. Validate the coupon server-side (see 6.3) and compute `subtotal`, `discount`, `amount` in integer cents.
+4. Create the Stripe Checkout session with `mode:"payment"`, plan `currency`, `customer_email`, and metadata:
+   `{ userId, planId, couponCode, subtotal, discount, amount }`.
+5. Return `{ session_url }`.
 
-Use the project's existing enum/status conventions if they already exist.
+Never accept price/discount/status from the client. Fix the misleading
+`subscriptionId` metadata key (it holds a plan id) and remove the bulk
+`setUserSubscriptionStatusToExpired` call.
 
-Important:
+### 6.3 Coupons
 
-A user who cancels at the end of their billing period should normally retain access until the subscription actually ends.
+`POST /api/v1/coupons/validate` (auth), body `{ code, plan_id }` → `{ valid, code, discount_type, discount_value, subtotal, discount, total, currency }` or a generic invalid message.
 
-Example:
+Validation rules (server-side, explicit):
 
-```text
-Started:        September 1
-Cancel request: September 15
-Access until:   September 30
-Canceled:       September 30
-```
+- inactive → invalid
+- before `starts_at` → invalid
+- after `expires_at` → invalid
+- `redemption_count >= max_redemptions` → invalid
+- `PERCENTAGE` value must be `> 0 and <= 100` → else invalid
+- `FIXED_AMOUNT` must be `> 0`; discount is capped at `subtotal`
+- user already redeemed this coupon → invalid (enforced by `unique_coupon_per_user`)
 
-Do not immediately remove access unless the existing business rules explicitly require immediate cancellation.
+Codes are normalized to uppercase on read and write. Error messages stay generic
+("Coupon code is invalid or expired.") and never leak internal detail.
+
+### 6.4 Payments & subscription detail
+
+- `GET /api/v1/users/me/payments` (auth, paginated) — date, plan name, subtotal, discount, amount, currency, payment_status, refund total/status.
+- `GET /api/v1/users/me/payments/:paymentId` (auth + ownership) — full detail + refund breakdown.
+- `GET /api/v1/users/me/subscription` (auth) — current subscription with plan, status, start/end dates, days remaining, cancellation schedule, and latest payment summary; returns `null` when none.
+
+### 6.5 Premium gating
+
+Add `hasActiveSubscription(userId)` to the subscription service: `status = 'ACTIVE'`
+**and** `end_date > now()` **and** a `COMPLETED` payment exists. Use it in
+`courses/course.service.js` instead of the raw repository call. Expiry is evaluated
+at query time (there is no scheduler in this project).
+
+### 6.6 Validation
+
+Add validators for: checkout body (`coupon_code` optional text), coupon validate body (`code` required, `plan_id` uuid), and payment-id param. Reuse the builders in `common/validation.js`; every write endpoint gets validator + `validateResult` + auth.
 
 ---
 
-# 6. Payments
+## 7. Phase 3 — Stripe Webhooks
 
-Improve `subscription_payments`.
+Keep the router mounted **before** `express.json()` with `express.raw(...)` and
+signature verification.
 
-A payment should record the actual financial transaction rather than relying on the current plan price.
+### 7.1 Idempotency wrapper
 
-Recommended concepts:
+Inside the processing transaction:
 
-```text
-id
-user_subscription_id
-subtotal
-discount_amount
-total_amount
-currency
-payment_status
-coupon_id
-stripe_payment_intent_id
-stripe_invoice_id
-paid_at
-failure_reason
-created_at
-updated_at
+```sql
+INSERT INTO stripe_webhook_events (stripe_event_id, event_type)
+VALUES ($1, $2)
+ON CONFLICT (stripe_event_id) DO NOTHING
+RETURNING id;
 ```
 
-The system should preserve the historical amount.
+If no row is returned, the event was already handled → respond `200` without
+re-processing. Otherwise process and set `processed_at`.
 
-For example:
+### 7.2 Events to handle
+
+| Event | Action |
+|---|---|
+| `checkout.session.completed` | Provision `user_subscriptions` + `subscription_payments` + `coupon_redemptions`, increment `coupons.redemption_count`, send confirmation email (all in one transaction). Only when `payment_status = 'paid'`. |
+| `charge.refunded` | Upsert `payment_refunds`; set payment `REFUNDED` or `PARTIALLY_REFUNDED` based on total refunded vs. amount. |
+| `refund.updated` | Update the matching `payment_refunds.refund_status`. |
+| `payment_intent.payment_failed` | Log only (payments are created on success, so there is no pending row to attach `failure_reason` to). |
+
+Do not add subscription/invoice events — they are not part of the prepaid model.
+Webhook processing must be safe to retry; failures return `500` so Stripe retries.
+
+---
+
+## 8. Phase 4 — Learner Frontend (`frontend/src/features/subscriptions/`)
+
+Components never call `fetch`; go through hooks → services and invalidate query
+keys after mutations.
+
+### 8.1 Services / hooks / query keys
+
+- `subscriptionsApi`: `getPlans`, `getById`, `getActive`, `checkout(planId, couponCode)`, `getPayments`, `getPayment(id)`, `validateCoupon(payload)`.
+- Hooks: `usePlans`, `useActiveSubscription`, `usePayments`, `usePayment`, `useValidateCoupon`, `useCheckout`.
+- `queryKeys`: `plans`, `activeSubscription`, `subscription`, `payments`, `payment(id)`.
+- Invalidate `activeSubscription` + `payments` after checkout success.
+
+### 8.2 Pricing
+
+- Remove the hardcoded plan array and `frontend/src/constants/plans.js`; render plans from `GET /plans` (price, currency, duration, description).
+- `PricingCard` shows currency + duration; marks the current plan; routes to `/checkout/:planId` for authenticated users (guests → `/login`).
+
+### 8.3 Checkout
+
+New `features/subscriptions/pages/Checkout.jsx`:
+
+- Coupon field with Apply/Remove; on apply call `POST /coupons/validate` and show `subtotal / discount / total`.
+- Invalid coupon → generic message; removing restores the original total.
+- Confirm → `POST /subscriptions/:planId/checkout` → redirect to `session_url`.
+- Show loading/error/payment-failure states; never compute the final amount on the client.
+
+### 8.4 Billing page
+
+New dashboard page (route under the learning dashboard):
+
+- Current plan, status, started, expires-on, days remaining; "Expires on…" for prepaid (no cancel control).
+- Expired state → "View Plans".
+- Payment history table (date, plan, subtotal, discount, total, status) that becomes cards on mobile.
+- Payment details modal: subtotal, coupon, discount, total, status, payment date, masked payment id; refund breakdown (original / refunded / remaining) when refunded.
+
+### 8.5 Shared UI
+
+- Status badge with `icon + label` (not color alone) for Active, Pending, Paid, Failed, Expired, Refunded, Partially Refunded.
+- Loading (skeleton), empty ("No payment history yet…"), and error ("We couldn't load your billing information. [Try Again]") states.
+- Fix `PaymentSuccess` to use real payment/subscription data instead of fabricated IDs and plan price.
+- Use existing Tailwind v4 tokens; responsive and light/dark parity.
+
+---
+
+## 9. Phase 5 — Docs & Verification
+
+- Update `docs/04-design/database-design.md` (§4.4 tables, enum lists, index list, §9 if needed).
+- Update `docs/04-design/api-design.md` (§19 plans/subscriptions, §20 webhook events).
+- Update `docs/progress/backend-progress.md` and `docs/progress/frontend-user.md` after each completed item.
+- Run `npx eslint .` (backend), `npm run lint` + `npm run build` (frontend).
+
+### Manual verification
+
+- Checkout without coupon → success → subscription active.
+- Checkout with valid percentage coupon and valid fixed coupon → correct totals.
+- Invalid / expired / inactive / maxed-out / already-redeemed coupon → rejected.
+- Duplicate webhook delivery (Stripe CLI) → processed once.
+- Refund in Stripe dashboard (full + partial) → `payment_refunds` + payment status updated.
+- Expired subscription → premium lesson access removed.
+- User cannot read another user's payment (`403`/`404`).
+
+---
+
+## 10. Task List
+
+| ID | Task | Phase |
+|---|---|---|
+| SUB-DB-1 | Migration `0018`: enum values (`PENDING`, `PARTIALLY_REFUNDED`, `discount_type`, `refund_status`) | DB |
+| SUB-DB-2 | Migration `0018`: new tables `coupons`, `coupon_redemptions`, `payment_refunds`, `stripe_webhook_events` | DB |
+| SUB-DB-3 | Migration `0018`: plan/subscription/payment columns + FK `plan_id` → RESTRICT + indexes | DB |
+| SUB-DB-4 | Migration `0019`: backfill; mirror all into `schema.sql` | DB |
+| SUB-BE-1 | Split repositories (`plan`, `payment`, `coupon`, `refund`) out of the god repo | Backend |
+| SUB-BE-2 | Plan service: new fields, public `GET /plans`, deactivate-instead-of-delete | Backend |
+| SUB-BE-3 | Coupon service + repository: validation rules + `POST /coupons/validate` | Backend |
+| SUB-BE-4 | Checkout: coupon + server-side amount calc + currency/customer/email/metadata | Backend |
+| SUB-BE-5 | Payment history + details endpoints; richer `GET /users/me/subscription` | Backend |
+| SUB-BE-6 | `hasActiveSubscription` helper; wire into `course.service.js` gating | Backend |
+| SUB-BE-7 | Validators for new write endpoints; plan-delete guard | Backend |
+| SUB-WH-1 | `stripe_webhook_events` idempotent processing wrapper | Webhook |
+| SUB-WH-2 | `checkout.session.completed` → subscription + payment + coupon redemption (txn) | Webhook |
+| SUB-WH-3 | `charge.refunded` / `refund.updated` → `payment_refunds` + payment status | Webhook |
+| SUB-FE-1 | Services/hooks/queryKeys for plans, payments, coupon, checkout | Frontend |
+| SUB-FE-2 | Pricing renders API plans; delete `constants/plans.js` hardcoding | Frontend |
+| SUB-FE-3 | Checkout page with coupon UX + summary | Frontend |
+| SUB-FE-4 | Billing page: current plan/status/dates + payment history + details | Frontend |
+| SUB-FE-5 | Fix `PaymentSuccess` to use real data; shared status badge + states | Frontend |
+| SUB-DOC-1 | Update database/API design + progress docs | Docs |
+| SUB-TEST-1 | Lint/build + manual flow verification | Verify |
+
+### Deferred to the admin phase
+
+- Admin coupon CRUD + redemptions list.
+- Admin refund issuance (full/partial through Stripe).
+- Billing overview dashboard (active subscriptions, revenue, payments, refunds, active coupons).
+- Admin subscription/payment/coupon/refund UI.
+
+---
+
+## 11. Business Rules (explicit)
+
+**Coupon**
 
 ```text
-Plan price:       $20
-Discount:          $5
-Total charged:    $15
+inactive                        → cannot use
+before starts_at                → cannot use
+after expires_at                → cannot use
+max redemptions reached         → cannot use
+percentage outside (0, 100]     → cannot use
+fixed amount <= 0               → cannot use
+discount > subtotal             → capped at subtotal
+already redeemed by this user   → cannot use
 ```
 
-Even if the plan later changes to $25, the historical payment must remain $15.
-
-Validate:
+**Payment**
 
 ```text
-discount_amount <= subtotal
 total_amount = subtotal - discount_amount
+subtotal >= 0, 0 <= discount_amount <= subtotal
+backend calculates the final amount; the client never supplies it
 ```
 
-Do not trust prices or discount amounts directly from the frontend.
-
-The backend must calculate the final amount.
-
----
-
-# 7. Coupons
-
-Add coupon support.
-
-Create a `coupons` table that supports:
+**Refund**
 
 ```text
-id
-code
-discount_type
-discount_value
-max_redemptions
-redemption_count
-starts_at
-expires_at
-is_active
-created_at
-updated_at
+sum(refunds for a payment) <= payment.amount
+refund status: PENDING | SUCCEEDED | FAILED
 ```
 
-Support:
+**Subscription**
 
 ```text
-PERCENTAGE
-FIXED_AMOUNT
-```
-
-Examples:
-
-```text
-WELCOME20
-20% off
-```
-
-and:
-
-```text
-SAVE5
-$5 off
-```
-
-Requirements:
-
-- Coupon code should be unique.
-- Normalize coupon codes consistently, preferably case-insensitively.
-- Percentage discounts must be within a valid range.
-- Fixed discounts cannot be negative.
-- Expired coupons cannot be used.
-- Inactive coupons cannot be used.
-- Coupons that have reached their maximum redemption count cannot be used.
-- Backend must validate the coupon.
-- Frontend must never be trusted to calculate the final price.
-
----
-
-# 8. Coupon Redemptions
-
-Create:
-
-```text
-coupon_redemptions
-```
-
-It should track:
-
-```text
-id
-coupon_id
-user_id
-payment_id
-discount_amount
-redeemed_at
-```
-
-This provides a historical record of coupon usage.
-
-The system should be able to answer:
-
-- Which users used a coupon?
-- How many times was it used?
-- Which payment used it?
-- How much discount did it provide?
-- When was it redeemed?
-
-Prevent duplicate redemption according to the business rules.
-
-If the product only allows a coupon to be used once per user, enforce that at the database/business-logic level.
-
----
-
-# 9. Refunds
-
-Add:
-
-```text
-payment_refunds
-```
-
-Recommended fields:
-
-```text
-id
-payment_id
-amount
-currency
-refund_status
-stripe_refund_id
-reason
-refunded_at
-created_at
-updated_at
-```
-
-Support:
-
-```text
-PENDING
-SUCCEEDED
-FAILED
-```
-
-A payment may have one or more refund records if partial refunds are supported.
-
-Example:
-
-```text
-Payment: $20
-
-Refund #1: $5
-Refund #2: $15
-
-Total refunded: $20
-```
-
-Never allow total refunds to exceed the original payment amount.
-
-The backend must validate refund amounts.
-
-Refunds should be processed through Stripe rather than simply changing the local database status.
-
----
-
-# 10. Stripe Integration
-
-Review the current Stripe integration and make it reliable.
-
-Use Stripe as the source of truth for Stripe-side payment/subscription events.
-
-Store relevant Stripe identifiers such as:
-
-```text
-stripe_customer_id
-stripe_subscription_id
-stripe_payment_intent_id
-stripe_invoice_id
-stripe_refund_id
-```
-
-Do not expose Stripe secret keys to the frontend.
-
-Do not trust client-provided payment status.
-
----
-
-# 11. Stripe Webhooks
-
-Improve webhook handling.
-
-Add:
-
-```text
-stripe_webhook_events
-```
-
-Store:
-
-```text
-id
-stripe_event_id
-event_type
-processed_at
-created_at
-```
-
-Use the Stripe event ID for idempotency.
-
-If the same webhook is received twice:
-
-```text
-first request
-    ↓
-process event
-    ↓
-store event ID
-
-second request
-    ↓
-event already exists
-    ↓
-do not process twice
-```
-
-Handle the relevant Stripe events for the existing implementation, such as:
-
-- Checkout completion
-- Payment success
-- Payment failure
-- Invoice payment success
-- Invoice payment failure
-- Subscription created
-- Subscription updated
-- Subscription canceled
-- Refund events
-
-Do not implement events that are unnecessary for the actual Stripe integration.
-
-Verify Stripe webhook signatures.
-
-Webhook processing should be safe to retry.
-
----
-
-# 12. Subscription Lifecycle
-
-Make the subscription lifecycle consistent.
-
-Handle:
-
-```text
-PENDING
-   ↓
-ACTIVE
-   ↓
-CANCELED
-```
-
-and:
-
-```text
-ACTIVE
-   ↓
-PAST_DUE
-```
-
-and:
-
-```text
-ACTIVE
-   ↓
-EXPIRED
-```
-
-Do not rely only on frontend state.
-
-Access to premium courses/features should be determined from the backend subscription state.
-
-Consider expiration based on the stored subscription end date and/or verified Stripe state.
-
----
-
-# 13. Checkout Flow
-
-Create a clean checkout flow.
-
-Example:
-
-```text
-Pricing
-   ↓
-Select Plan
-   ↓
-Checkout
-   ↓
-Enter Coupon
-   ↓
-Validate Coupon
-   ↓
-Show Discount
-   ↓
-Confirm Payment
-   ↓
-Stripe
-   ↓
-Success
-   ↓
-Subscription Active
-```
-
-Before payment, display:
-
-```text
-Plan
-$20.00
-
-Coupon
-WELCOME20
-- $4.00
-
-Total
-$16.00
-```
-
-The final amount must be calculated and validated by the backend.
-
----
-
-# 14. Coupon UX
-
-On checkout provide:
-
-```text
-Coupon code
-[________________] [Apply]
-```
-
-When valid:
-
-```text
-✓ Coupon applied
-
-Subtotal      $20.00
-Discount      -$4.00
-Total         $16.00
-```
-
-When invalid:
-
-```text
-Coupon code is invalid or expired.
-```
-
-Do not expose unnecessary internal validation details.
-
-Support removing a coupon:
-
-```text
-WELCOME20   [Remove]
-```
-
-After removing it, restore the original price.
-
----
-
-# 15. User Subscription Page
-
-Create or improve a dedicated subscription/billing page.
-
-It should clearly show:
-
-```text
-Current Plan
-────────────────────
-
-Premium
-$20 / month
-
-Status
-Active
-
-Started
-September 1, 2026
-
-Next billing
-October 1, 2026
-
-[ Manage Subscription ]
-```
-
-If cancellation is scheduled:
-
-```text
-Cancellation scheduled
-
-Your subscription remains active until
-September 30, 2026.
-
-[ Keep Subscription ]
-```
-
-If expired:
-
-```text
-Subscription expired
-
-[ View Plans ]
+ACTIVE + end_date > now() + COMPLETED payment → premium access
+end_date passed                              → premium access removed
 ```
 
 ---
 
-# 16. Payment History
-
-Add a payment history section.
-
-Example:
+## 12. Acceptance Criteria
 
 ```text
-Payment History
-
-Date          Description       Amount     Status
----------------------------------------------------
-Sep 1         Premium           $16.00     Paid
-Aug 1         Premium           $20.00     Paid
-Jul 1         Premium           $20.00     Paid
+[ ] Plans have description, currency, is_active; deactivation preserves history
+[ ] Public GET /plans returns active plans only
+[ ] Checkout calculates subtotal/discount/total server-side
+[ ] Coupons validate: active, window, max redemptions, per-user, value ranges
+[ ] Coupon redemption recorded with discount amount
+[ ] Historical discount/amount never changes when the plan price changes
+[ ] Webhooks are signature-verified and idempotent by event id
+[ ] checkout.session.completed provisions subscription + payment + redemption
+[ ] Refund webhooks update payment_refunds and payment status
+[ ] Payment history + details show subtotal, discount, total, status, refunds
+[ ] Premium gating derives from backend subscription state
+[ ] Authorization: no cross-user payment/subscription access
+[ ] No destructive plan/subscription/payment cascade
+[ ] Loading / empty / error states exist; mobile + light/dark work
+[ ] Lint (backend + frontend) and frontend build pass
+[ ] Admin UI and admin coupon/refund endpoints untouched/deferred
 ```
 
-Show:
-
-- Date
-- Plan
-- Original amount
-- Discount
-- Final amount
-- Status
-- Refund status where applicable
-
-Allow users to view payment details.
-
----
-
-# 17. Payment Details UI
-
-When a user opens a payment:
+## 13. Final Review Checklist (when implementation completes)
 
 ```text
-Payment Details
-
-Premium Plan
-
-Subtotal          $20.00
-Coupon            WELCOME20
-Discount           -$4.00
-Total              $16.00
-
-Status             Paid
-Payment date       Sep 1, 2026
-
-Payment ID
-••••••••1234
+[ ] Migrations 0018/0019 applied; schema.sql in sync (fresh install == migrated)
+[ ] No secret (STRIPE_SECRET_KEY) reaches the client
+[ ] No duplicate endpoints introduced
+[ ] No unrelated files changed
+[ ] docs/ + docs/progress/ updated
 ```
-
-If refunded:
-
-```text
-Refunded
-
-Original payment   $20.00
-Refunded            $20.00
-```
-
-For partial refund:
-
-```text
-Original payment   $20.00
-Refunded             $5.00
-Remaining           $15.00
-```
-
----
-
-# 18. Cancel Subscription UX
-
-Cancellation should not be one accidental click.
-
-Use a confirmation dialog.
-
-Example:
-
-```text
-Cancel subscription?
-
-You'll continue to have access until
-September 30, 2026.
-
-After that, your premium access will end.
-
-[ Keep Subscription ] [ Cancel Subscription ]
-```
-
-After cancellation:
-
-```text
-Cancellation scheduled
-```
-
-Allow the user to undo cancellation if Stripe/business rules support it.
-
----
-
-# 19. Refund UX
-
-For normal users, do not expose admin refund controls.
-
-If your product allows users to request refunds, provide:
-
-```text
-Request Refund
-```
-
-with:
-
-```text
-Reason
-[ Select reason ]
-
-Additional details
-[_____________________]
-
-[ Submit Request ]
-```
-
-If refunds are admin-controlled, keep the refund action in the admin dashboard.
-
----
-
-# 20. Admin Billing Dashboard
-
-Improve the admin UI.
-
-Provide:
-
-```text
-Billing Overview
-
-Active subscriptions
-123
-
-Revenue
-$4,250
-
-Payments
-156
-
-Refunds
-8
-
-Active coupons
-12
-```
-
-Do not overcomplicate the dashboard.
-
-Provide sections for:
-
-```text
-Subscriptions
-Payments
-Refunds
-Coupons
-Plans
-```
-
----
-
-# 21. Admin Subscription Management
-
-Admin should be able to:
-
-- View subscriptions
-- Search by user
-- Filter by status
-- View plan
-- View start/end dates
-- View Stripe IDs where appropriate
-- View payment history
-- View cancellation status
-
-Avoid allowing admins to directly manipulate Stripe state without going through the appropriate Stripe operation.
-
----
-
-# 22. Admin Coupon Management
-
-Admin should be able to:
-
-```text
-Create Coupon
-Edit Coupon
-Activate/Deactivate Coupon
-View Usage
-```
-
-Example:
-
-```text
-WELCOME20
-20% OFF
-
-Used: 42 / 100
-Starts: Sep 1
-Expires: Oct 1
-
-Status: Active
-```
-
-Include:
-
-```text
-Code
-Discount type
-Discount value
-Maximum redemptions
-Start date
-Expiration date
-Active status
-```
-
----
-
-# 23. Admin Refund Management
-
-Admin should be able to:
-
-- View payments
-- View refund history
-- Issue a refund
-- Issue a partial refund
-- See refund status
-- See refund reason
-- See Stripe refund ID
-
-Before refund:
-
-```text
-Refund Payment
-
-Original payment: $20.00
-Already refunded: $5.00
-Available refund: $15.00
-
-Refund amount
-[$________]
-
-Reason
-[___________]
-
-[Cancel] [Refund]
-```
-
-Require confirmation before issuing the Stripe refund.
-
----
-
-# 24. UI/UX Design Requirements
-
-The billing UI should feel like a modern SaaS application.
-
-Use the project's existing Tailwind setup and design tokens.
-
-Do not introduce random colors or excessive styling.
-
-Design principles:
-
-- Clean
-- Modern
-- Professional
-- Consistent
-- Good spacing
-- Strong visual hierarchy
-- Clear status indicators
-- Accessible
-- Responsive
-- Mobile friendly
-- Minimal visual clutter
-
-Avoid:
-
-- Excessive gradients
-- Excessive rounded cards
-- Huge headings
-- Too many colors
-- Purple-heavy designs
-- Repeated UI patterns
-- Duplicate Tailwind classes
-- Inline styles when reusable classes/components are appropriate
-
-Use semantic design tokens instead of hardcoded colors where the project already provides them.
-
----
-
-# 25. Billing Status UI
-
-Use consistent visual states for:
-
-```text
-Active
-Pending
-Paid
-Failed
-Canceled
-Expired
-Past Due
-Refunded
-Partially Refunded
-```
-
-Status should be immediately understandable.
-
-Don't rely only on color.
-
-Use:
-
-```text
-icon + label
-```
-
-where appropriate.
-
-Ensure sufficient contrast in both light and dark themes.
-
----
-
-# 26. Loading / Empty / Error States
-
-Every billing page should handle:
-
-### Loading
-
-Use appropriate skeleton/loading UI.
-
-### Empty
-
-Example:
-
-```text
-No payment history yet.
-
-Your payments will appear here after
-you subscribe to a plan.
-```
-
-### Error
-
-Example:
-
-```text
-We couldn't load your billing information.
-
-[ Try Again ]
-```
-
-### Payment failure
-
-Explain what happened without exposing technical errors.
-
-Example:
-
-```text
-Your payment could not be completed.
-
-Please check your payment method and try again.
-```
-
----
-
-# 27. Responsive Design
-
-Make all billing pages work properly on:
-
-- Desktop
-- Tablet
-- Mobile
-
-On mobile:
-
-- Stack pricing cards where appropriate.
-- Make checkout easy to use.
-- Make payment tables responsive.
-- Convert wide tables into cards where appropriate.
-- Keep important actions accessible.
-- Avoid horizontal overflow.
-
----
-
-# 28. Backend API
-
-Follow the project's existing API conventions.
-
-Potential endpoints:
-
-```text
-GET    /subscriptions/plans
-GET    /subscriptions/me
-POST   /subscriptions/checkout
-POST   /subscriptions/cancel
-POST   /subscriptions/reactivate
-
-GET    /payments
-GET    /payments/:id
-
-POST   /coupons/validate
-
-POST   /webhooks/stripe
-```
-
-Admin:
-
-```text
-GET    /admin/subscriptions
-GET    /admin/payments
-GET    /admin/refunds
-POST   /admin/refunds
-GET    /admin/coupons
-POST   /admin/coupons
-PATCH  /admin/coupons/:id
-GET    /admin/coupons/:id/redemptions
-```
-
-These are examples only. Follow the existing project's route conventions and don't create duplicate endpoints.
-
----
-
-# 29. Validation and Security
-
-Important:
-
-Never trust:
-
-- Price from frontend
-- Discount amount from frontend
-- Payment status from frontend
-- Subscription status from frontend
-- Coupon validity from frontend
-
-The server must validate everything.
-
-Implement:
-
-- Authentication
-- Authorization
-- Admin authorization
-- Input validation
-- Coupon validation
-- Refund amount validation
-- Stripe webhook signature verification
-- Idempotent webhook processing
-- Safe error messages
-- Rate limiting where appropriate
-
-Never expose:
-
-```text
-STRIPE_SECRET_KEY
-```
-
-to the frontend.
-
----
-
-# 30. Database Constraints and Indexes
-
-Review the database and add appropriate indexes for common queries.
-
-Consider indexes on:
-
-```text
-user_subscriptions.user_id
-user_subscriptions.status
-user_subscriptions.stripe_subscription_id
-
-subscription_payments.user_subscription_id
-subscription_payments.payment_status
-subscription_payments.stripe_payment_intent_id
-
-coupons.code
-coupons.is_active
-
-coupon_redemptions.coupon_id
-coupon_redemptions.user_id
-
-payment_refunds.payment_id
-payment_refunds.refund_status
-
-stripe_webhook_events.stripe_event_id
-```
-
-Use unique constraints where appropriate.
-
-Avoid unnecessary indexes.
-
----
-
-# 31. Business Rules
-
-Make these rules explicit in the implementation.
-
-### Coupon
-
-```text
-inactive → cannot use
-expired → cannot use
-not started → cannot use
-max redemptions reached → cannot use
-invalid percentage → cannot use
-discount > subtotal → cap/reject according to business rule
-```
-
-### Refund
-
-```text
-refund <= remaining refundable amount
-```
-
-### Subscription
-
-```text
-active subscription → premium access
-expired subscription → premium access removed
-scheduled cancellation → access remains until end date
-```
-
-### Payment
-
-```text
-successful Stripe payment → paid
-failed Stripe payment → failed
-refund processed → refund record updated
-```
-
----
-
-# 32. Don't Overengineer
-
-This is important.
-
-Do not introduce:
-
-- unnecessary microservices
-- unnecessary event buses
-- complex billing abstractions
-- excessive design patterns
-- unnecessary tables
-- unnecessary state machines
-- unnecessary dependencies
-
-Keep it appropriate for a modern full-stack web application.
-
-Prefer:
-
-```text
-React
-Node.js
-Express
-PostgreSQL
-Stripe
-```
-
-and the project's existing libraries.
-
-Use JavaScript, not TypeScript, unless the existing project already requires otherwise.
-
----
-
-# 33. Testing
-
-After implementation, test the important flows.
-
-### Subscription
-
-```text
-Create subscription
-Successful payment
-Failed payment
-Subscription expiration
-Cancellation
-Cancellation reversal
-```
-
-### Coupon
-
-```text
-Valid coupon
-Invalid coupon
-Expired coupon
-Inactive coupon
-Maximum redemption reached
-Percentage discount
-Fixed discount
-Duplicate redemption
-```
-
-### Refund
-
-```text
-Full refund
-Partial refund
-Multiple partial refunds
-Refund exceeding payment
-Failed refund
-```
-
-### Webhooks
-
-```text
-Successful webhook
-Duplicate webhook
-Invalid webhook signature
-Payment webhook
-Subscription webhook
-Refund webhook
-```
-
-### Authorization
-
-Verify:
-
-```text
-User cannot access admin billing
-User cannot refund another user's payment
-User cannot manipulate another user's subscription
-User cannot change payment amount
-```
-
----
-
-# 34. Implementation Strategy
-
-Work in this order:
-
-```text
-1. Inspect existing implementation
-2. Identify gaps
-3. Design database changes
-4. Update migrations
-5. Update backend models/services
-6. Update Stripe integration
-7. Implement webhook synchronization
-8. Implement coupon logic
-9. Implement refund logic
-10. Update API routes
-11. Update frontend services/hooks
-12. Build/update pricing UI
-13. Build/update checkout UI
-14. Build/update subscription management UI
-15. Build/update payment history UI
-16. Build/update admin billing UI
-17. Add loading/error/empty states
-18. Test critical flows
-19. Refactor duplicated code
-20. Review security and consistency
-```
-
----
-
-# 35. Code Quality
-
-While implementing:
-
-- Follow existing project structure.
-- Keep responsibilities separated.
-- Avoid huge controllers.
-- Put business logic in appropriate services.
-- Reuse validation.
-- Reuse UI components.
-- Avoid duplicate Tailwind classes.
-- Avoid duplicate API logic.
-- Use consistent naming.
-- Keep functions focused.
-- Handle errors consistently.
-- Add comments only where the logic is not obvious.
-
-Do not refactor unrelated parts of the application.
-
----
-
-# 36. Final Review
-
-After completing the implementation, review the entire billing feature as if it were going into production.
-
-Check:
-
-```text
-[ ] Plans work
-[ ] Subscriptions work
-[ ] Payments work
-[ ] Stripe integration works
-[ ] Webhooks are verified
-[ ] Webhooks are idempotent
-[ ] Coupons work
-[ ] Coupon redemption is tracked
-[ ] Discounts are stored historically
-[ ] Refunds work
-[ ] Partial refunds work
-[ ] Subscription cancellation works
-[ ] Payment history works
-[ ] Admin billing works
-[ ] Authorization is correct
-[ ] Validation is correct
-[ ] Database constraints are correct
-[ ] Indexes are reasonable
-[ ] Mobile UI works
-[ ] Dark mode works
-[ ] Light mode works
-[ ] Loading states exist
-[ ] Empty states exist
-[ ] Error states exist
-[ ] No unnecessary duplicate code
-[ ] No unnecessary dependencies
-[ ] No unrelated files were changed
-```
-
-Finally, provide a concise implementation summary:
-
-```text
-Database changes:
-- ...
-
-Backend changes:
-- ...
-
-Stripe changes:
-- ...
-
-Frontend changes:
-- ...
-
-Admin changes:
-- ...
-
-Testing:
-- ...
-
-Remaining issues:
-- ...
-```
-
-If something in the existing architecture conflicts with this specification, **do not blindly force the specification**. Explain the conflict, choose the smallest compatible solution, and preserve existing working behavior.

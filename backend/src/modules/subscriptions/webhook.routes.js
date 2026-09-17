@@ -25,9 +25,7 @@ webhookRoute.post(
     }
 
     try {
-      if (event.type === "checkout.session.completed") {
-        await stripeWebhookService.handleCheckoutCompleted(event.data.object);
-      }
+      await stripeWebhookService.handleEvent(event);
       return res.status(200).json({ received: true });
     } catch (err) {
       logger.error("Webhook processing error", { message: err.message });

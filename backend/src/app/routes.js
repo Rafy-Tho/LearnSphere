@@ -34,6 +34,8 @@ import {
 import plansRoute from "../modules/subscriptions/plans.routes.js";
 import subscriptionsRoute from "../modules/subscriptions/routes.js";
 import meSubscriptionRoute from "../modules/subscriptions/me.routes.js";
+import mePaymentsRoute from "../modules/subscriptions/me-payments.routes.js";
+import couponsRoute from "../modules/subscriptions/coupons.routes.js";
 import {
   adminPaymentsRoute,
   adminPlansRoute,
@@ -49,6 +51,7 @@ export function registerRoutes(app) {
   app.use("/api/v1/users/me/activities", meActivitiesRoute);
   app.use("/api/v1/users/me/xp", meXpRoute);
   app.use("/api/v1/users/me/subscription", meSubscriptionRoute);
+  app.use("/api/v1/users/me/payments", mePaymentsRoute);
   app.use("/api/v1/users", usersRoute);
 
   // Catalog
@@ -83,6 +86,7 @@ export function registerRoutes(app) {
   // Billing
   app.use("/api/v1/plans", plansRoute);
   app.use("/api/v1/subscriptions", subscriptionsRoute);
+  app.use("/api/v1/coupons", couponsRoute);
 
   // Admin
   app.use("/api/v1/admin/users", adminUsersRoute);

@@ -2,15 +2,24 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { subscriptionsApi } from "@/features/subscriptions/services/subscriptions";
 import { queryKeys } from "@/lib/queryKeys";
 
-export function useCreatePayment() {
+export function useCheckout() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationKey: ["create-payment"],
-    mutationFn: (id) => subscriptionsApi.createPayment(id),
+    mutationKey: ["checkout"],
+    mutationFn: ({ planId, couponCode }) =>
+      subscriptionsApi.checkout(planId, couponCode),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.activeSubscription(),
       });
+      queryClient.invalidateQueries({ queryKey: queryKeys.paymentsRoot() });
     },
+  });
+}
+
+export function useValidateCoupon() {
+  return useMutation({
+    mutationKey: ["validate-coupon"],
+    mutationFn: (payload) => subscriptionsApi.validateCoupon(payload),
   });
 }

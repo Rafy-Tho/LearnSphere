@@ -19,6 +19,29 @@ class PaymentController {
     });
   });
 
+  getMyPayments = asyncHandler(async (req, res) => {
+    const { payments, pagination } = await this.paymentService.getMyPayments(
+      req.session.user.id,
+      req.query,
+    );
+
+    return sendSuccess(res, payments, {
+      message: "Payments retrieved successfully",
+      pagination,
+    });
+  });
+
+  getMyPayment = asyncHandler(async (req, res) => {
+    const payment = await this.paymentService.getMyPayment(
+      req.session.user.id,
+      req.params.paymentId,
+    );
+
+    return sendSuccess(res, payment, {
+      message: "Payment retrieved successfully",
+    });
+  });
+
   createPayment = asyncHandler(async (req, res) => {
     const payment = await this.paymentService.createPayment(req.body);
 

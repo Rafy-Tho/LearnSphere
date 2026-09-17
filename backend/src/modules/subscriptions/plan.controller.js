@@ -23,6 +23,14 @@ class PlanController {
     });
   });
 
+  getActivePlans = asyncHandler(async (req, res) => {
+    const plans = await this.planService.getActivePlans();
+
+    return sendSuccess(res, plans, {
+      message: "Plans retrieved successfully",
+    });
+  });
+
   createPlan = asyncHandler(async (req, res) => {
     const plan = await this.planService.createPlan(req.body);
 

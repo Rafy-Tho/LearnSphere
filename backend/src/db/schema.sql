@@ -16,9 +16,13 @@ CREATE TYPE content_status AS ENUM ('DRAFT','PUBLISHED');
 
 CREATE TYPE lesson_type AS ENUM ('TEXT','QUIZ');
 
-CREATE TYPE subscription_status AS ENUM ('ACTIVE','EXPIRED','CANCELLED');
+CREATE TYPE subscription_status AS ENUM ('ACTIVE','EXPIRED','CANCELLED','PENDING');
 
-CREATE TYPE payment_status AS ENUM ('PENDING','COMPLETED','FAILED','REFUNDED');
+CREATE TYPE payment_status AS ENUM ('PENDING','COMPLETED','FAILED','REFUNDED','PARTIALLY_REFUNDED');
+
+CREATE TYPE discount_type AS ENUM ('PERCENTAGE','FIXED_AMOUNT');
+
+CREATE TYPE refund_status AS ENUM ('PENDING','SUCCEEDED','FAILED');
 
 CREATE TYPE access_course_type AS ENUM ('FREE','SUBSCRIPTION');
 
@@ -408,12 +412,17 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 CREATE TABLE subscription_plans (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(50) NOT NULL, -- STANDARD, PREMIUM, etc.
+  description TEXT,
   duration_days INT NOT NULL, -- 30, 365, etc.
   price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
+  currency VARCHAR(3) NOT NULL DEFAULT 'usd',
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT unique_plan_duration UNIQUE(name, duration_days)
 );
+
+CREATE INDEX idx_subscription_plans_active ON subscription_plans(is_active);
 
 CREATE TRIGGER trg_subscription_plans_updated_at
 BEFORE UPDATE ON subscription_plans
@@ -425,10 +434,14 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 CREATE TABLE user_subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  plan_id UUID NOT NULL REFERENCES subscription_plans(id) ON DELETE CASCADE,
+  plan_id UUID NOT NULL REFERENCES subscription_plans(id) ON DELETE RESTRICT,
   start_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   end_date TIMESTAMP WITH TIME ZONE NOT NULL,
   status subscription_status DEFAULT 'ACTIVE',
+  cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
+  cancelled_at TIMESTAMP WITH TIME ZONE,
+  stripe_customer_id TEXT,
+  stripe_subscription_id TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -440,10 +453,35 @@ WHERE status = 'ACTIVE';
 
 CREATE INDEX idx_user_subscriptions_user 
 ON user_subscriptions(user_id);
+CREATE INDEX idx_user_subscriptions_status ON user_subscriptions(status);
+CREATE INDEX idx_user_subscriptions_stripe_sub ON user_subscriptions(stripe_subscription_id);
 
 CREATE TRIGGER trg_user_subscriptions_updated_at
 BEFORE UPDATE ON user_subscriptions
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+-- =========================
+-- COUPONS
+-- =========================
+CREATE TABLE coupons (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code VARCHAR(50) NOT NULL UNIQUE, -- stored uppercase
+  discount_type discount_type NOT NULL,
+  discount_value NUMERIC(10,2) NOT NULL CHECK (discount_value >= 0),
+  max_redemptions INT CHECK (max_redemptions IS NULL OR max_redemptions > 0),
+  redemption_count INT NOT NULL DEFAULT 0 CHECK (redemption_count >= 0),
+  starts_at TIMESTAMP WITH TIME ZONE,
+  expires_at TIMESTAMP WITH TIME ZONE,
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_coupons_active ON coupons(is_active);
+
+CREATE TRIGGER trg_coupons_updated_at
+BEFORE UPDATE ON coupons
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 -- ========================
 -- SUBSCRIPTION PAYMENTS
 -- =========================
@@ -451,18 +489,78 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 CREATE TABLE subscription_payments(
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_subscription_id UUID NOT NULL REFERENCES user_subscriptions(id) ON DELETE CASCADE,
+  subtotal NUMERIC(10,2),
+  discount_amount NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (discount_amount >= 0),
   amount NUMERIC(10,2) NOT NULL CHECK (amount >= 0),
+  currency VARCHAR(3) NOT NULL DEFAULT 'usd',
   payment_status payment_status DEFAULT 'PENDING',
+  coupon_id UUID REFERENCES coupons(id) ON DELETE SET NULL,
   stripe_payment_intent_id TEXT UNIQUE,
+  stripe_invoice_id TEXT,
+  paid_at TIMESTAMP WITH TIME ZONE,
+  failure_reason TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_subscription_payment_user_subscription ON subscription_payments(user_subscription_id);
+CREATE INDEX idx_subscription_payments_status ON subscription_payments(payment_status);
+CREATE INDEX idx_subscription_payments_invoice ON subscription_payments(stripe_invoice_id);
 
 CREATE TRIGGER trg_subscription_payments_updated_at
 BEFORE UPDATE ON subscription_payments
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- =========================
+-- COUPON REDEMPTIONS
+-- =========================
+CREATE TABLE coupon_redemptions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  coupon_id UUID NOT NULL REFERENCES coupons(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  payment_id UUID NOT NULL REFERENCES subscription_payments(id) ON DELETE CASCADE,
+  discount_amount NUMERIC(10,2) NOT NULL CHECK (discount_amount >= 0),
+  redeemed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT unique_coupon_per_user UNIQUE (coupon_id, user_id),
+  CONSTRAINT unique_coupon_redemption_payment UNIQUE (payment_id)
+);
+
+CREATE INDEX idx_coupon_redemptions_coupon ON coupon_redemptions(coupon_id);
+CREATE INDEX idx_coupon_redemptions_user ON coupon_redemptions(user_id);
+
+-- =========================
+-- PAYMENT REFUNDS
+-- =========================
+CREATE TABLE payment_refunds (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  payment_id UUID NOT NULL REFERENCES subscription_payments(id) ON DELETE CASCADE,
+  amount NUMERIC(10,2) NOT NULL CHECK (amount > 0),
+  currency VARCHAR(3) NOT NULL DEFAULT 'usd',
+  refund_status refund_status NOT NULL DEFAULT 'PENDING',
+  stripe_refund_id TEXT UNIQUE,
+  reason TEXT,
+  refunded_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_payment_refunds_payment ON payment_refunds(payment_id);
+CREATE INDEX idx_payment_refunds_status ON payment_refunds(refund_status);
+
+CREATE TRIGGER trg_payment_refunds_updated_at
+BEFORE UPDATE ON payment_refunds
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- =========================
+-- STRIPE WEBHOOK EVENTS
+-- =========================
+CREATE TABLE stripe_webhook_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  stripe_event_id TEXT NOT NULL UNIQUE,
+  event_type TEXT NOT NULL,
+  processed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
 
 
 -- =========================

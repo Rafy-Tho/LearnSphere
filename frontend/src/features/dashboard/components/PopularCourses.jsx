@@ -1,30 +1,36 @@
-// src/components/PopularCourses.tsx
 import { ArrowUpRight } from "lucide-react";
 import { SwiperSlide } from "swiper/react";
 import CourseCard from "@/components/common/CourseCard";
 import SwiperWrapper from "@/features/dashboard/components/SwiperWrapper";
-import { usePopularCourses as useGetPopularCourse } from "@/features/catalog/hooks/useCourses";
-import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import SectionHeader from "@/features/dashboard/components/SectionHeader";
+import CourseCarouselSkeleton from "@/features/dashboard/components/CourseCarouselSkeleton";
+import EmptyState from "@/components/ui/EmptyState";
+import { usePopularCourses } from "@/features/catalog/hooks/useCourses";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 
 export default function PopularCourses() {
-  const { data, isPending, error } = useGetPopularCourse();
+  const { data, isPending, error } = usePopularCourses();
   const courses = data || [];
   return (
     <section className="mb-14">
-      <h2 className="mb-6 flex items-center gap-2 text-lg font-bold">
-        <span className="flex size-9 items-center justify-center rounded-full bg-primary/10">
-          <ArrowUpRight className="size-4 text-primary" />
-        </span>
-        Most Popular Courses
-      </h2>
+      <SectionHeader
+        icon={<ArrowUpRight className="size-4" />}
+        title="Most Popular Courses"
+      />
       {error && <ErrorMessage message={error.message} />}
-      {isPending && <SpinnerLoader />}
+      {isPending && <CourseCarouselSkeleton />}
+      {!isPending && !error && courses.length === 0 && (
+        <EmptyState
+          icon={<ArrowUpRight className="size-6" />}
+          title="No popular courses yet"
+          description="Check back soon — courses will appear here as learners enroll."
+        />
+      )}
       {!isPending && courses.length > 0 && (
         <SwiperWrapper>
           {courses.map((course) => (
             <SwiperSlide key={course.id}>
-              <CourseCard course={course} />
+              <CourseCard course={course} variant="carousel" />
             </SwiperSlide>
           ))}
         </SwiperWrapper>

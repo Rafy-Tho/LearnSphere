@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { BookOpen, Bookmark, Clock, BarChart2 } from "lucide-react";
+import { BookOpen, Bookmark, Clock, BarChart2, Star, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import formatMinutes from "@/utils/formatMinutes";
 import formatCapitalize from "@/utils/formatCapitalize";
@@ -10,7 +10,13 @@ import useAuth from "@/features/auth/hooks/useAuth";
 import { useSavedCourseIds } from "@/features/saved/hooks/useSavedCourses";
 import { useToggleSaveCourse } from "@/features/saved/hooks/useSavedMutations";
 
-function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
+function CourseCard({
+  course,
+  progress,
+  lessonId,
+  scrollToTop = true,
+  variant = "default",
+}) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { data: savedCourseIds } = useSavedCourseIds();
@@ -18,6 +24,12 @@ function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
   const isSaved = Array.isArray(savedCourseIds) && savedCourseIds.includes(course.id);
   const hasProgress = progress != null;
   const progressPercentage = progress ?? 0;
+  const isCarousel = variant === "carousel";
+  const totalReviews = Number(course.total_reviews) || 0;
+  const averageRating = Number(course.average_rating) || 0;
+  const enrollCount = Number(course.enroll_count) || 0;
+  const showRating = isCarousel && totalReviews > 0;
+  const showEnrollments = isCarousel && enrollCount > 0;
 
   const handleClick = () => {
     navigate(
@@ -39,9 +51,20 @@ function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
 
   return (
     <article
-      className="flex shrink-0 flex-col rounded-xl border border-border bg-surface p-6 shadow-sm transition-shadow hover:shadow-md h-full w-full cursor-pointer"
+      className={cn(
+        "flex h-full w-full shrink-0 cursor-pointer flex-col rounded-xl border border-border bg-surface p-6 shadow-sm transition-all",
+        isCarousel
+          ? "relative overflow-hidden hover:-translate-y-1 hover:border-primary/40 hover:shadow-lg"
+          : "hover:shadow-md",
+      )}
       onClick={handleClick}
     >
+      {isCarousel && (
+        <span
+          className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-primary to-primary-hover"
+          aria-hidden
+        />
+      )}
       <div className="mb-4 flex items-start justify-between">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
           <BookOpen className="size-3.5" aria-hidden />
@@ -66,6 +89,26 @@ function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
       <p className="mb-6 line-clamp-4 flex-1 text-sm text-foreground-muted">
         {truncateText(course.description, 150)}
       </p>
+
+      {(showRating || showEnrollments) && (
+        <div className="mb-3 flex items-center gap-4 text-xs font-medium text-foreground-muted">
+          {showRating && (
+            <span className="inline-flex items-center gap-1">
+              <Star className="size-3.5 fill-warning text-warning" />
+              {averageRating.toFixed(1)}
+              <span className="text-foreground-muted/70">
+                ({totalReviews})
+              </span>
+            </span>
+          )}
+          {showEnrollments && (
+            <span className="inline-flex items-center gap-1">
+              <Users className="size-3.5" />
+              {enrollCount.toLocaleString()} enrolled
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="mt-auto flex items-center justify-between text-xs text-foreground-muted">
         <span className="inline-flex items-center gap-1">

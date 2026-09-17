@@ -1,40 +1,46 @@
-// src/components/RecommendedSection.tsx
 import { ArrowUpRight } from "lucide-react";
 import { SwiperSlide } from "swiper/react";
-
-import { useRecommendedCourses as useGetRecommendedCourse } from "@/features/dashboard/hooks/useDashboard";
-import ErrorMessage from "@/components/ui/ErrorMessage";
-import SpinnerLoader from "@/components/ui/SpinnerLoader";
-import SwiperWrapper from "@/features/dashboard/components/SwiperWrapper";
-import CourseCard from "@/components/common/CourseCard";
 import { Link } from "react-router-dom";
 
+import { useRecommendedCourses } from "@/features/dashboard/hooks/useDashboard";
+import ErrorMessage from "@/components/ui/ErrorMessage";
+import EmptyState from "@/components/ui/EmptyState";
+import SwiperWrapper from "@/features/dashboard/components/SwiperWrapper";
+import SectionHeader from "@/features/dashboard/components/SectionHeader";
+import CourseCarouselSkeleton from "@/features/dashboard/components/CourseCarouselSkeleton";
+import CourseCard from "@/components/common/CourseCard";
+
 export default function RecommendedSection() {
-  const { data, isPending, error } = useGetRecommendedCourse();
+  const { data, isPending, error } = useRecommendedCourses();
   const courses = data || [];
   return (
     <section className="mb-14">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="flex items-center gap-2 text-lg font-bold">
-          <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-            <ArrowUpRight className="size-4 text-primary" />
-          </span>
-          Recommended For You
-        </h2>
-        <button
-          type="button"
-          className="cursor-pointer rounded-lg border border-border px-4 py-2 text-sm text-primary"
-        >
-          Learning Preferences
-        </button>
-      </div>
+      <SectionHeader
+        icon={<ArrowUpRight className="size-4" />}
+        title="Recommended For You"
+        action={
+          <button
+            type="button"
+            className="cursor-pointer rounded-lg border border-border px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+          >
+            Learning Preferences
+          </button>
+        }
+      />
       {error && <ErrorMessage message={error.message} />}
-      {isPending && <SpinnerLoader />}
+      {isPending && <CourseCarouselSkeleton />}
+      {!isPending && !error && courses.length === 0 && (
+        <EmptyState
+          icon={<ArrowUpRight className="size-6" />}
+          title="No recommendations yet"
+          description="Explore a few courses and we'll tailor recommendations to your interests."
+        />
+      )}
       {!isPending && courses.length > 0 && (
         <SwiperWrapper>
           {courses.map((course) => (
             <SwiperSlide key={course.id}>
-              <CourseCard course={course} />
+              <CourseCard course={course} variant="carousel" />
             </SwiperSlide>
           ))}
         </SwiperWrapper>
@@ -43,8 +49,7 @@ export default function RecommendedSection() {
         <Link
           to="/courses"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          type="button"
-          className="rounded-lg bg-primary px-8 py-3 font-semibold text-white hover:bg-primary-hover cursor-pointer block"
+          className="block cursor-pointer rounded-lg bg-primary px-8 py-3 font-semibold text-white hover:bg-primary-hover"
         >
           Explore All
         </Link>

@@ -36,6 +36,8 @@ erDiagram
   quizzes ||--o{ quiz_answers : answered
   users ||--o{ enrollments : enrolls
   courses ||--o{ enrollments : receives
+  users ||--o{ saved_courses : bookmarks
+  courses ||--o{ saved_courses : saved
   users ||--o{ learn_progress : tracks
   courses ||--o{ learn_progress : tracks
   lessons ||--o{ learn_progress : current
@@ -316,6 +318,17 @@ Unique `(attempt_id, quiz_id)`. Indexes `idx_quiz_answers_attempt`, `idx_quiz_an
 
 Unique `(user_id, course_id)`. Indexes `idx_enrollments_user`, `idx_enrollments_course`. No `created_at`.
 
+#### `saved_courses`
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| user_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| course_id | UUID | NOT NULL, FK → courses(id) CASCADE |
+| created_at | TIMESTAMPTZ | DEFAULT now |
+
+Unique `(user_id, course_id)`. Indexes `idx_saved_courses_user`, `idx_saved_courses_course`. No `updated_at`/trigger (rows are only inserted/deleted).
+
 #### `learn_progress`
 
 | Column | Type | Constraints |
@@ -441,19 +454,19 @@ Unique `(user_id, review_id)`.
 ### 4.6 Runtime Table
 
 #### `session`
-Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `backend/src/common/middleware/session-middleware.js`. Not in `schema.sql`; a fresh database has 23 tables after the server runs.
+Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `backend/src/common/middleware/session-middleware.js`. Not in `schema.sql`; a fresh database has 28 tables after the server runs (27 from `schema.sql`).
 
 ## 5. Triggers & Functions
 
 - `set_updated_at()` — sets `NEW.updated_at = CURRENT_TIMESTAMP`.
 - 19 `BEFORE UPDATE` triggers, one per table with `updated_at`.
-- Tables without triggers: `lesson_completion`, `certificates`, `review_helpful_votes`, `review_reports`.
+- Tables without triggers: `lesson_completion`, `certificates`, `review_helpful_votes`, `review_reports`, `saved_courses`.
 
 ## 6. Indexes & Unique Constraints
 
-Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, `idx_user_auth_providers_user`, `idx_quiz_attempts_user_lesson`, `idx_quiz_attempts_lesson`, `idx_quiz_answers_attempt`, `idx_quiz_answers_quiz`, plus the partial unique `one_active_subscription_per_user`.
+Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_saved_courses_user`, `idx_saved_courses_course`, `idx_user_subscriptions_user`, `idx_subscription_payment_user_subscription`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, `idx_user_auth_providers_user`, `idx_quiz_attempts_user_lesson`, `idx_quiz_attempts_lesson`, `idx_quiz_answers_attempt`, `idx_quiz_answers_quiz`, plus the partial unique `one_active_subscription_per_user`.
 
-Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_attempt_quiz` (quiz_answers), `unique_user_course` (enrollments), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`, `uq_user_auth_provider`.
+Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_attempt_quiz` (quiz_answers), `unique_user_course` (enrollments), `unique_user_saved_course` (saved_courses), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`, `uq_user_auth_provider`.
 
 ## 7. Cascade & Integrity Rules
 
@@ -489,6 +502,7 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 | `CertificateRepository` | certificates, courses, users, lessons, chapters, modules, lesson_completion |
 | `SubscriptionRepository` | subscription_plans, user_subscriptions, subscription_payments, users |
 | `ReviewRepository` | course_reviews, review_helpful_votes, review_reports, users |
+| `SavedCourseRepository` | saved_courses, courses, learn_progress, lesson_completion, modules, chapters, lessons |
 
 ## 9. Schema Drift
 

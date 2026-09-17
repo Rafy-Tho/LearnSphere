@@ -38,6 +38,9 @@ const InProgressDashboard = lazy(
 const CompletedCourseDashboard = lazy(
   () => import("@/features/dashboard/pages/CompletedCourseDashboard"),
 );
+const SavedCoursesDashboard = lazy(
+  () => import("@/features/dashboard/pages/SavedCoursesDashboard"),
+);
 const CourseLearningScreen = lazy(
   () => import("@/features/learning/pages/CourseLearningScreen"),
 );
@@ -83,6 +86,7 @@ function AppRouter() {
               <Route path="recent-viewed" element={<RecentViewDashboard />} />
               <Route path="in-progress" element={<InProgressDashboard />} />
               <Route path="completed" element={<CompletedCourseDashboard />} />
+              <Route path="saved" element={<SavedCoursesDashboard />} />
             </Route>
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancel" element={<PaymentCancel />} />

@@ -1,11 +1,31 @@
 import { memo } from "react";
 import { BarChart3, Bookmark, BookOpen, CheckCircle, Clock, MessageSquare, Star } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import formatCapitalize from "@/utils/formatCapitalize";
 import formatMinutes from "@/utils/formatMinutes";
 import formatTimeAgo from "@/utils/formatTimeAgo";
+import cn from "@/utils/cn";
+import useAuth from "@/features/auth/hooks/useAuth";
+import { useSavedCourseIds } from "@/features/saved/hooks/useSavedCourses";
+import { useToggleSaveCourse } from "@/features/saved/hooks/useSavedMutations";
 
 export const CourseCardDetailed = memo(function CourseCardDetailed({ course }) {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: savedCourseIds } = useSavedCourseIds();
+  const { mutate: toggleSave, isPending: isSaving } = useToggleSaveCourse();
+  const isSaved = Array.isArray(savedCourseIds) && savedCourseIds.includes(course.id);
+
+  const handleToggleSave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    toggleSave({ courseId: course.id, isSaved });
+  };
+
   return (
     <Link
       to={`/courses/${course.id}`}
@@ -40,8 +60,20 @@ export const CourseCardDetailed = memo(function CourseCardDetailed({ course }) {
               {course.avg_rating}
             </span>
           </div>
-          <button className="p-1 text-foreground-muted hover:text-foreground cursor-pointer">
-            <Bookmark className="w-5 h-5" />
+          <button
+            type="button"
+            className={cn(
+              "p-1 cursor-pointer transition-colors",
+              isSaved
+                ? "text-primary"
+                : "text-foreground-muted hover:text-foreground",
+            )}
+            aria-label={isSaved ? "Remove from saved courses" : "Save course"}
+            aria-pressed={isSaved}
+            disabled={isSaving}
+            onClick={handleToggleSave}
+          >
+            <Bookmark className={cn("w-5 h-5", isSaved && "fill-current")} />
           </button>
         </div>
       </div>

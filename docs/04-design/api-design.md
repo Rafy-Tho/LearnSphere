@@ -117,6 +117,8 @@ Mounted at `/api/v1/users`.
 | GET | `/me/courses/recommended` | `auth` | Recommended courses |
 | GET | `/me/courses/in-progress` | `auth` | In-progress courses |
 | GET | `/me/courses/completed` | `auth` | Completed courses |
+| GET | `/me/saved-courses` | `auth` | Saved courses (paginated) |
+| GET | `/me/saved-courses/ids` | `auth` | Saved course IDs (for bookmark state) |
 | GET | `/me/certificates` | `auth` | List my certificates (paginated) |
 | GET | `/me/subscription` | `auth` | Current user's active subscription |
 
@@ -169,10 +171,12 @@ Mounted at `/api/v1/courses`.
 | GET | `/:courseId/curriculum` | — | Learning data (curriculum metadata; public preview) |
 | GET | `/:courseId/first-lesson` | — | First lesson of the course |
 | GET | `/:courseId/completions` | `auth` | Current user's completions in course |
+| POST | `/:courseId/saved` | `auth`, `val` | Save course (bookmark) |
+| DELETE | `/:courseId/saved` | `auth`, `val` | Remove saved course |
 
 ### 6.1 Nested Course Routers
 
-`/api/v1/courses/:courseId/...` composes: `modules`, `objectives`, `reviews`, `enrollments`, `progress`, `certificates`.
+`/api/v1/courses/:courseId/...` composes: `modules`, `objectives`, `reviews`, `enrollments`, `progress`, `certificates`, `saved`.
 
 ## 7. Objectives
 

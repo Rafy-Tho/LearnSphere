@@ -1,5 +1,5 @@
-import { ArrowDownIcon, BookOpen, Calendar, Clock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowDownIcon, BookOpen, Bookmark, Calendar, Clock } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { useCourseDetails as useGetCourseDetails } from "@/features/catalog/hooks/useCourses";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
@@ -10,12 +10,20 @@ import RatingStars from "@/components/common/RatingStars";
 import { useEnrollCourse as useEnrollment } from "@/features/learning/hooks/useLearningMutations";
 import { useEnrollment as useGetEnrollment } from "@/features/learning/hooks/useLearning";
 import useAuth from "@/features/auth/hooks/useAuth";
+import { useSavedCourseIds } from "@/features/saved/hooks/useSavedCourses";
+import { useToggleSaveCourse } from "@/features/saved/hooks/useSavedMutations";
 
 export default function HeroSection({ scrollToSection }) {
   const { data, isPending, error } = useGetCourseDetails();
   const { mutate } = useEnrollment();
   const { data: enrollmentsData } = useGetEnrollment();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { data: savedCourseIds } = useSavedCourseIds();
+  const { mutate: toggleSave, isPending: isSaving } = useToggleSaveCourse();
+  const isSaved =
+    Array.isArray(savedCourseIds) && savedCourseIds.includes(data?.id);
+
   function handleEnroll() {
     if (enrollmentsData || !user) return;
     mutate();
@@ -23,6 +31,15 @@ export default function HeroSection({ scrollToSection }) {
       top: 0,
       behavior: "smooth",
     });
+  }
+
+  function handleToggleSave() {
+    if (!data?.id) return;
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    toggleSave({ courseId: data.id, isSaved });
   }
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
@@ -70,6 +87,21 @@ export default function HeroSection({ scrollToSection }) {
               className="w-full sm:w-auto"
             >
               Start Learning
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleToggleSave}
+              disabled={isSaving}
+              aria-pressed={isSaved}
+              leftIcon={
+                <Bookmark
+                  className={`w-5 h-5 ${isSaved ? "fill-current text-primary" : ""}`}
+                />
+              }
+              className={`w-full sm:w-auto ${isSaved ? "text-primary" : ""}`}
+            >
+              {isSaved ? "Saved" : "Save Course"}
             </Button>
             <Button
               variant="outline"

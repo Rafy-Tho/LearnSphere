@@ -7,6 +7,7 @@ import coursesRoute from "../modules/courses/routes.js";
 import { objectivesItemRoute } from "../modules/courses/objectives.routes.js";
 import adminCoursesRoute from "../modules/courses/admin.routes.js";
 import meCoursesRoute from "../modules/courses/me.routes.js";
+import { meSavedCoursesRoute } from "../modules/saved-courses/routes.js";
 import { moduleCollectionRoute, moduleItemRoute } from "../modules/content/module.routes.js";
 import { chapterCollectionRoute, chapterItemRoute } from "../modules/content/chapter.routes.js";
 import { lessonCollectionRoute, lessonItemRoute } from "../modules/content/lesson.routes.js";
@@ -40,6 +41,7 @@ export function registerRoutes(app) {
   // Auth + current user
   app.use("/api/v1/auth", authRoute);
   app.use("/api/v1/users/me/courses", meCoursesRoute);
+  app.use("/api/v1/users/me/saved-courses", meSavedCoursesRoute);
   app.use("/api/v1/users/me/certificates", meCertificatesRoute);
   app.use("/api/v1/users/me/subscription", meSubscriptionRoute);
   app.use("/api/v1/users", usersRoute);

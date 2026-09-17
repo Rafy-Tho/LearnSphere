@@ -47,6 +47,10 @@ export const queryKeys = {
   recommended: () => ["recommended-course"],
   inProgress: () => ["course-in-progress"],
   completed: () => ["completed-course"],
+
+  savedCourses: (params) => ["saved-courses", params],
+  savedCoursesRoot: () => ["saved-courses"],
+  savedCourseIds: () => ["saved-course-ids"],
 };
 
 export const userScopedQueryRoots = new Set([
@@ -70,4 +74,6 @@ export const userScopedQueryRoots = new Set([
   queryKeys.recommended()[0],
   queryKeys.inProgress()[0],
   queryKeys.completed()[0],
+  queryKeys.savedCoursesRoot()[0],
+  queryKeys.savedCourseIds()[0],
 ]);

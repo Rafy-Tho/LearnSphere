@@ -5,6 +5,7 @@ const tabs = [
   { label: "Recently Viewed", href: "/learning-dashboard/recent-viewed" },
   { label: "In Progress", href: "/learning-dashboard/in-progress" },
   { label: "Completed", href: "/learning-dashboard/completed" },
+  { label: "Saved Courses", href: "/learning-dashboard/saved" },
 ];
 export default function Tabs() {
   return (

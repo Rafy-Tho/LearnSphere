@@ -4,10 +4,18 @@ import { useNavigate } from "react-router-dom";
 import formatMinutes from "@/utils/formatMinutes";
 import formatCapitalize from "@/utils/formatCapitalize";
 import truncateText from "@/utils/truncateText";
+import cn from "@/utils/cn";
 import ProgressBar from "@/components/ui/ProgressBar";
+import useAuth from "@/features/auth/hooks/useAuth";
+import { useSavedCourseIds } from "@/features/saved/hooks/useSavedCourses";
+import { useToggleSaveCourse } from "@/features/saved/hooks/useSavedMutations";
 
 function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: savedCourseIds } = useSavedCourseIds();
+  const { mutate: toggleSave, isPending: isSaving } = useToggleSaveCourse();
+  const isSaved = Array.isArray(savedCourseIds) && savedCourseIds.includes(course.id);
   const hasProgress = progress != null;
   const progressPercentage = progress ?? 0;
 
@@ -18,6 +26,15 @@ function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
         : `/courses/${course.id}`,
     );
     if (scrollToTop) window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleToggleSave = (e) => {
+    e.stopPropagation();
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    toggleSave({ courseId: course.id, isSaved });
   };
 
   return (
@@ -32,14 +49,16 @@ function CourseCard({ course, progress, lessonId, scrollToTop = true }) {
         </span>
         <button
           type="button"
-          className="text-foreground-muted transition-colors hover:text-primary cursor-pointer"
-          aria-label="Bookmark"
-          onClick={(e) => {
-            e.stopPropagation();
-            // toggle bookmark logic here
-          }}
+          className={cn(
+            "transition-colors hover:text-primary cursor-pointer",
+            isSaved ? "text-primary" : "text-foreground-muted",
+          )}
+          aria-label={isSaved ? "Remove from saved courses" : "Save course"}
+          aria-pressed={isSaved}
+          disabled={isSaving}
+          onClick={handleToggleSave}
         >
-          <Bookmark className="size-5" />
+          <Bookmark className={cn("size-5", isSaved && "fill-current")} />
         </button>
       </div>
 

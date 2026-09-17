@@ -14,6 +14,7 @@
 | Quiz experience | Rebuilt `features/learning/pages/Quiz.jsx` as an `intro → taking → results` flow with deferred grading: selectable answer cards, question progress + jump nav, Previous/Next, submit confirmation, score result, per-question review, attempt history, and retake. If a completed attempt exists it opens on the result with "Try Again". New hooks/services (`useQuizAttempts`, `quizAttemptsApi`) + query keys. |
 | Email verification | `/verify-email` page with 6-box OTP input (auto-advance, paste), resend + 60s cooldown, error states, and auto-login on success. Signup/Login route unverified users here via `requiresEmailVerification`. |
 | Google login | "Continue with Google" on Login/Signup redirects to the backend `/auth/google`. `/auth/callback` page handles success (refreshes `["me"]`, then dashboard), cancelled/failed OAuth, and maps backend error codes to messages (`features/auth/utils/googleOAuth.js`). |
+| Saved courses | `features/saved/` services + hooks (`useSavedCourses`, `useSavedCourseIds`, `useToggleSaveCourse` with optimistic update + success/error toasts). Bookmark buttons on `CourseCard`, `CourseCardDetailed`, and the course-detail `HeroSection` fill when saved (guests are sent to `/login`). New "Saved Courses" tab at `/learning-dashboard/saved` reuses `CourseGridSection`. |
 
 ## Remaining / Residuals
 

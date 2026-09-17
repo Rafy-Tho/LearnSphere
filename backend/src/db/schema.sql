@@ -502,6 +502,21 @@ CREATE TABLE review_reports(
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT unique_user_report UNIQUE(user_id, review_id)
 );
+
+-- =========================
+-- SAVED COURSES
+-- =========================
+CREATE TABLE saved_courses(
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT unique_user_saved_course UNIQUE(user_id, course_id)
+);
+
+CREATE INDEX idx_saved_courses_user ON saved_courses(user_id);
+CREATE INDEX idx_saved_courses_course ON saved_courses(course_id);
+
 -- =========================
 -- LEARNING PROGRESS
 -- =========================

@@ -29,7 +29,7 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 
 | Need | Location |
 |---|---|
-| Modules | `backend/src/modules/` — auth, users, categories, courses, content, learning, reviews, certificates, subscriptions, admin |
+| Modules | `backend/src/modules/` — auth, users, categories, courses, content, learning, reviews, saved-courses, certificates, subscriptions, admin |
 | Route definitions | `backend/src/modules/<module>/routes.js`; mounted in `backend/src/app/routes.js` |
 | Business logic | `backend/src/modules/<module>/service.js` |
 | SQL | `backend/src/modules/<module>/*.repository.js` |

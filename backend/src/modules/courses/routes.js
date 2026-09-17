@@ -9,6 +9,7 @@ import enrollmentRoute from "../learning/enrollment.routes.js";
 import progressRoute from "../learning/progress.routes.js";
 import { courseCertificateRoute } from "../certificates/routes.js";
 import { reviewsCollectionRoute } from "../reviews/routes.js";
+import { savedCourseRoute } from "../saved-courses/routes.js";
 import courseController from "./course.controller.js";
 import { objectivesCollectionRoute } from "./objectives.routes.js";
 import { courseIdParamValidator, courseValidator } from "./validation.js";
@@ -21,6 +22,7 @@ coursesRoute.use("/:courseId/reviews", reviewsCollectionRoute);
 coursesRoute.use("/:courseId/enrollments", enrollmentRoute);
 coursesRoute.use("/:courseId/progress", progressRoute);
 coursesRoute.use("/:courseId/certificates", courseCertificateRoute);
+coursesRoute.use("/:courseId/saved", savedCourseRoute);
 
 // Courses
 coursesRoute

@@ -1,6 +1,7 @@
 import PasswordContainer from "@/features/settings/components/PasswordContainer";
 import SubscriptionContainer from "@/features/settings/components/SubscriptionContainer";
 import UserProfile from "@/features/settings/components/UserProfile";
+import XpSummaryCard from "@/features/activity/components/XpSummaryCard";
 
 export default function UserSetting() {
   return (
@@ -23,6 +24,9 @@ export default function UserSetting() {
             {/* Profile */}
 
             <UserProfile />
+
+            {/* Learning progress */}
+            <XpSummaryCard />
 
             {/* Subscription */}
             <SubscriptionContainer />

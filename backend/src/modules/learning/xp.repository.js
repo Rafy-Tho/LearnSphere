@@ -33,18 +33,49 @@ class XpRepository {
 
   async getSummary(userId) {
     const result = await this.db.query(
-      `SELECT
-         COALESCE(SUM(amount), 0) AS total_xp,
-         COALESCE(SUM(
-           CASE WHEN created_at >= CURRENT_DATE THEN amount ELSE 0 END
-         ), 0) AS today_xp
-       FROM user_xp_transactions
-       WHERE user_id = $1`,
+      `WITH tx AS (
+         SELECT amount, created_at
+         FROM user_xp_transactions
+         WHERE user_id = $1
+       ),
+       days AS (
+         SELECT DISTINCT created_at::date AS day
+         FROM user_xp_transactions
+         WHERE user_id = $1 AND amount > 0
+       ),
+       ranked AS (
+         SELECT day, day - (ROW_NUMBER() OVER (ORDER BY day))::int AS grp
+         FROM days
+       ),
+       streaks AS (
+         SELECT COUNT(*) AS length, MAX(day) AS last_day
+         FROM ranked
+         GROUP BY grp
+       )
+       SELECT
+         COALESCE((SELECT SUM(amount) FROM tx), 0) AS total_xp,
+         COALESCE((
+           SELECT SUM(amount) FROM tx WHERE created_at >= CURRENT_DATE
+         ), 0) AS today_xp,
+         COALESCE((
+           SELECT length FROM streaks
+           WHERE last_day >= CURRENT_DATE - 1
+           ORDER BY last_day DESC
+           LIMIT 1
+         ), 0) AS streak_days`,
       [userId],
     );
 
-    const { total_xp: totalXp, today_xp: todayXp } = result.rows[0];
-    return { total_xp: Number(totalXp), today_xp: Number(todayXp) };
+    const {
+      total_xp: totalXp,
+      today_xp: todayXp,
+      streak_days: streakDays,
+    } = result.rows[0];
+    return {
+      total_xp: Number(totalXp),
+      today_xp: Number(todayXp),
+      streak_days: Number(streakDays),
+    };
   }
 
   async findByUser(userId, { limit = 20, offset = 0 } = {}) {

@@ -5,6 +5,7 @@ export const queryKeys = {
   xpTransactions: (params) => ["xp-transactions", params],
   xpTransactionsRoot: () => ["xp-transactions"],
   activities: (params) => ["activities", params],
+  activitiesInfinite: () => ["activities", "infinite"],
   activitiesRoot: () => ["activities"],
 
   categories: () => ["categories"],
@@ -25,6 +26,7 @@ export const queryKeys = {
   certificate: (courseId) => ["certificate", courseId],
   certificateEligibility: (courseId) => ["certificate-eligibility", courseId],
   myCertificates: () => ["my-certificates"],
+  myCertificatesPage: (params) => ["my-certificates", params],
   certificateById: (id) => ["certificate-by-id", id],
 
   lessonContent: (lessonId) => ["lesson-content", lessonId],

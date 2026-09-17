@@ -78,9 +78,18 @@ export function useMyCertificates() {
   const { user } = useAuth();
   return useQuery({
     queryKey: queryKeys.myCertificates(),
-    queryFn: ({ signal }) => learningApi.getMyCertificates({ signal }),
+    queryFn: ({ signal }) => learningApi.getMyCertificates(undefined, { signal }),
     enabled: !!user,
     select: (response) => response?.data ?? [],
+  });
+}
+
+export function useMyCertificatesPage(params = {}) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: queryKeys.myCertificatesPage(params),
+    queryFn: ({ signal }) => learningApi.getMyCertificates(params, { signal }),
+    enabled: !!user,
   });
 }
 

@@ -1,4 +1,4 @@
-import { api } from "@/lib/apiClient";
+import { api, buildQuery } from "@/lib/apiClient";
 
 export const learningApi = {
   getLearningData: (id, options) =>
@@ -22,7 +22,7 @@ export const learningApi = {
     api.get(`/courses/${courseId}/certificates`, options),
   checkCertificateEligibility: (courseId, options) =>
     api.get(`/courses/${courseId}/certificates/check`, options),
-  getMyCertificates: (options) =>
-    api.getPaginated("/users/me/certificates", options),
+  getMyCertificates: (params, options) =>
+    api.getPaginated(`/users/me/certificates${buildQuery(params)}`, options),
   getCertificateById: (id, options) => api.get(`/certificates/${id}`, options),
 };

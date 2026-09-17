@@ -1,65 +1,41 @@
-import { useState } from "react";
-import { Award, ExternalLink } from "lucide-react";
+import { Award } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useMyCertificates } from "@/features/learning/hooks/useLearning";
+import CertificateCard from "@/features/learning/components/CertificateCard";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
-import Button from "@/components/ui/Button";
+
+const PREVIEW_COUNT = 6;
 
 export default function CertificationSection() {
   const { data: certificates, isPending, error } = useMyCertificates();
-  const [showAll, setShowAll] = useState(false);
 
   if (isPending) return <SpinnerLoader />;
   if (error) return <ErrorMessage message={error.message} />;
 
   if (certificates && certificates.length > 0) {
-    const visible = showAll ? certificates : certificates.slice(0, 6);
+    const visible = certificates.slice(0, PREVIEW_COUNT);
     return (
       <div className="my-8 md:my-16">
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold">
-          <span className="flex size-9 items-center justify-center rounded-full bg-primary/10">
-            <Award className="size-4 text-primary" />
-          </span>
-          My Certificates
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((cert) => (
-            <Link
-              key={cert.id}
-              to={`/certificates/${cert.id}`}
-              className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-5 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10">
-                  <Award className="size-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {cert.course_name}
-                  </p>
-                  <p className="text-xs text-foreground-muted">
-                    {new Date(cert.issued_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <ExternalLink className="size-4 text-foreground-muted shrink-0" />
-              </div>
-              <p className="text-xs text-foreground-muted font-mono truncate">
-                {cert.certificate_number}
-              </p>
-              </Link>
-            ))}
-        </div>
-        {!showAll && certificates.length > 6 && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setShowAll(true)}
-            className="mt-4"
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <span className="flex size-9 items-center justify-center rounded-full bg-primary/10">
+              <Award className="size-4 text-primary" />
+            </span>
+            My Certificates
+          </h2>
+          <Link
+            to="/learning-dashboard/certificates"
+            className="text-sm font-medium text-primary hover:text-primary-hover"
           >
-            Show all {certificates.length} certificates
-          </Button>
-        )}
+            View All
+          </Link>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map((certificate) => (
+            <CertificateCard key={certificate.id} certificate={certificate} />
+          ))}
+        </div>
       </div>
     );
   }

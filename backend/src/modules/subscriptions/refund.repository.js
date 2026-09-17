@@ -40,26 +40,6 @@ class RefundRepository {
     return result.rows[0];
   }
 
-  async findByStripeRefundId(stripeRefundId) {
-    const result = await this.db.query(
-      "SELECT * FROM payment_refunds WHERE stripe_refund_id = $1",
-      [stripeRefundId],
-    );
-    return result.rows[0];
-  }
-
-  async updateStatus(stripeRefundId, status, refundedAt = null) {
-    const result = await this.db.query(
-      `UPDATE payment_refunds
-       SET refund_status = $1,
-           refunded_at = COALESCE($2, refunded_at)
-       WHERE stripe_refund_id = $3
-       RETURNING *`,
-      [status, refundedAt, stripeRefundId],
-    );
-    return result.rows[0];
-  }
-
   async sumByPayment(paymentId, client = this.db) {
     const result = await client.query(
       `SELECT COALESCE(SUM(amount), 0) AS refunded_total
@@ -68,6 +48,17 @@ class RefundRepository {
       [paymentId],
     );
     return Number(result.rows[0].refunded_total);
+  }
+
+  // SUCCEEDED + PENDING amounts count against the refundable balance.
+  async sumCommittedByPayment(paymentId, client = this.db) {
+    const result = await client.query(
+      `SELECT COALESCE(SUM(amount), 0) AS committed_total
+       FROM payment_refunds
+       WHERE payment_id = $1 AND refund_status IN ('SUCCEEDED', 'PENDING')`,
+      [paymentId],
+    );
+    return Number(result.rows[0].committed_total);
   }
 
   async listByPayment(paymentId) {

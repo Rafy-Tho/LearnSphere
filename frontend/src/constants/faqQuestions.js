@@ -9,7 +9,7 @@ export const faqQuestions = [
   },
   {
     q: "What if I'm not satisfied with a course?",
-    a: "We offer a 30-day money-back guarantee on all paid plans.",
+    a: "Plans are prepaid for a fixed access period. If you have a billing issue, contact support and our team can review your payment for a refund.",
   },
   {
     q: "Are there any free courses available?",

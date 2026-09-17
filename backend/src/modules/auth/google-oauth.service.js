@@ -16,8 +16,6 @@ import authProviderRepository from "./auth-provider.repository.js";
 import { OAUTH_ERROR_CODES, OAuthError } from "./oauth-error.js";
 
 const GOOGLE_PROVIDER = "GOOGLE";
-const DEFAULT_AVATAR =
-  "https://res.cloudinary.com/dmuu7x5vm/image/upload/v1775903021/men_oquwmw.jpg";
 
 class GoogleOAuthService {
   constructor({
@@ -179,7 +177,7 @@ class GoogleOAuthService {
         {
           email: providerEmail,
           name: name || providerEmail,
-          imageUrl: imageUrl || DEFAULT_AVATAR,
+          imageUrl: imageUrl || null,
         },
         client,
       );

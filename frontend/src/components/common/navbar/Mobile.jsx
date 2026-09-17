@@ -5,6 +5,7 @@ import { ChevronDown, ChevronUp, LogOut } from "lucide-react";
 import { navLinks } from "@/constants/navLinks";
 import { avatarMenuItems } from "@/constants/avatarMenuItems";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import UserAvatar from "@/components/common/UserAvatar";
 
 function Mobile({
   user,
@@ -57,10 +58,10 @@ function Mobile({
                   aria-expanded={isAvatarOpen}
                 >
                   <div className="flex items-center gap-3">
-                    <img
-                      className="w-8 h-8 rounded-full"
+                    <UserAvatar
                       src={user?.image_url}
-                      alt="User avatar"
+                      name={user?.name}
+                      className="w-8 h-8 rounded-full text-sm"
                     />
                     <div className="text-left">
                       <p className="font-medium text-foreground">

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import useAuth from "@/features/auth/hooks/useAuth";
+import UserAvatar from "@/components/common/UserAvatar";
 
 // src/components/Header.tsx
 export default function Header() {
@@ -7,10 +8,10 @@ export default function Header() {
   return (
     <header className="mb-8 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex gap-4">
-        <img
+        <UserAvatar
           src={user?.image_url}
-          alt=""
-          className="size-14 shrink-0 rounded-full border border-border"
+          name={user?.name}
+          className="size-14 shrink-0 rounded-full border border-border text-lg"
         />
         <div>
           <div className="flex flex-wrap items-center gap-2">

@@ -32,20 +32,27 @@ class PlanRepository {
     return Number(result.rows[0].total);
   }
 
-  async create({ name, description, durationDays, price, currency }) {
+  async create({ name, description, durationDays, price, currency, features }) {
     const result = await this.db.query(
       `INSERT INTO subscription_plans
-         (name, description, duration_days, price, currency)
-       VALUES ($1, $2, $3, $4, $5)
+         (name, description, duration_days, price, currency, features)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [name, description ?? null, durationDays, price, currency || "usd"],
+      [
+        name,
+        description ?? null,
+        durationDays,
+        price,
+        currency || "usd",
+        JSON.stringify(features || []),
+      ],
     );
     return result.rows[0];
   }
 
   async update(
     id,
-    { name, description, durationDays, price, currency, isActive },
+    { name, description, durationDays, price, currency, isActive, features },
   ) {
     const result = await this.db.query(
       `UPDATE subscription_plans
@@ -54,8 +61,9 @@ class PlanRepository {
            duration_days = $3,
            price = $4,
            currency = $5,
-           is_active = $6
-       WHERE id = $7
+           is_active = $6,
+           features = $7
+       WHERE id = $8
        RETURNING *`,
       [
         name,
@@ -64,6 +72,7 @@ class PlanRepository {
         price,
         currency || "usd",
         isActive,
+        JSON.stringify(features || []),
         id,
       ],
     );

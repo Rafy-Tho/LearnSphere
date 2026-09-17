@@ -17,3 +17,4 @@ The `admin/` app is a separate React SPA (React 19, Vite 7, TanStack Query 5, Ta
 
 - Auth/routes/services work against `/auth/*` and `/admin/*`.
 - Out of scope until explicitly scheduled.
+- **Billing backend changed (prepaid refactor):** admin payment create/edit/delete and manual subscription create/update/delete endpoints were removed. Admin payments are now read-only (`GET /admin/payments`, `GET /admin/payments/:paymentId`) with refund issuance at `POST /admin/payments/:paymentId/refunds`; subscriptions are read-only with an audited `POST /admin/subscriptions/override`; coupons (`/admin/coupons`) and stats (`/admin/billing/stats`) are new. The current admin `SubscriptionsPage` Payments/Subscriptions tabs will break until the admin UI is refactored.

@@ -1,12 +1,13 @@
-export function formatMoney(amount, currency = "usd") {
+export function formatMoney(amount, currency) {
   const value = Number(amount ?? 0);
+  const code = String(currency || "USD").toUpperCase();
   try {
     return new Intl.NumberFormat(undefined, {
       style: "currency",
-      currency: String(currency || "usd").toUpperCase(),
+      currency: code,
     }).format(value);
   } catch {
-    return `${value.toFixed(2)} ${String(currency || "usd").toUpperCase()}`;
+    return `${value.toFixed(2)} ${code}`;
   }
 }
 

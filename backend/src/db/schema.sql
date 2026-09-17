@@ -417,6 +417,7 @@ CREATE TABLE subscription_plans (
   price NUMERIC(10,2) NOT NULL CHECK (price >= 0),
   currency VARCHAR(3) NOT NULL DEFAULT 'usd',
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  features JSONB NOT NULL DEFAULT '[]'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT unique_plan_duration UNIQUE(name, duration_days)
@@ -438,10 +439,6 @@ CREATE TABLE user_subscriptions (
   start_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   end_date TIMESTAMP WITH TIME ZONE NOT NULL,
   status subscription_status DEFAULT 'ACTIVE',
-  cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
-  cancelled_at TIMESTAMP WITH TIME ZONE,
-  stripe_customer_id TEXT,
-  stripe_subscription_id TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -454,7 +451,6 @@ WHERE status = 'ACTIVE';
 CREATE INDEX idx_user_subscriptions_user 
 ON user_subscriptions(user_id);
 CREATE INDEX idx_user_subscriptions_status ON user_subscriptions(status);
-CREATE INDEX idx_user_subscriptions_stripe_sub ON user_subscriptions(stripe_subscription_id);
 
 CREATE TRIGGER trg_user_subscriptions_updated_at
 BEFORE UPDATE ON user_subscriptions
@@ -496,7 +492,6 @@ CREATE TABLE subscription_payments(
   payment_status payment_status DEFAULT 'PENDING',
   coupon_id UUID REFERENCES coupons(id) ON DELETE SET NULL,
   stripe_payment_intent_id TEXT UNIQUE,
-  stripe_invoice_id TEXT,
   paid_at TIMESTAMP WITH TIME ZONE,
   failure_reason TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -505,7 +500,6 @@ CREATE TABLE subscription_payments(
 
 CREATE INDEX idx_subscription_payment_user_subscription ON subscription_payments(user_subscription_id);
 CREATE INDEX idx_subscription_payments_status ON subscription_payments(payment_status);
-CREATE INDEX idx_subscription_payments_invoice ON subscription_payments(stripe_invoice_id);
 
 CREATE TRIGGER trg_subscription_payments_updated_at
 BEFORE UPDATE ON subscription_payments
@@ -558,6 +552,7 @@ CREATE TABLE stripe_webhook_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   stripe_event_id TEXT NOT NULL UNIQUE,
   event_type TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING',
   processed_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

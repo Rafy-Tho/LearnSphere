@@ -17,6 +17,10 @@ export const userSubscriptionIdParamValidator = checkSchema({
   subscriptionId: uuidParamValidator("User subscription ID"),
 });
 
+export const couponIdParamValidator = checkSchema({
+  couponId: uuidParamValidator("Coupon ID"),
+});
+
 export const checkoutBodyValidator = checkSchema({
   coupon_code: textValidator("Coupon code", true, 50),
 });

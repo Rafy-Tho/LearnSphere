@@ -8,14 +8,10 @@ import planRepository from "./plan.repository.js";
 import refundRepository from "./refund.repository.js";
 import subscriptionRepository from "./subscription.repository.js";
 import webhookEventRepository from "./webhook-event.repository.js";
-
-const REFUND_STATUS_MAP = {
-  pending: "PENDING",
-  requires_action: "PENDING",
-  succeeded: "SUCCEEDED",
-  failed: "FAILED",
-  canceled: "FAILED",
-};
+import {
+  mapRefundStatus,
+  syncPaymentRefundStatus,
+} from "./refund-status.js";
 
 function roundMoney(value) {
   return Math.round(Number(value) * 100) / 100;
@@ -120,6 +116,13 @@ class StripeWebhookService {
         : roundMoney(subtotal - discount);
     const currency = plan.currency || "usd";
 
+    // Expire any overdue ACTIVE rows so the unique active-subscription index
+    // does not block provisioning a repurchase.
+    await this.subscriptionRepository.expireOverdueSubscriptions({
+      userId,
+      client,
+    });
+
     const userSubscription =
       await this.subscriptionRepository.createUserSubscription(
         { userId, subscriptionPlanId: planId, endDate },
@@ -203,7 +206,31 @@ class StripeWebhookService {
       });
       return null;
     }
-    return this.syncPaymentRefundStatus(payment, client);
+
+    const refunds = Array.isArray(charge.refunds?.data)
+      ? charge.refunds.data
+      : [];
+
+    for (const refund of refunds) {
+      const status = mapRefundStatus(refund.status);
+      await this.refundRepository.upsertByStripeRefundId(
+        {
+          paymentId: payment.id,
+          amount: Number(refund.amount || 0) / 100,
+          currency: refund.currency || payment.currency || "usd",
+          status,
+          stripeRefundId: refund.id,
+          reason: refund.reason || null,
+          refundedAt:
+            status === "SUCCEEDED" && refund.created
+              ? new Date(refund.created * 1000)
+              : null,
+        },
+        client,
+      );
+    }
+
+    return this.#syncRefundStatus(payment, client);
   }
 
   async handleRefundUpsert(refund, client) {
@@ -218,7 +245,7 @@ class StripeWebhookService {
       return null;
     }
 
-    const status = REFUND_STATUS_MAP[refund.status] || "PENDING";
+    const status = mapRefundStatus(refund.status);
     const refundedAt =
       status === "SUCCEEDED" && refund.created
         ? new Date(refund.created * 1000)
@@ -237,30 +264,16 @@ class StripeWebhookService {
       client,
     );
 
-    return this.syncPaymentRefundStatus(payment, client);
+    return this.#syncRefundStatus(payment, client);
   }
 
-  async syncPaymentRefundStatus(payment, client) {
-    const refunded = await this.refundRepository.sumByPayment(
-      payment.id,
+  #syncRefundStatus(payment, client) {
+    return syncPaymentRefundStatus({
+      paymentRepository: this.paymentRepository,
+      refundRepository: this.refundRepository,
+      payment,
       client,
-    );
-    const total = Number(payment.amount);
-
-    let status = payment.payment_status;
-    if (total > 0 && refunded >= total) status = "REFUNDED";
-    else if (refunded > 0) status = "PARTIALLY_REFUNDED";
-
-    if (status !== payment.payment_status) {
-      await this.paymentRepository.updatePaymentStatus(
-        payment.id,
-        status,
-        null,
-        client,
-      );
-    }
-
-    return { paymentId: payment.id, refunded, status };
+    });
   }
 }
 

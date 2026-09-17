@@ -4,6 +4,7 @@ import { LogOut } from "lucide-react";
 import { avatarMenuItems } from "@/constants/avatarMenuItems";
 import ThemeSelector from "@/components/common/ThemeSelector";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import UserAvatar from "@/components/common/UserAvatar";
 
 function Avatar({ user, onLogout, isAvatarOpen, toggleAvatar, closeAll }) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -17,10 +18,10 @@ function Avatar({ user, onLogout, isAvatarOpen, toggleAvatar, closeAll }) {
         aria-haspopup="true"
         aria-label="Open user menu"
       >
-        <img
-          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
+        <UserAvatar
           src={user?.image_url}
-          alt="User avatar"
+          name={user?.name}
+          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full cursor-pointer hover:ring-2 hover:ring-primary transition-shadow"
         />
       </button>
 

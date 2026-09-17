@@ -37,6 +37,8 @@ import meSubscriptionRoute from "../modules/subscriptions/me.routes.js";
 import mePaymentsRoute from "../modules/subscriptions/me-payments.routes.js";
 import couponsRoute from "../modules/subscriptions/coupons.routes.js";
 import {
+  adminBillingRoute,
+  adminCouponsRoute,
   adminPaymentsRoute,
   adminPlansRoute,
   adminSubscriptionsRoute,
@@ -94,5 +96,7 @@ export function registerRoutes(app) {
   app.use("/api/v1/admin/plans", adminPlansRoute);
   app.use("/api/v1/admin/subscriptions", adminSubscriptionsRoute);
   app.use("/api/v1/admin/payments", adminPaymentsRoute);
+  app.use("/api/v1/admin/coupons", adminCouponsRoute);
+  app.use("/api/v1/admin/billing", adminBillingRoute);
   app.use("/api/v1/admin", adminRoute);
 }

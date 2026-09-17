@@ -1,3 +1,4 @@
+import StatusCode from "../../common/constants/status-code.js";
 import asyncHandler from "../../common/http/async-handler.js";
 import { sendSuccess } from "../../common/http/response.js";
 import couponService from "./coupon.service.js";
@@ -31,6 +32,56 @@ class CouponController {
       },
       { message: "Coupon applied successfully" },
     );
+  });
+
+  getCoupons = asyncHandler(async (req, res) => {
+    const { coupons, pagination } = await this.couponService.getCoupons(
+      req.query,
+    );
+
+    return sendSuccess(res, coupons, {
+      message: "Coupons retrieved successfully",
+      pagination,
+    });
+  });
+
+  createCoupon = asyncHandler(async (req, res) => {
+    const coupon = await this.couponService.createCoupon(req.body);
+
+    return sendSuccess(res, coupon, {
+      statusCode: StatusCode.CREATED,
+      message: "Coupon created successfully",
+    });
+  });
+
+  updateCoupon = asyncHandler(async (req, res) => {
+    const coupon = await this.couponService.updateCoupon(
+      req.params.couponId,
+      req.body,
+    );
+
+    return sendSuccess(res, coupon, { message: "Coupon updated successfully" });
+  });
+
+  setCouponActive = asyncHandler(async (req, res) => {
+    const coupon = await this.couponService.setCouponActive(
+      req.params.couponId,
+      req.body.is_active,
+    );
+
+    return sendSuccess(res, coupon, { message: "Coupon updated successfully" });
+  });
+
+  getRedemptions = asyncHandler(async (req, res) => {
+    const { redemptions, pagination } = await this.couponService.getRedemptions(
+      req.params.couponId,
+      req.query,
+    );
+
+    return sendSuccess(res, redemptions, {
+      message: "Coupon redemptions retrieved successfully",
+      pagination,
+    });
   });
 }
 

@@ -1876,7 +1876,7 @@ INSERT INTO quizzes (id, lesson_id, question, explanation, position) VALUES
    'Automation should read secrets from a managed store so nothing sensitive touches logs or git.', 4),
   ('03900000-0000-4000-8000-000000000529', '03900000-0000-4000-8000-000000000328',
    'What is the recommended module design principle?',
-   'Small modules with clear contracts compose well and are easier to review and test.', 2)
+   'Small modules with clear contracts compose well and are easier to review and test.', 5)
 ON CONFLICT (id) DO NOTHING;
 
 -- ----------------------------------------------------------------------------

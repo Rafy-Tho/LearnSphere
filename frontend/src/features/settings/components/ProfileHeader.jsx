@@ -1,6 +1,6 @@
 import { Calendar, Camera, Check, Edit3, MapPin, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import Avatar from "@/features/settings/components/Avatar";
+import UserAvatar from "@/components/common/UserAvatar";
 import InputField from "@/features/settings/components/InputField";
 import Textarea from "@/components/ui/Textarea";
 function ProfileHeader({
@@ -42,7 +42,12 @@ function ProfileHeader({
       <div className="px-4 pb-6 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-10 mb-4">
           <div className="relative w-fit">
-            <Avatar src={preview || field("image")} name={field("name")} />
+            <UserAvatar
+              src={preview || field("image")}
+              name={field("name")}
+              size={96}
+              className="rounded-full border-4 border-surface shadow-md flex-shrink-0"
+            />
             {editMode && (
               <label
                 htmlFor="avatar"

@@ -1,13 +1,16 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
+import logger from "../../common/logger.js";
 import {
   buildPagination,
   parsePagination,
 } from "../../common/query/pagination.js";
 import environment from "../../config/environment.js";
 import stripe from "../../config/stripe.js";
+import { withTransaction } from "../../config/database.js";
 import userRepository from "../users/repository.js";
 import couponService from "./coupon.service.js";
+import paymentRepository from "./payment.repository.js";
 import planRepository from "./plan.repository.js";
 import subscriptionRepository from "./subscription.repository.js";
 
@@ -27,11 +30,13 @@ class SubscriptionService {
     planRepository,
     couponService,
     userRepository,
+    paymentRepository,
   }) {
     this.subscriptionRepository = subscriptionRepository;
     this.planRepository = planRepository;
     this.couponService = couponService;
     this.userRepository = userRepository;
+    this.paymentRepository = paymentRepository;
   }
 
   async getActiveSubscription(userId) {
@@ -46,12 +51,16 @@ class SubscriptionService {
   }
 
   async getMySubscription(userId) {
+    // Lazy expiration: keep the persisted status consistent with end_date.
+    await this.subscriptionRepository.expireOverdueSubscriptions({ userId });
+
     const active =
       await this.subscriptionRepository.getActivePaidSubscription(userId);
 
     if (active) {
       return {
         ...active,
+        status: "ACTIVE",
         has_subscription: true,
         is_active: true,
         days_remaining: daysRemaining(active.end_date),
@@ -64,6 +73,7 @@ class SubscriptionService {
 
     return {
       ...latest,
+      status: latest.subscription_status || "EXPIRED",
       has_subscription: true,
       is_active: false,
       days_remaining: 0,
@@ -78,6 +88,9 @@ class SubscriptionService {
     if (!plan.is_active) {
       throw new ApiError(StatusCode.BAD_REQUEST, "Plan is not available");
     }
+
+    // Clear any overdue ACTIVE rows so the new subscription can be provisioned.
+    await this.subscriptionRepository.expireOverdueSubscriptions({ userId });
 
     const activeSubscription =
       await this.subscriptionRepository.getActivePaidSubscription(userId);
@@ -145,10 +158,15 @@ class SubscriptionService {
     const { page, limit, offset } = parsePagination(query, {
       defaultLimit: 20,
     });
+    const filters = { status: query.status, search: query.search };
 
     const [subscriptions, total] = await Promise.all([
-      this.subscriptionRepository.findAllUserSubscriptions({ limit, offset }),
-      this.subscriptionRepository.countUserSubscriptions(),
+      this.subscriptionRepository.findAllUserSubscriptions({
+        limit,
+        offset,
+        ...filters,
+      }),
+      this.subscriptionRepository.countUserSubscriptions(filters),
     ]);
 
     return {
@@ -157,48 +175,80 @@ class SubscriptionService {
     };
   }
 
-  async createUserSubscription({
-    user_id,
-    plan_id,
-    start_date,
-    end_date,
-    status,
-  }) {
+  async getUserSubscriptionDetail(subscriptionId) {
+    const subscription =
+      await this.subscriptionRepository.findUserSubscriptionById(
+        subscriptionId,
+      );
+    if (!subscription) {
+      throw new ApiError(StatusCode.NOT_FOUND, "User subscription not found");
+    }
+
+    const payments =
+      await this.paymentRepository.findPaymentsBySubscription(subscriptionId);
+
+    return { ...subscription, payments };
+  }
+
+  // Administrative override: provisions access without a payment. Kept separate
+  // from the normal paid flow and always audited.
+  async adminOverrideSubscription(
+    { user_id, plan_id, start_date, end_date, reason },
+    adminId,
+  ) {
     if (!user_id || !plan_id) {
       throw new ApiError(
         StatusCode.BAD_REQUEST,
         "user_id and plan_id are required",
       );
     }
-    return this.subscriptionRepository.adminCreateUserSubscription({
-      userId: user_id,
-      planId: plan_id,
-      startDate: start_date || new Date().toISOString(),
-      endDate: end_date,
-      status,
-    });
-  }
 
-  async updateUserSubscription(subscriptionId, subscriptionData) {
-    const existingSubscription =
-      await this.subscriptionRepository.findUserSubscriptionById(
-        subscriptionId,
+    const user = await this.userRepository.findById(user_id);
+    if (!user) throw new ApiError(StatusCode.NOT_FOUND, "User not found");
+
+    const plan = await this.planRepository.findById(plan_id);
+    if (!plan) throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
+
+    const startDate = start_date ? new Date(start_date) : new Date();
+    const endDate = end_date
+      ? new Date(end_date)
+      : new Date(
+          startDate.getTime() +
+            Number(plan.duration_days) * 24 * 60 * 60 * 1000,
+        );
+
+    if (endDate <= startDate) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        "end_date must be after start_date",
       );
-    if (!existingSubscription) {
-      throw new ApiError(StatusCode.NOT_FOUND, "User subscription not found");
     }
 
-    return this.subscriptionRepository.updateUserSubscription(subscriptionId, {
-      userId: subscriptionData.user_id || existingSubscription.user_id,
-      planId: subscriptionData.plan_id || existingSubscription.plan_id,
-      startDate: subscriptionData.start_date || existingSubscription.start_date,
-      endDate: subscriptionData.end_date || existingSubscription.end_date,
-      status: subscriptionData.status || existingSubscription.status,
+    const subscription = await withTransaction(async (client) => {
+      await this.subscriptionRepository.expireOverdueSubscriptions({
+        userId: user_id,
+        client,
+      });
+      return this.subscriptionRepository.adminOverrideSubscription(
+        {
+          userId: user_id,
+          planId: plan_id,
+          startDate,
+          endDate,
+        },
+        client,
+      );
     });
-  }
 
-  async deleteUserSubscription(subscriptionId) {
-    await this.subscriptionRepository.deleteUserSubscription(subscriptionId);
+    logger.audit("subscription.admin.override", {
+      adminId,
+      userId: user_id,
+      planId: plan_id,
+      subscriptionId: subscription?.id,
+      reason: reason || null,
+    });
+
+    return subscription;
   }
 }
 
@@ -208,4 +258,5 @@ export default new SubscriptionService({
   planRepository,
   couponService,
   userRepository,
+  paymentRepository,
 });

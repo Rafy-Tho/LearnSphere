@@ -5,13 +5,6 @@ import useAuth from "@/features/auth/hooks/useAuth";
 import Button from "@/components/ui/Button";
 import { formatMoney } from "@/features/subscriptions/utils/money";
 
-const INCLUDED_FEATURES = [
-  "Unlimited access to all courses",
-  "Track your learning progress",
-  "Certificate on course completion",
-  "Priority support",
-];
-
 function durationLabel(days) {
   const value = Number(days);
   if (!value) return "—";
@@ -26,6 +19,7 @@ function PricingCard({ plan, activeSubscription, highlighted = false }) {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const features = Array.isArray(plan.features) ? plan.features : [];
   const isActivePlan = activeSubscription?.plan_id === plan.id;
   const hasActiveSubscription = !!activeSubscription?.is_active;
 
@@ -91,23 +85,25 @@ function PricingCard({ plan, activeSubscription, highlighted = false }) {
         </p>
       </div>
 
-      <ul className="flex-1 space-y-4 mb-8">
-        {INCLUDED_FEATURES.map((feature) => (
-          <li key={feature} className="flex items-center gap-3">
-            <CheckCircle2
-              size={18}
-              className="flex-shrink-0 text-foreground-muted"
-            />
-            <span
-              className={`text-sm ${
-                dimmed ? "text-foreground-muted" : "text-foreground"
-              }`}
-            >
-              {feature}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {features.length > 0 && (
+        <ul className="flex-1 space-y-4 mb-8">
+          {features.map((feature) => (
+            <li key={feature} className="flex items-center gap-3">
+              <CheckCircle2
+                size={18}
+                className="flex-shrink-0 text-foreground-muted"
+              />
+              <span
+                className={`text-sm ${
+                  dimmed ? "text-foreground-muted" : "text-foreground"
+                }`}
+              >
+                {feature}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       <Button
         onClick={startCheckout}
@@ -121,7 +117,7 @@ function PricingCard({ plan, activeSubscription, highlighted = false }) {
           ? "Current Plan"
           : hasActiveSubscription
             ? "Not Available"
-            : "Get Started"}
+            : "Subscribe"}
       </Button>
     </div>
   );

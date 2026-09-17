@@ -180,14 +180,21 @@ Mounted under `/api/v1/admin`.
 | POST | `/users` | Create user |
 | PATCH | `/users/:userId` | Update user |
 | DELETE | `/users/:userId` | Delete user |
-| GET/POST | `/plans` | List (paginated) / create plan |
-| PATCH/DELETE | `/plans/:planId` | Update / delete plan |
-| GET/POST | `/subscriptions` | List (paginated) / create user subscription |
-| PATCH/DELETE | `/subscriptions/:subscriptionId` | Update / delete user subscription |
-| GET/POST | `/payments` | List (paginated) / create payment |
-| PATCH/DELETE | `/payments/:paymentId` | Update / delete payment |
+| GET/POST | `/plans` | List (paginated) / create plan (with `features`) |
+| PATCH/DELETE | `/plans/:planId` | Update / deactivate or delete plan |
+| GET | `/subscriptions` | List subscriptions (paginated; `status`/`search` filters) |
+| GET | `/subscriptions/:subscriptionId` | Subscription detail + related payments |
+| POST | `/subscriptions/override` | Audited administrative override (no payment record) |
+| GET | `/payments` | List payments (paginated; `status`/`search`/`plan_id` filters) |
+| GET | `/payments/:paymentId` | Payment detail + refund totals |
+| GET/POST | `/payments/:paymentId/refunds` | Refund history / issue full or partial Stripe refund |
+| GET/POST | `/coupons` | List / create coupon |
+| PATCH | `/coupons/:couponId` | Update coupon |
+| PATCH | `/coupons/:couponId/status` | Activate / deactivate coupon |
+| GET | `/coupons/:couponId/redemptions` | List users who redeemed the coupon |
+| GET | `/billing/stats` | Billing statistics (subscriptions, payments, revenue, refunds, coupons) |
 
-`/admin/users`, `/admin/plans`, `/admin/subscriptions`, and `/admin/payments` require `auth` + `roles(ADMIN)`; `/admin/dashboard` and `/admin/courses` allow `roles(ADMIN, INSTRUCTOR)`.
+`/admin/users`, `/admin/plans`, `/admin/subscriptions`, `/admin/payments`, `/admin/coupons`, and `/admin/billing` require `auth` + `roles(ADMIN)`; `/admin/dashboard` and `/admin/courses` allow `roles(ADMIN, INSTRUCTOR)`. Admin payments are read-only; refunds are issued through Stripe and synchronized by webhook.
 
 ## 5. Categories
 

@@ -11,9 +11,6 @@ import passwordResetCodeRepository from "./repository.js";
 import emailVerificationCodeRepository from "./email-verification.repository.js";
 import sessionRepository from "./session.repository.js";
 
-const DEFAULT_AVATAR =
-  "https://res.cloudinary.com/dmuu7x5vm/image/upload/v1775903021/men_oquwmw.jpg";
-
 const RESET_CODE_TTL_MS = 10 * 60 * 1000;
 const MAX_RESET_ATTEMPTS = 5;
 const EMAIL_VERIFICATION_TTL_MS = 10 * 60 * 1000;
@@ -55,7 +52,7 @@ class AuthService {
 
     const user = await withTransaction(async (client) => {
       const createdUser = await this.userRepository.create(
-        { email, password: hashedPassword, name, imageUrl: DEFAULT_AVATAR },
+        { email, password: hashedPassword, name, imageUrl: null },
         client,
       );
       await this.userRepository.createProfile(createdUser.id, client);

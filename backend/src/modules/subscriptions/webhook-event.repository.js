@@ -20,7 +20,8 @@ class WebhookEventRepository {
   async markProcessed(id, client = this.db) {
     await client.query(
       `UPDATE stripe_webhook_events
-       SET processed_at = CURRENT_TIMESTAMP
+       SET processed_at = CURRENT_TIMESTAMP,
+           status = 'PROCESSED'
        WHERE id = $1`,
       [id],
     );

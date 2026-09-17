@@ -11,9 +11,6 @@ import { withTransaction } from "../../config/database.js";
 import authService from "../auth/service.js";
 import userRepository from "../users/repository.js";
 
-const DEFAULT_AVATAR =
-  "https://res.cloudinary.com/dmuu7x5vm/image/upload/v1775903021/men_oquwmw.jpg";
-
 class AdminUserService {
   constructor({ userRepository, hashService, authService }) {
     this.userRepository = userRepository;
@@ -60,7 +57,7 @@ class AdminUserService {
 
     const user = await withTransaction(async (client) => {
       const createdUser = await this.userRepository.create(
-        { name, email, password: hashedPassword, imageUrl: DEFAULT_AVATAR },
+        { name, email, password: hashedPassword, imageUrl: null },
         client,
       );
 

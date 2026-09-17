@@ -40,35 +40,27 @@ class SubscriptionController {
     });
   });
 
-  createUserSubscription = asyncHandler(async (req, res) => {
-    const subscription = await this.subscriptionService.createUserSubscription(
-      req.body,
-    );
+  getUserSubscription = asyncHandler(async (req, res) => {
+    const subscription =
+      await this.subscriptionService.getUserSubscriptionDetail(
+        req.params.subscriptionId,
+      );
+
+    return sendSuccess(res, subscription, {
+      message: "User subscription retrieved successfully",
+    });
+  });
+
+  createUserSubscriptionOverride = asyncHandler(async (req, res) => {
+    const subscription =
+      await this.subscriptionService.adminOverrideSubscription(
+        req.body,
+        req.session.user.id,
+      );
 
     return sendSuccess(res, subscription, {
       statusCode: StatusCode.CREATED,
-      message: "User subscription created successfully",
-    });
-  });
-
-  updateUserSubscription = asyncHandler(async (req, res) => {
-    const subscription = await this.subscriptionService.updateUserSubscription(
-      req.params.subscriptionId,
-      req.body,
-    );
-
-    return sendSuccess(res, subscription, {
-      message: "User subscription updated successfully",
-    });
-  });
-
-  deleteUserSubscription = asyncHandler(async (req, res) => {
-    await this.subscriptionService.deleteUserSubscription(
-      req.params.subscriptionId,
-    );
-
-    return sendSuccess(res, null, {
-      message: "User subscription deleted successfully",
+      message: "Subscription override applied successfully",
     });
   });
 }

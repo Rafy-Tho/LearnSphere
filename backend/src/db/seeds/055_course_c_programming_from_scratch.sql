@@ -1026,4 +1026,1103 @@ returns 120</pre>
 </html>
 $html$
 ),
--- @@CONTENT@@
+(
+  '03700000-0000-4000-8000-000000000416',
+  '03700000-0000-4000-8000-000000000316',
+  1,
+  'Arrays',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arrays</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Arrays</h1>
+  <p>An array stores a fixed number of values of the same type in one contiguous block of memory. Because the elements sit side by side, they can be accessed instantly by index.</p>
+  <h2>Declaring and initializing</h2>
+  <pre class="code-block">int    scores[5];                     // five uninitialized ints
+int    primes[4] = {2, 3, 5, 7};      // explicit values
+int    zeros[10] = {0};               // first is 0, rest filled with 0
+int    more[] = {1, 1, 2, 3, 5, 8};   // size inferred as 6</pre>
+  <h2>Indexing starts at zero</h2>
+  <pre class="code-block">int primes[4] = {2, 3, 5, 7};
+
+printf("%d\n", primes[0]);   // 2  — the first element
+printf("%d\n", primes[3]);   // 7  — the last element
+
+primes[1] = 11;              // overwrite the second element</pre>
+  <h2>Iterating</h2>
+  <pre class="code-block">int numbers[5] = {10, 20, 30, 40, 50};
+int sum = 0;
+
+for (int i = 0; i &lt; 5; i++) {
+    sum += numbers[i];
+}
+printf("Total = %d\n", sum);   // 150</pre>
+  <h2>Size and element count</h2>
+  <pre class="code-block">int numbers[5];
+
+size_t bytes = sizeof numbers;                   // 20 (5 * 4)
+size_t count = sizeof numbers / sizeof numbers[0]; // 5</pre>
+  <p>This only works where the array type is still known. Once an array is passed to a function it decays to a pointer, and you must pass the length separately.</p>
+  <pre class="code-block">int sum_array(const int values[], size_t count) {
+    int total = 0;
+    for (size_t i = 0; i &lt; count; i++) {
+        total += values[i];
+    }
+    return total;
+}</pre>
+  <div class="callout">
+    <strong>C does not check bounds</strong>
+    <p>Accessing <span class="ic">primes[4]</span> on a four-element array is undefined behavior. The compiler will not stop you, and the program may read or corrupt unrelated memory.</p>
+  </div>
+  <div class="callout callout-tip">
+    <strong>Pass the length</strong>
+    <p>Whenever you hand an array to a function, also hand it the element count. Functions have no reliable way to discover the length on their own.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
+(
+  '03700000-0000-4000-8000-000000000417',
+  '03700000-0000-4000-8000-000000000317',
+  1,
+  'Strings',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strings</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.lesson-page table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+.lesson-page table th, .lesson-page table td { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; }
+.lesson-page table th { background: #f0fdfa; color: #0f766e; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+.dark .lesson-page table th, .dark .lesson-page table td { border-color: #4b5563; }
+.dark .lesson-page table th { background: #042f2e; color: #5eead4; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Strings</h1>
+  <p>C has no built-in string type. A string is simply an array of <span class="ic">char</span> whose last element is the <strong>null terminator</strong>, the character <span class="ic">'\0'</span>.</p>
+  <h2>A string is a char array</h2>
+  <pre class="code-block">char greeting[6] = {'H', 'e', 'l', 'l', 'o', '\0'};
+char same[]     = "Hello";   // the compiler adds '\0' for you</pre>
+  <p>Both arrays hold six bytes. The visible text is five characters; the sixth marks the end.</p>
+  <h2>The null terminator</h2>
+  <pre class="code-block">"Hello"
+ H   e   l   l   o   \0
+[0] [1] [2] [3] [4] [5]</pre>
+  <p>Every string function walks the array until it sees <span class="ic">'\0'</span>. Forget it and functions will read past the end of your buffer.</p>
+  <h2>Useful functions from string.h</h2>
+  <table>
+    <tr><th>Function</th><th>Purpose</th></tr>
+    <tr><td>strlen(s)</td><td>number of characters before <span class="ic">'\0'</span></td></tr>
+    <tr><td>strcpy(dst, src)</td><td>copy a string (ensure dst is large enough)</td></tr>
+    <tr><td>strcat(dst, src)</td><td>append src to the end of dst</td></tr>
+    <tr><td>strcmp(a, b)</td><td>0 if equal, negative/positive if ordered</td></tr>
+  </table>
+  <pre class="code-block">#include &lt;string.h&gt;
+
+char name[32] = "Ada";
+
+printf("%zu\n", strlen(name));      // 3
+
+strcat(name, " Lovelace");
+printf("%s\n", name);               // "Ada Lovelace"
+
+if (strcmp(name, "Ada Lovelace") == 0) {
+    printf("Match\n");
+}</pre>
+  <div class="callout">
+    <strong>Strings are not values</strong>
+    <p>You cannot assign one array to another with <span class="ic">=</span> or compare them with <span class="ic">==</span>. Use <span class="ic">strcpy</span> to copy and <span class="ic">strcmp</span> to compare.</p>
+  </div>
+  <h2>Reading a line safely with fgets</h2>
+  <pre class="code-block">char line[100];
+
+printf("Your name: ");
+if (fgets(line, sizeof line, stdin) != NULL) {
+    line[strcspn(line, "\n")] = '\0';   // remove the newline
+    printf("Hello, %s!\n", line);
+}</pre>
+  <div class="callout callout-tip">
+    <strong>Never use gets</strong>
+    <p><span class="ic">gets</span> cannot limit how many characters it reads, so it overflows buffers and was removed from the C standard. Always prefer <span class="ic">fgets</span>.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
+(
+  '03700000-0000-4000-8000-000000000419',
+  '03700000-0000-4000-8000-000000000319',
+  1,
+  'Pointers',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointers</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Pointers</h1>
+  <p>Every variable lives at a memory address. A <strong>pointer</strong> is a variable that stores such an address instead of a plain value. Two operators drive the whole idea: <span class="ic">&amp;</span> takes an address, <span class="ic">*</span> follows one.</p>
+  <h2>Addresses with &amp;</h2>
+  <pre class="code-block">int value = 42;
+
+printf("%p\n", (void *)&amp;value);   // some address like 0x7ffc8f1a</pre>
+  <h2>Declaring and dereferencing</h2>
+  <pre class="code-block">int  value = 42;
+int *ptr   = &amp;value;    // ptr stores the address of value
+
+printf("%d\n", *ptr);   // 42 — dereference: follow ptr to the value
+
+*ptr = 99;              // writes THROUGH the pointer
+printf("%d\n", value);  // 99 — value changed too</pre>
+  <h2>NULL — a pointer worth nothing</h2>
+  <p>A pointer that does not yet hold a real address must be initialized to <span class="ic">NULL</span> or <span class="ic">0</span>. Dereferencing NULL crashes the program.</p>
+  <pre class="code-block">int *ptr = NULL;
+
+if (ptr != NULL) {
+    printf("%d\n", *ptr);   // safe
+} else {
+    printf("Not pointing anywhere\n");
+}</pre>
+  <div class="callout">
+    <strong>Check before you dereference</strong>
+    <p>Functions like <span class="ic">malloc</span> return NULL on failure. Always test the result before using a pointer — this single habit prevents a whole class of crashes.</p>
+  </div>
+  <h2>Why pointers matter</h2>
+  <ul>
+    <li>They let a function modify a caller variable (pass by reference).</li>
+    <li>They let programs share one copy of large data instead of copying it.</li>
+    <li>They are how arrays, strings, and dynamic memory all work under the hood.</li>
+  </ul>
+  <div class="callout callout-tip">
+    <strong>Read declarations right to left</strong>
+    <p><span class="ic">int *ptr</span> means &ldquo;ptr is a pointer to an int.&rdquo; The star binds to the variable name, not to the int.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
+(
+  '03700000-0000-4000-8000-000000000420',
+  '03700000-0000-4000-8000-000000000320',
+  1,
+  'Pointers & Arrays',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pointers &amp; Arrays</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Pointers &amp; Arrays</h1>
+  <p>Arrays and pointers are close cousins in C. When you use an array name, C silently converts it to the address of its first element. Indexing is just pointer arithmetic in disguise.</p>
+  <h2>The array name is an address</h2>
+  <pre class="code-block">int scores[3] = {90, 95, 91};
+int *p = scores;          // same as &amp;scores[0]
+
+printf("%d\n", *p);       // 90 — first element</pre>
+  <h2>Pointer arithmetic</h2>
+  <p>Adding one to an <span class="ic">int *</span> moves it forward by one int (four bytes), not one byte. The compiler scales by the size of the pointed-to type.</p>
+  <pre class="code-block">int scores[3] = {90, 95, 91};
+
+printf("%d\n", *(scores + 1));   // 95 — same as scores[1]
+printf("%d\n", scores[2]);       // 91
+printf("%d\n", *(scores + 2));   // 91</pre>
+  <h2>Passing arrays to functions</h2>
+  <p>Passing an array passes its address, so a function can modify the caller data — and receives no length. Pass the count separately.</p>
+  <pre class="code-block">void bump_all(int *arr, size_t count) {
+    for (size_t i = 0; i &lt; count; i++) {
+        arr[i] += 1;       // arr[i] is *(arr + i)
+    }
+}
+
+int main(void) {
+    int temps[3] = {20, 21, 19};
+    bump_all(temps, 3);    // the caller array changed
+    printf("%d %d %d\n", temps[0], temps[1], temps[2]);   // 21 22 20
+    return 0;
+}</pre>
+  <h2>Strings as const char *</h2>
+  <pre class="code-block">const char *greeting = "Hello";   // points at a read-only literal
+char        buffer[16];
+strcpy(buffer, greeting);          // copy into an editable buffer</pre>
+  <div class="callout">
+    <strong>Do not modify string literals</strong>
+    <p>A literal such as <span class="ic">"Hello"</span> lives in read-only memory. Writing through a <span class="ic">char *</span> pointing at it is undefined behavior. Copy it first.</p>
+  </div>
+  <div class="callout callout-tip">
+    <strong>indexing is pointer arithmetic</strong>
+    <p>The compiler treats <span class="ic">arr[i]</span> and <span class="ic">*(arr + i)</span> identically. Pointer arithmetic explains why arrays start at index zero: <span class="ic">*(arr + 0)</span> is the first element.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
+(
+  '03700000-0000-4000-8000-000000000422',
+  '03700000-0000-4000-8000-000000000322',
+  1,
+  'Dynamic Memory',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dynamic Memory</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.lesson-page table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+.lesson-page table th, .lesson-page table td { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; }
+.lesson-page table th { background: #f0fdfa; color: #0f766e; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+.dark .lesson-page table th, .dark .lesson-page table td { border-color: #4b5563; }
+.dark .lesson-page table th { background: #042f2e; color: #5eead4; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Dynamic Memory</h1>
+  <p>So far, every variable lived on the <strong>stack</strong> with a size fixed at compile time. Dynamic memory — the <strong>heap</strong> — lets a program ask for memory while it runs and keep it as long as needed.</p>
+  <h2>Stack vs heap</h2>
+  <table>
+    <tr><th></th><th>Stack</th><th>Heap</th></tr>
+    <tr><td>Size</td><td>Known at compile time</td><td>Decided at runtime</td></tr>
+    <tr><td>Lifetime</td><td>Ends at block end</td><td>Until you free it</td></tr>
+    <tr><td>Speed</td><td>Very fast</td><td>Slower to allocate</td></tr>
+    <tr><td>Limit</td><td>Tight, must be small</td><td>Limited by available RAM</td></tr>
+  </table>
+  <h2>malloc — allocate uninitialized memory</h2>
+  <p><span class="ic">malloc</span> takes a byte count and returns a pointer, or NULL on failure. Always include <span class="ic">&lt;stdlib.h&gt;</span>.</p>
+  <pre class="code-block">int *nums = malloc(5 * sizeof(int));
+if (nums != NULL) {
+    nums[0] = 10;                  // ready to use
+    nums[4] = 50;
+    free(nums);                    // give the memory back
+}</pre>
+  <div class="callout">
+    <strong>Always check the result</strong>
+    <p>Allocation can fail, returning NULL. Dereferencing NULL crashes the program, so test every allocation before using it.</p>
+  </div>
+  <h2>calloc and realloc</h2>
+  <p><span class="ic">calloc</span> clears the memory to zero. <span class="ic">realloc</span> resizes an existing block, copying the old contents when it has to move.</p>
+  <pre class="code-block">int *a = calloc(5, sizeof(int));   // five zeroed ints
+a[0] = 7;
+
+int *b = realloc(a, 10 * sizeof(int));
+if (b != NULL) {
+    a = b;                         // adopt the resized block
+    a[9] = 99;
+    free(a);
+}</pre>
+  <h2>free — always return what you take</h2>
+  <pre class="code-block">char *name = malloc(64);
+strcpy(name, "Grace Hopper");
+printf("%s\n", name);
+free(name);       // memory is returned to the heap
+// name is now a DANGEROUS pointer: do not use it again</pre>
+  <div class="callout callout-info">
+    <strong>Memory leaks</strong>
+    <p>Forgetting to free memory — especially in a long-running program — lets the heap grow until the system runs out. Every malloc must eventually have a matching free.</p>
+  </div>
+  <div class="callout callout-tip">
+    <strong>Set the pointer to NULL after free</strong>
+    <p>After <span class="ic">free(ptr)</span>, set <span class="ic">ptr = NULL</span>. It turns accidental reuse into a safe NULL check instead of a subtle crash or corruption.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
+(
+  '03700000-0000-4000-8000-000000000423',
+  '03700000-0000-4000-8000-000000000323',
+  1,
+  'Structs',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Structs</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Structs</h1>
+  <p>A <strong>struct</strong> groups related values into one named type. Where arrays hold many values of the same type, structs hold a few values of different types.</p>
+  <h2>Defining a struct</h2>
+  <pre class="code-block">struct Student {
+    char  name[50];
+    int   age;
+    float gpa;
+};</pre>
+  <h2>Creating and accessing</h2>
+  <p>Use the dot operator <span class="ic">.</span> to read and write members of a struct value.</p>
+  <pre class="code-block">struct Student s1;
+strcpy(s1.name, "Ada");
+s1.age = 36;
+s1.gpa = 3.9;
+
+s1.age = 37;                       // update a member
+printf("%s is %d years old\n", s1.name, s1.age);</pre>
+  <p>You can initialize all members at once with a brace list:</p>
+  <pre class="code-block">struct Student s2 = {"Alan", 41, 3.7};</pre>
+  <h2>typedef — a shorter name</h2>
+  <pre class="code-block">typedef struct Student Student;
+
+Student s3;                        // no need to write "struct" again
+Student s4 = {"Grace", 45, 4.0};</pre>
+  <h2>Pointers to structs</h2>
+  <p>Accessing a member through a pointer uses <span class="ic">-&gt;</span> (arrow) instead of a dot.</p>
+  <pre class="code-block">Student *sp = &amp;s4;
+
+sp-&gt;age = 46;                 // same as (*sp).age = 46;
+printf("%s\n", sp-&gt;name);     // Grace</pre>
+  <h2>Arrays of structs</h2>
+  <pre class="code-block">Student class[3] = { {"Ada", 36, 3.9}, {"Alan", 41, 3.7}, {"Grace", 45, 4.0} };
+
+for (int i = 0; i &lt; 3; i++) {
+    printf("%-10s %.1f\n", class[i].name, class[i].gpa);
+}</pre>
+  <div class="callout callout-tip">
+    <strong>Think of structs as nouns</strong>
+    <p>Structs model real things — a student, a point, a task. The capstone task manager models each to-do as a struct, exactly like you will here.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
+(
+  '03700000-0000-4000-8000-000000000425',
+  '03700000-0000-4000-8000-000000000325',
+  1,
+  'File I/O',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File I/O</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.lesson-page table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+.lesson-page table th, .lesson-page table td { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; }
+.lesson-page table th { background: #f0fdfa; color: #0f766e; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+.dark .lesson-page table th, .dark .lesson-page table td { border-color: #4b5563; }
+.dark .lesson-page table th { background: #042f2e; color: #5eead4; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>File I/O</h1>
+  <p>Memory disappears when a program exits. To persist data — settings, scores, todo lists — you write it to a file. The <span class="ic">&lt;stdio.h&gt;</span> file API mirrors the console functions you already know.</p>
+  <h2>Opening a file</h2>
+  <p><span class="ic">fopen</span> takes a path and a mode, and returns a <span class="ic">FILE *</span> or NULL on failure.</p>
+  <table>
+    <tr><th>Mode</th><th>Meaning</th></tr>
+    <tr><td>"r"</td><td>read (file must exist)</td></tr>
+    <tr><td>"w"</td><td>write (truncates existing content)</td></tr>
+    <tr><td>"a"</td><td>append (create if missing)</td></tr>
+    <tr><td>"r+" / "w+"</td><td>read and write</td></tr>
+  </table>
+  <pre class="code-block">FILE *file = fopen("notes.txt", "w");
+if (file == NULL) {
+    perror("notes.txt");
+    return 1;                       // exit with an error code
+}</pre>
+  <div class="callout">
+    <strong>Check every fopen</strong>
+    <p>Files fail to open all the time — wrong path, missing permissions, a full disk. Test the returned pointer before writing; perror prints a helpful reason.</p>
+  </div>
+  <h2>Writing with fprintf</h2>
+  <pre class="code-block">int   level = 3;
+char  name[32] = "Mario";
+
+FILE *file = fopen("save.txt", "w");
+if (file != NULL) {
+    fprintf(file, "%s %d\n", name, level);
+    fclose(file);
+}</pre>
+  <h2>Reading a line with fgets</h2>
+  <pre class="code-block">char line[256];
+
+FILE *file = fopen("save.txt", "r");
+if (file != NULL) {
+    while (fgets(line, sizeof line, file) != NULL) {
+        printf("%s", line);          // each line, one at a time
+    }
+    fclose(file);
+}</pre>
+  <p><span class="ic">fgets</span> reads at most size-1 characters, plants a terminating NUL, and stops safely — never any buffer overflow.</p>
+  <h2>Parsing structured data with fscanf</h2>
+  <pre class="code-block">char name[32];
+int  level;
+
+FILE *file = fopen("save.txt", "r");
+if (file != NULL) {
+    while (fscanf(file, "%31s %d", name, &amp;level) == 2) {
+        printf("%s is level %d\n", name, level);
+    }
+    fclose(file);
+}</pre>
+  <h2>Always close</h2>
+  <pre class="code-block">if (fclose(file) != 0) {
+    perror("fclose");
+}</pre>
+  <div class="callout callout-tip">
+    <strong>Close before exiting</strong>
+    <p><span class="ic">fclose</span> flushes buffered writes to disk. If a program exits without closing (or flushing with <span class="ic">fflush</span>), data can be silently lost.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
+(
+  '03700000-0000-4000-8000-000000000426',
+  '03700000-0000-4000-8000-000000000326',
+  1,
+  'Debugging with gdb',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debugging with gdb</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Debugging with gdb</h1>
+  <p>When a program crashes or misbehaves, you need to see inside it. Two tools cover nearly every case: compiler warnings catch mistakes at build time, and the GNU debugger (<span class="ic">gdb</span>) lets you stop and inspect a running program.</p>
+  <h2>Hear the compiler first</h2>
+  <pre class="code-block">gcc -Wall -Wextra -std=c17 -o prog prog.c</pre>
+  <div class="callout">
+    <strong>Warnings are almost always bugs</strong>
+    <p>Treat <span class="ic">-Wall -Wextra</span> output as errors: uninitialized variables, sign mismatches, and careless returns are usually reported before the program even runs. Fix them.</p>
+  </div>
+  <h2>Compile with symbols</h2>
+  <p>The <span class="ic">-g</span> flag embeds source and variable information so gdb can show you line numbers and names.</p>
+  <pre class="code-block">gcc -g -Wall -Wextra -o prog prog.c</pre>
+  <h2>A gdb session</h2>
+  <pre class="code-block">gdb ./prog
+
+(gdb) break main          # stop at the start of main
+(gdb) run                 # start the program
+(gdb) next                # one line, step over functions
+(gdb) step                # one line, step INTO functions
+(gdb) print total         # show a variable's value
+(gdb) backtrace           # show the call stack (bt)
+(gdb) continue            # resume until the next breakpoint
+(gdb) quit</pre>
+  <p>If a crash occurs, run the program under gdb: execution stops exactly at the crashing line and <span class="ic">backtrace</span> shows how you got there.</p>
+  <h2>Catching memory errors with Valgrind</h2>
+  <pre class="code-block">valgrind --leak-check=full ./prog</pre>
+  <ul>
+    <li>Reports every invalid read or write — an off-by-one through an array.</li>
+    <li>Flags memory that was allocated but never freed (leaks).</li>
+    <li>Points to the exact line where the misuse happened.</li>
+  </ul>
+  <h2>A checklist for crashes</h2>
+  <ol>
+    <li>Fix every compiler warning first.</li>
+    <li>Look for <span class="ic">scanf</span> calls missing <span class="ic">&amp;</span>.</li>
+    <li>Check for <span class="ic">==</span> written as <span class="ic">=</span>.</li>
+    <li>Run Valgrind to find out-of-bounds and unfreed memory.</li>
+  </ol>
+  <div class="callout callout-tip">
+    <strong>Print is fine too</strong>
+    <p>Early in your career, sprinkle temporary <span class="ic">printf</span> statements to confirm your assumptions. Just remove them before you ship — that is exactly what the gdb capstone exercises teach.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+),
+(
+  '03700000-0000-4000-8000-000000000427',
+  '03700000-0000-4000-8000-000000000327',
+  1,
+  'Capstone: Console Task Manager',
+  $html$
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capstone: Console Task Manager</title>
+<style>
+.lesson-page { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1f2937; max-width: 780px; margin: 0 auto; padding: 8px 16px 32px; }
+.lesson-page h1 { color: #111827; font-size: 28px; border-bottom: 3px solid #0d9488; padding-bottom: 10px; margin-bottom: 20px; }
+.lesson-page h2 { color: #0f766e; font-size: 21px; margin: 28px 0 8px; }
+.lesson-page p { margin: 12px 0; }
+.lesson-page ul, .lesson-page ol { margin: 12px 0; padding-left: 24px; }
+.lesson-page li { margin: 6px 0; }
+.lesson-page .ic { background: #f0fdfa; color: #0f766e; padding: 2px 6px; border-radius: 4px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.92em; }
+.lesson-page pre.code-block { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; }
+.lesson-page .callout { background: #ccfbf1; border-left: 4px solid #0d9488; padding: 12px 16px; border-radius: 6px; margin: 16px 0; }
+.lesson-page .callout-info { background: #e0f2fe; border-left-color: #0ea5e9; }
+.lesson-page .callout-tip { background: #dcfce7; border-left-color: #22c55e; }
+.lesson-page .callout strong { text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; }
+.dark .lesson-page { color: #e5e7eb; }
+.dark .lesson-page h1 { color: #f9fafb; border-bottom-color: #2dd4bf; }
+.dark .lesson-page h2 { color: #5eead4; }
+.dark .lesson-page .ic { background: #042f2e; color: #5eead4; }
+.dark .lesson-page .callout { background: #042f2e; border-left-color: #2dd4bf; }
+.dark .lesson-page .callout-info { background: #0c4a6e; border-left-color: #38bdf8; }
+.dark .lesson-page .callout-tip { background: #14532d; border-left-color: #4ade80; }
+</style>
+</head>
+<body>
+<div class="lesson-page">
+  <h1>Capstone: Console Task Manager</h1>
+  <p>Everything you have learned — types, loops, functions, arrays, strings, structs, malloc, and file I/O — comes together in a command-line <strong>task manager</strong>. Add, list, mark done, and save tasks to disk.</p>
+  <h2>What you will build</h2>
+  <ul>
+    <li>A menu loop that keeps running until the user chooses to quit.</li>
+    <li>Tasks stored in a dynamically sized array of structs.</li>
+    <li>Save and load between runs with fprintf and fscanf.</li>
+  </ul>
+  <h2>Data model</h2>
+  <p>Every task is one struct. Build the full program in a single <span class="ic">tasks.c</span> file.</p>
+  <pre class="code-block">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+typedef struct {
+    char  title[100];
+    int   done;      // 1 = completed, 0 = pending
+} Task;
+
+#define MAX_TASKS 100
+
+Task  tasks[MAX_TASKS];
+int   task_count = 0;</pre>
+  <h2>Core functions</h2>
+  <pre class="code-block">void add_task(const char *title) {
+    if (task_count &lt; MAX_TASKS) {
+        strcpy(tasks[task_count].title, title);
+        tasks[task_count].done = 0;
+        task_count++;
+    } else {
+        printf("Task list is full.\n");
+    }
+}
+
+void list_tasks(void) {
+    for (int i = 0; i &lt; task_count; i++) {
+        printf("%d. [%c] %s\n", i + 1,
+               tasks[i].done ? 'x' : ' ', tasks[i].title);
+    }
+}
+
+void complete_task(int index) {
+    if (index &gt;= 0 &amp;&amp; index &lt; task_count) {
+        tasks[index].done = 1;
+    }
+}</pre>
+  <h2>Saving and loading</h2>
+  <pre class="code-block">void save_tasks(const char *path) {
+    FILE *file = fopen(path, "w");
+    if (file == NULL) {
+        perror(path);
+        return;
+    }
+    for (int i = 0; i &lt; task_count; i++) {
+        fprintf(file, "%d|%s\n", tasks[i].done, tasks[i].title);
+    }
+    fclose(file);
+}
+
+void load_tasks(const char *path) {
+    FILE *file = fopen(path, "r");
+    if (file == NULL) return;
+    task_count = 0;
+    while (task_count &lt; MAX_TASKS
+           &amp;&amp; fscanf(file, "%d|%99[^\n]",
+                     &amp;tasks[task_count].done,
+                     tasks[task_count].title) == 2) {
+        task_count++;
+    }
+    fclose(file);
+}</pre>
+  <h2>Putting it together: the menu loop</h2>
+  <pre class="code-block">int main(void) {
+    char cmd[8];
+    char title[100];
+
+    load_tasks("tasks.txt");
+
+    for (;;) {
+        printf("\n1) Add  2) List  3) Done  4) Quit\n&gt; ");
+        if (scanf("%7s", cmd) != 1) break;
+
+        if (strcmp(cmd, "1") == 0) {
+            printf("Title: ");
+            scanf(" %99[^\n]", title);
+            add_task(title);
+        } else if (strcmp(cmd, "2") == 0) {
+            list_tasks();
+        } else if (strcmp(cmd, "3") == 0) {
+            int n;
+            printf("Number: ");
+            scanf("%d", &amp;n);
+            complete_task(n - 1);
+        } else if (strcmp(cmd, "4") == 0) {
+            break;
+        }
+    }
+
+    save_tasks("tasks.txt");
+    return 0;
+}</pre>
+  <div class="callout callout-tip">
+    <strong>Grow it from here</strong>
+    <p>Try a <span class="ic">delete_task</span>, priorities, or due dates. Each feature is just another function built from the tools you already have.</p>
+  </div>
+  <div class="callout callout-info">
+    <strong>Real persistence</strong>
+    <p>The tasks survive a restart because they live in <span class="ic">tasks.txt</span>. That is a full loop: malloc-free discipline optional here, but the pattern matches what servers do with databases.</p>
+  </div>
+</div>
+</body>
+</html>
+$html$
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- ----------------------------------------------------------------------------
+-- 6. QUIZZES  (29 questions)
+--    Q1-3 for lesson 303 · Q4-6 for 306 · Q7-9 for 309 · Q10-12 for 312
+--    Q13-15 for 315 · Q16-18 for 318 · Q19-21 for 321 · Q22-24 for 324
+--    Q25-29 for final assessment 328.
+-- ----------------------------------------------------------------------------
+
+INSERT INTO quizzes (id, lesson_id, question, explanation, position) VALUES
+  ('03700000-0000-4000-8000-000000000501', '03700000-0000-4000-8000-000000000303',
+   'Who created C at Bell Labs in the early 1970s?',
+   'Dennis Ritchie designed C to build the Unix operating system.', 1),
+  ('03700000-0000-4000-8000-000000000502', '03700000-0000-4000-8000-000000000303',
+   'What does the line #include &lt;stdio.h&gt; do?',
+   'The preprocessor directive declares the standard input and output functions.', 2),
+  ('03700000-0000-4000-8000-000000000503', '03700000-0000-4000-8000-000000000303',
+   'Which function is the entry point of every C program?',
+   'Execution always starts in main.', 3),
+  ('03700000-0000-4000-8000-000000000504', '03700000-0000-4000-8000-000000000306',
+   'Which format specifier prints a signed integer with printf?',
+   '%d is the decimal format specifier for int.', 1),
+  ('03700000-0000-4000-8000-000000000505', '03700000-0000-4000-8000-000000000306',
+   'What must scanf receive to store an int it reads?',
+   'scanf needs the address of the variable, written with the ampersand.', 2),
+  ('03700000-0000-4000-8000-000000000506', '03700000-0000-4000-8000-000000000306',
+   'Which type stores a single character?',
+   'char holds one character, such as grade = ''A''.', 3),
+  ('03700000-0000-4000-8000-000000000507', '03700000-0000-4000-8000-000000000309',
+   'What is the result of 7 % 3?',
+   'The modulo operator returns the remainder, which is 1.', 1),
+  ('03700000-0000-4000-8000-000000000508', '03700000-0000-4000-8000-000000000309',
+   'What does the expression 5 / 2 produce?',
+   'Both operands are int, so the division truncates to 2.', 3),
+  ('03700000-0000-4000-8000-000000000509', '03700000-0000-4000-8000-000000000309',
+   'Which operator means "not equal to"?',
+   'The != operator tests for inequality.', 2),
+  ('03700000-0000-4000-8000-000000000510', '03700000-0000-4000-8000-000000000312',
+   'Which statement selects among several exact cases by value?',
+   'switch compares a value against constant cases.', 3),
+  ('03700000-0000-4000-8000-000000000511', '03700000-0000-4000-8000-000000000312',
+   'Which loop is guaranteed to run its body at least once?',
+   'do-while checks its condition after the body executes.', 1),
+  ('03700000-0000-4000-8000-000000000512', '03700000-0000-4000-8000-000000000312',
+   'What does break do inside a loop?',
+   'break exits the loop immediately.', 2),
+  ('03700000-0000-4000-8000-000000000513', '03700000-0000-4000-8000-000000000315',
+   'What is a function prototype?',
+   'It declares the return type, name, and parameters before the function is used.', 2),
+  ('03700000-0000-4000-8000-000000000514', '03700000-0000-4000-8000-000000000315',
+   'How are ordinary arguments passed to C functions?',
+   'C passes a copy of each value, so changes inside do not affect the caller.', 1),
+  ('03700000-0000-4000-8000-000000000515', '03700000-0000-4000-8000-000000000315',
+   'What must every recursive function have to terminate?',
+   'A base case that stops further recursive calls.', 3),
+  ('03700000-0000-4000-8000-000000000516', '03700000-0000-4000-8000-000000000318',
+   'What is the index of the first element of an array?',
+   'C arrays are zero-based, so the first element is at index 0.', 1),
+  ('03700000-0000-4000-8000-000000000517', '03700000-0000-4000-8000-000000000318',
+   'Which character terminates every C string?',
+   'The null terminator, the character ''\0'', ends the string.', 3),
+  ('03700000-0000-4000-8000-000000000518', '03700000-0000-4000-8000-000000000318',
+   'Which function returns the length of a string?',
+   'strlen counts the characters before the null terminator.', 2),
+  ('03700000-0000-4000-8000-000000000519', '03700000-0000-4000-8000-000000000321',
+   'Which operator produces the address of a variable?',
+   'The address-of operator &amp; yields the variable location in memory.', 3),
+  ('03700000-0000-4000-8000-000000000520', '03700000-0000-4000-8000-000000000321',
+   'What does the * operator do to a pointer?',
+   'Dereferencing follows the pointer to reach the value it points to.', 1),
+  ('03700000-0000-4000-8000-000000000521', '03700000-0000-4000-8000-000000000321',
+   'What should an unused pointer be set to?',
+   'NULL (or 0) marks a pointer as pointing nowhere safe to test.', 2),
+  ('03700000-0000-4000-8000-000000000522', '03700000-0000-4000-8000-000000000324',
+   'Which function allocates uninitialized memory on the heap?',
+   'malloc reserves a byte count and returns a pointer to it.', 2),
+  ('03700000-0000-4000-8000-000000000523', '03700000-0000-4000-8000-000000000324',
+   'What must happen to memory returned by malloc before the program ends?',
+   'It should be released with free, or the program leaks memory.', 1),
+  ('03700000-0000-4000-8000-000000000524', '03700000-0000-4000-8000-000000000324',
+   'Which operator accesses a struct member through a pointer?',
+   'The arrow operator -&gt; works on pointers to structs.', 3),
+  ('03700000-0000-4000-8000-000000000525', '03700000-0000-4000-8000-000000000328',
+   'What extension do C source files use?',
+   'C source files use the .c extension.', 1),
+  ('03700000-0000-4000-8000-000000000526', '03700000-0000-4000-8000-000000000328',
+   'Which gcc flag enables helpful warnings at compile time?',
+   '-Wall turns on a useful set of compiler warnings.', 2),
+  ('03700000-0000-4000-8000-000000000527', '03700000-0000-4000-8000-000000000328',
+   'What does fopen return when it cannot open a file?',
+   'It returns NULL on failure — always check before using the stream.', 4),
+  ('03700000-0000-4000-8000-000000000528', '03700000-0000-4000-8000-000000000328',
+   'Why should you never use the gets function?',
+   'gets cannot limit input length, so it overflows buffers.', 3),
+  ('03700000-0000-4000-8000-000000000529', '03700000-0000-4000-8000-000000000328',
+   'What is the purpose of free()?',
+   'It returns heap memory to the system so a program does not leak.', 5)
+ON CONFLICT (id) DO NOTHING;
+
+-- ----------------------------------------------------------------------------
+-- 7. QUIZ OPTIONS  (116 options)
+--    Each question has 4 options; the position of the correct answer varies.
+--    Q1 options 1001-1012 · Q2 1013-1024 · Q3 1025-1036 · Q4 1037-1048
+--    Q5 1049-1060 · Q6 1061-1072 · Q7 1073-1084 · Q8 1085-1096 · Q9 1097-1116
+-- ----------------------------------------------------------------------------
+
+INSERT INTO quiz_options (id, quiz_id, text, is_correct, position) VALUES
+  -- Q1 (501): Dennis Ritchie
+  ('03700000-0000-4000-8000-000000001001', '03700000-0000-4000-8000-000000000501', 'Dennis Ritchie', TRUE,  1),
+  ('03700000-0000-4000-8000-000000001002', '03700000-0000-4000-8000-000000000501', 'Ada Lovelace', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001003', '03700000-0000-4000-8000-000000000501', 'Grace Hopper', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001004', '03700000-0000-4000-8000-000000000501', 'Linus Torvalds', FALSE, 4),
+  -- Q1 (502): stdio.h
+  ('03700000-0000-4000-8000-000000001005', '03700000-0000-4000-8000-000000000502', 'Starts the main function', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001006', '03700000-0000-4000-8000-000000000502', 'A preprocessor directive pulling in the input and output declarations', TRUE,  2),
+  ('03700000-0000-4000-8000-000000001007', '03700000-0000-4000-8000-000000000502', 'Links a library at runtime', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001008', '03700000-0000-4000-8000-000000000502', 'Creates a new source file', FALSE, 4),
+  -- Q1 (503): main
+  ('03700000-0000-4000-8000-000000001009', '03700000-0000-4000-8000-000000000503', 'start()', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001010', '03700000-0000-4000-8000-000000000503', 'run()', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001011', '03700000-0000-4000-8000-000000000503', 'main', TRUE,  3),
+  ('03700000-0000-4000-8000-000000001012', '03700000-0000-4000-8000-000000000503', 'program()', FALSE, 4),
+  -- Q2 (504): %d
+  ('03700000-0000-4000-8000-000000001013', '03700000-0000-4000-8000-000000000504', '%d', TRUE,  1),
+  ('03700000-0000-4000-8000-000000001014', '03700000-0000-4000-8000-000000000504', '%s', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001015', '03700000-0000-4000-8000-000000000504', '%c', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001016', '03700000-0000-4000-8000-000000000504', '%f', FALSE, 4),
+  -- Q2 (505): address
+  ('03700000-0000-4000-8000-000000001017', '03700000-0000-4000-8000-000000000505', 'The value itself', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001018', '03700000-0000-4000-8000-000000000505', 'The address of the variable', TRUE,  2),
+  ('03700000-0000-4000-8000-000000001019', '03700000-0000-4000-8000-000000000505', 'A format string', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001020', '03700000-0000-4000-8000-000000000505', 'Nothing extra', FALSE, 4),
+  -- Q2 (506): char
+  ('03700000-0000-4000-8000-000000001021', '03700000-0000-4000-8000-000000000506', 'int', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001022', '03700000-0000-4000-8000-000000000506', 'float', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001023', '03700000-0000-4000-8000-000000000506', 'char', TRUE,  3),
+  ('03700000-0000-4000-8000-000000001024', '03700000-0000-4000-8000-000000000506', 'double', FALSE, 4),
+  -- Q3 (507): 7 % 3
+  ('03700000-0000-4000-8000-000000001025', '03700000-0000-4000-8000-000000000507', '1', TRUE,  1),
+  ('03700000-0000-4000-8000-000000001026', '03700000-0000-4000-8000-000000000507', '2', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001027', '03700000-0000-4000-8000-000000000507', '0', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001028', '03700000-0000-4000-8000-000000000507', '3', FALSE, 4),
+  -- Q3 (508): 5 / 2
+  ('03700000-0000-4000-8000-000000001029', '03700000-0000-4000-8000-000000000508', '2.5', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001030', '03700000-0000-4000-8000-000000000508', '2.0', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001031', '03700000-0000-4000-8000-000000000508', '3', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001032', '03700000-0000-4000-8000-000000000508', '2', TRUE,  4),
+  -- Q3 (509): !=
+  ('03700000-0000-4000-8000-000000001033', '03700000-0000-4000-8000-000000000509', '===', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001034', '03700000-0000-4000-8000-000000000509', '!=', TRUE,  2),
+  ('03700000-0000-4000-8000-000000001035', '03700000-0000-4000-8000-000000000509', '=!', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001036', '03700000-0000-4000-8000-000000000509', '~=', FALSE, 4),
+  -- Q4 (510): switch
+  ('03700000-0000-4000-8000-000000001037', '03700000-0000-4000-8000-000000000510', 'if', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001038', '03700000-0000-4000-8000-000000000510', 'while', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001039', '03700000-0000-4000-8000-000000000510', 'switch', TRUE,  3),
+  ('03700000-0000-4000-8000-000000001040', '03700000-0000-4000-8000-000000000510', 'for', FALSE, 4),
+  -- Q4 (511): do-while
+  ('03700000-0000-4000-8000-000000001041', '03700000-0000-4000-8000-000000000511', 'do-while', TRUE,  1),
+  ('03700000-0000-4000-8000-000000001042', '03700000-0000-4000-8000-000000000511', 'while', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001043', '03700000-0000-4000-8000-000000000511', 'for', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001044', '03700000-0000-4000-8000-000000000511', 'while-do', FALSE, 4),
+  -- Q4 (512): break
+  ('03700000-0000-4000-8000-000000001045', '03700000-0000-4000-8000-000000000512', 'Skips an iteration', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001046', '03700000-0000-4000-8000-000000000512', 'Restarts the loop', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001047', '03700000-0000-4000-8000-000000000512', 'Ends the program', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001048', '03700000-0000-4000-8000-000000000512', 'Exits the loop immediately', TRUE,  4),
+  -- Q5 (513): prototype
+  ('03700000-0000-4000-8000-000000001049', '03700000-0000-4000-8000-000000000513', 'The body of the function', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001050', '03700000-0000-4000-8000-000000000513', 'A declaration of name, return type, and parameters before use', TRUE,  2),
+  ('03700000-0000-4000-8000-000000001051', '03700000-0000-4000-8000-000000000513', 'The first call of the function', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001052', '03700000-0000-4000-8000-000000000513', 'A function without parameters', FALSE, 4),
+  -- Q5 (514): by value
+  ('03700000-0000-4000-8000-000000001053', '03700000-0000-4000-8000-000000000514', 'By value (a copy)', TRUE,  1),
+  ('03700000-0000-4000-8000-000000001054', '03700000-0000-4000-8000-000000000514', 'By reference', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001055', '03700000-0000-4000-8000-000000000514', 'By name', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001056', '03700000-0000-4000-8000-000000000514', 'By address automatically', FALSE, 4),
+  -- Q5 (515): base case
+  ('03700000-0000-4000-8000-000000001057', '03700000-0000-4000-8000-000000000515', 'A global variable', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001058', '03700000-0000-4000-8000-000000000515', 'A for loop', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001059', '03700000-0000-4000-8000-000000000515', 'A base case that stops the recursion', TRUE,  3),
+  ('03700000-0000-4000-8000-000000001060', '03700000-0000-4000-8000-000000000515', 'An infinite loop', FALSE, 4),
+  -- Q6 (516): index 0
+  ('03700000-0000-4000-8000-000000001061', '03700000-0000-4000-8000-000000000516', '0', TRUE,  1),
+  ('03700000-0000-4000-8000-000000001062', '03700000-0000-4000-8000-000000000516', '1', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001063', '03700000-0000-4000-8000-000000000516', '-1', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001064', '03700000-0000-4000-8000-000000000516', 'The array length', FALSE, 4),
+  -- Q6 (517): null terminator
+  ('03700000-0000-4000-8000-000000001065', '03700000-0000-4000-8000-000000000517', 'A double quote', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001066', '03700000-0000-4000-8000-000000000517', 'The letter z', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001067', '03700000-0000-4000-8000-000000000517', 'A semicolon', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001068', '03700000-0000-4000-8000-000000000517', '\0', TRUE,  4),
+  -- Q6 (518): strlen
+  ('03700000-0000-4000-8000-000000001069', '03700000-0000-4000-8000-000000000518', 'strcpy', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001070', '03700000-0000-4000-8000-000000000518', 'strlen', TRUE,  2),
+  ('03700000-0000-4000-8000-000000001071', '03700000-0000-4000-8000-000000000518', 'strcmp', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001072', '03700000-0000-4000-8000-000000000518', 'strcat', FALSE, 4),
+  -- Q7 (519): address-of
+  ('03700000-0000-4000-8000-000000001073', '03700000-0000-4000-8000-000000000519', 'Asterisk *', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001074', '03700000-0000-4000-8000-000000000519', 'Arrow ->', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001075', '03700000-0000-4000-8000-000000000519', 'Ampersand &', TRUE,  3),
+  ('03700000-0000-4000-8000-000000001076', '03700000-0000-4000-8000-000000000519', 'Percent %', FALSE, 4),
+  -- Q7 (520): dereference
+  ('03700000-0000-4000-8000-000000001077', '03700000-0000-4000-8000-000000000520', 'Follows the pointer to the value at that address', TRUE,  1),
+  ('03700000-0000-4000-8000-000000001078', '03700000-0000-4000-8000-000000000520', 'Rounds the pointer', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001079', '03700000-0000-4000-8000-000000000520', 'Frees the pointer', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001080', '03700000-0000-4000-8000-000000000520', 'Copies the pointer', FALSE, 4),
+  -- Q7 (521): NULL
+  ('03700000-0000-4000-8000-000000001081', '03700000-0000-4000-8000-000000000521', 'The value 1', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001082', '03700000-0000-4000-8000-000000000521', 'NULL', TRUE,  2),
+  ('03700000-0000-4000-8000-000000001083', '03700000-0000-4000-8000-000000000521', 'The target value', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001084', '03700000-0000-4000-8000-000000000521', 'Nothing at all; leave it alone', FALSE, 4),
+  -- Q8 (522): malloc
+  ('03700000-0000-4000-8000-000000001085', '03700000-0000-4000-8000-000000000522', 'free', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001086', '03700000-0000-4000-8000-000000000522', 'calloc', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001087', '03700000-0000-4000-8000-000000000522', 'realloc', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001088', '03700000-0000-4000-8000-000000000522', 'malloc', TRUE,  4),
+  -- Q8 (523): free
+  ('03700000-0000-4000-8000-000000001089', '03700000-0000-4000-8000-000000000523', 'free it', TRUE,  1),
+  ('03700000-0000-4000-8000-000000001090', '03700000-0000-4000-8000-000000000523', 'Double the size', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001091', '03700000-0000-4000-8000-000000000523', 'Print it', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001092', '03700000-0000-4000-8000-000000000523', 'Store it in a global variable', FALSE, 4),
+  -- Q8 (524): arrow
+  ('03700000-0000-4000-8000-000000001093', '03700000-0000-4000-8000-000000000524', 'The dot .', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001094', '03700000-0000-4000-8000-000000000524', 'The ampersand &', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001095', '03700000-0000-4000-8000-000000000524', 'The arrow ->', TRUE,  3),
+  ('03700000-0000-4000-8000-000000001096', '03700000-0000-4000-8000-000000000524', 'The hash #', FALSE, 4),
+  -- Q9 (525): .c extension
+  ('03700000-0000-4000-8000-000000001097', '03700000-0000-4000-8000-000000000525', '.c', TRUE,  1),
+  ('03700000-0000-4000-8000-000000001098', '03700000-0000-4000-8000-000000000525', '.cpp', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001099', '03700000-0000-4000-8000-000000000525', '.exe', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001100', '03700000-0000-4000-8000-000000000525', '.txt', FALSE, 4),
+  -- Q9 (526): -Wall
+  ('03700000-0000-4000-8000-000000001101', '03700000-0000-4000-8000-000000000526', '-o', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001102', '03700000-0000-4000-8000-000000000526', '-Wall', TRUE,  2),
+  ('03700000-0000-4000-8000-000000001103', '03700000-0000-4000-8000-000000000526', '-x', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001104', '03700000-0000-4000-8000-000000000526', '-s', FALSE, 4),
+  -- Q9 (527): fopen NULL
+  ('03700000-0000-4000-8000-000000001105', '03700000-0000-4000-8000-000000000527', 'A valid FILE pointer', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001106', '03700000-0000-4000-8000-000000000527', 'An empty string', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001107', '03700000-0000-4000-8000-000000000527', 'A zero-sized stream', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001108', '03700000-0000-4000-8000-000000000527', 'NULL', TRUE,  4),
+  -- Q9 (528): gets
+  ('03700000-0000-4000-8000-000000001109', '03700000-0000-4000-8000-000000000528', 'It is too slow', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001110', '03700000-0000-4000-8000-000000000528', 'It reads binary files only', FALSE, 2),
+  ('03700000-0000-4000-8000-000000001111', '03700000-0000-4000-8000-000000000528', 'It cannot limit input length and overflows buffers', TRUE,  3),
+  ('03700000-0000-4000-8000-000000001112', '03700000-0000-4000-8000-000000000528', 'It skips spaces', FALSE, 4),
+  -- Q9 (529): free purpose
+  ('03700000-0000-4000-8000-000000001113', '03700000-0000-4000-8000-000000000529', 'It zeroes the program', FALSE, 1),
+  ('03700000-0000-4000-8000-000000001114', '03700000-0000-4000-8000-000000000529', 'It returns heap memory to the system', TRUE,  2),
+  ('03700000-0000-4000-8000-000000001115', '03700000-0000-4000-8000-000000000529', 'It shrinks the stack', FALSE, 3),
+  ('03700000-0000-4000-8000-000000001116', '03700000-0000-4000-8000-000000000529', 'It closes all open files', FALSE, 4)
+ON CONFLICT (id) DO NOTHING;

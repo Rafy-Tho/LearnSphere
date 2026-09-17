@@ -7,18 +7,24 @@ import {
   maskPaymentId,
 } from "@/features/subscriptions/utils/money";
 import SpinnerLoader from "@/components/ui/SpinnerLoader";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import Button from "@/components/ui/Button";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
-  const { data: subscription, isPending, refetch } = useActiveSubscription();
+  const { data: subscription, isPending, error, refetch } =
+    useActiveSubscription();
 
-  const currency = subscription?.currency || subscription?.plan_currency || "usd";
+  const currency = subscription?.currency || subscription?.plan_currency;
   const details = [
     { label: "Plan", value: subscription?.name || "—" },
     {
-      label: "Payment date",
-      value: formatDate(subscription?.paid_at || new Date()),
+      label: "Amount",
+      value: subscription ? formatMoney(subscription.amount, currency) : "—",
+    },
+    {
+      label: "Access until",
+      value: formatDate(subscription?.end_date),
     },
     {
       label: "Payment ID",
@@ -35,20 +41,18 @@ export default function PaymentSuccess() {
               <CheckCircle className="w-10 h-10 text-white" strokeWidth={2} />
             </div>
             <h1 className="text-3xl font-bold text-white mb-1">
-              Payment Successful
+              Payment successful
             </h1>
             <p className="text-white text-sm font-medium">
-              Your transaction has been confirmed
+              Your access has been activated
             </p>
 
             <div className="mt-6 bg-white/15 rounded-2xl px-6 py-4 text-white">
               <p className="text-xs uppercase tracking-widest font-semibold mb-1">
-                Amount Charged
+                Amount charged
               </p>
               <p className="text-4xl font-extrabold">
-                {subscription
-                  ? formatMoney(subscription.amount, currency)
-                  : "—"}
+                {subscription ? formatMoney(subscription.amount, currency) : "—"}
               </p>
             </div>
           </div>
@@ -57,6 +61,21 @@ export default function PaymentSuccess() {
             {isPending ? (
               <div className="flex justify-center py-8">
                 <SpinnerLoader />
+              </div>
+            ) : error ? (
+              <div>
+                <ErrorMessage
+                  title="We couldn't confirm your payment"
+                  message={error.message}
+                />
+                <Button
+                  className="mt-4"
+                  variant="secondary"
+                  leftIcon={<RefreshCw size={16} />}
+                  onClick={() => refetch()}
+                >
+                  Try Again
+                </Button>
               </div>
             ) : !subscription ? (
               <div className="rounded-xl border border-border px-4 py-5 text-center">
@@ -92,7 +111,7 @@ export default function PaymentSuccess() {
                       <span className="shrink-0 text-xs font-medium text-foreground-muted">
                         {label}
                       </span>
-                      <span className="min-w-0 break-all text-right font-mono text-xs font-semibold text-foreground">
+                      <span className="min-w-0 break-all text-right text-sm font-semibold text-foreground">
                         {value}
                       </span>
                     </div>
@@ -107,21 +126,21 @@ export default function PaymentSuccess() {
                 size="lg"
                 rightIcon={<ArrowRight size={16} />}
                 onClick={() => {
-                  navigate("/learning-dashboard/billing");
+                  navigate("/learning-dashboard");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               >
-                View Billing
+                Start Learning
               </Button>
               <Button
                 variant="secondary"
                 size="lg"
                 onClick={() => {
-                  navigate("/learning-dashboard");
+                  navigate("/learning-dashboard/billing");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
               >
-                Dashboard
+                View Billing
               </Button>
             </div>
           </div>

@@ -23,9 +23,11 @@ function Row({ label, value, valueClassName = "" }) {
 }
 
 export default function PaymentDetailsModal({ paymentId, open, onClose }) {
-  const { data, isPending, error } = usePayment(open ? paymentId : null);
+  const { data, isPending, error, refetch } = usePayment(
+    open ? paymentId : null,
+  );
 
-  const currency = data?.currency || "usd";
+  const currency = data?.currency;
   const refunded = Number(data?.refunded_total || 0);
   const remaining = Number(data?.amount || 0) - refunded;
 
@@ -39,6 +41,7 @@ export default function PaymentDetailsModal({ paymentId, open, onClose }) {
         <ErrorMessage
           title="We couldn't load this payment"
           message={error.message}
+          onRetry={() => refetch()}
         />
       ) : data ? (
         <div className="space-y-4">
@@ -78,6 +81,14 @@ export default function PaymentDetailsModal({ paymentId, open, onClose }) {
 
           {refunded > 0 && (
             <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-2">
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-foreground-muted">
+                  Refund status
+                </span>
+                <BillingStatusBadge
+                  status={data.refund_status || "REFUNDED"}
+                />
+              </div>
               <Row
                 label="Original payment"
                 value={formatMoney(data.amount, currency)}

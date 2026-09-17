@@ -2,6 +2,7 @@ import { ThumbsDown, ThumbsUp } from "lucide-react";
 import { memo, useState } from "react";
 import formatTimeAgo from "@/utils/formatTimeAgo";
 import RatingStars from "@/components/common/RatingStars";
+import UserAvatar from "@/components/common/UserAvatar";
 import { ReportModal } from "@/features/reviews/components/ReportModal";
 import { useNavigate } from "react-router-dom";
 import useAuth from "@/features/auth/hooks/useAuth";
@@ -28,11 +29,11 @@ export const ReviewCard = memo(function ReviewCard({ review }) {
     <div className="py-6 border-b border-border last:border-b-0">
       <div className="flex gap-4">
         <div className="flex-shrink-0">
-          <div className="lg:w-14 lg:h-14 w-10 h-10 rounded-full bg-surface-muted flex items-center justify-center text-white font-semibold text-lg">
-            <img
+          <div className="lg:w-14 lg:h-14 w-10 h-10 rounded-full bg-surface-muted flex items-center justify-center font-semibold">
+            <UserAvatar
               src={review.user_profile}
-              alt={review.user_name}
-              className="lg:w-12 lg:h-12 w-8 h-8 rounded-full"
+              name={review.user_name}
+              className="lg:w-12 lg:h-12 w-8 h-8 rounded-full text-lg"
             />
           </div>
         </div>

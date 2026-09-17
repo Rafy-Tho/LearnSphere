@@ -33,7 +33,6 @@ class PaymentRepository {
       couponId = null,
       paymentStatus = "COMPLETED",
       stripePaymentIntentId = null,
-      stripeInvoiceId = null,
       paidAt = new Date(),
     },
     client = this.db,
@@ -41,9 +40,8 @@ class PaymentRepository {
     const result = await client.query(
       `INSERT INTO subscription_payments
          (user_subscription_id, subtotal, discount_amount, amount, currency,
-          coupon_id, payment_status, stripe_payment_intent_id,
-          stripe_invoice_id, paid_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          coupon_id, payment_status, stripe_payment_intent_id, paid_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
       [
         userSubscriptionId,
@@ -54,7 +52,6 @@ class PaymentRepository {
         couponId,
         paymentStatus,
         stripePaymentIntentId,
-        stripeInvoiceId,
         paidAt,
       ],
     );
@@ -85,7 +82,31 @@ class PaymentRepository {
     return result.rows[0];
   }
 
-  async findAllPayments({ limit = 20, offset = 0 } = {}) {
+  async findPaymentsBySubscription(subscriptionId) {
+    const result = await this.db.query(
+      `SELECT ${PAYMENT_SELECT}
+       FROM subscription_payments sp
+       ${PAYMENT_JOINS}
+       WHERE sp.user_subscription_id = $1
+       ORDER BY sp.created_at DESC`,
+      [subscriptionId],
+    );
+    return result.rows;
+  }
+
+  async findAllPayments({
+    limit = 20,
+    offset = 0,
+    search,
+    status,
+    planId,
+  } = {}) {
+    const { where, values } = this.#buildFilters({ search, status, planId });
+    values.push(limit);
+    const limitIdx = values.length;
+    values.push(offset);
+    const offsetIdx = values.length;
+
     const result = await this.db.query(
       `SELECT ${PAYMENT_SELECT},
               u.name AS user_name, u.email AS user_email,
@@ -95,16 +116,25 @@ class PaymentRepository {
        JOIN users u ON us.user_id = u.id
        JOIN subscription_plans pl ON us.plan_id = pl.id
        ${PAYMENT_JOINS}
+       ${where}
        ORDER BY sp.created_at DESC
-       LIMIT $1 OFFSET $2`,
-      [limit, offset],
+       LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
+      values,
     );
     return result.rows;
   }
 
-  async countPayments() {
+  async countPayments({ search, status, planId } = {}) {
+    const { where, values } = this.#buildFilters({ search, status, planId });
+
     const result = await this.db.query(
-      "SELECT COUNT(*) AS total FROM subscription_payments",
+      `SELECT COUNT(*) AS total
+       FROM subscription_payments sp
+       JOIN user_subscriptions us ON sp.user_subscription_id = us.id
+       JOIN users u ON us.user_id = u.id
+       JOIN subscription_plans pl ON us.plan_id = pl.id
+       ${where}`,
+      values,
     );
     return Number(result.rows[0].total);
   }
@@ -150,42 +180,6 @@ class PaymentRepository {
     return result.rows[0];
   }
 
-  async adminCreatePayment({
-    userSubscriptionId,
-    amount,
-    paymentStatus,
-    stripePaymentIntentId,
-  }) {
-    const result = await this.db.query(
-      `INSERT INTO subscription_payments
-         (user_subscription_id, subtotal, discount_amount, amount,
-          payment_status, stripe_payment_intent_id, paid_at)
-       VALUES ($1, $2, 0, $2, $3, $4, CURRENT_TIMESTAMP)
-       RETURNING *`,
-      [
-        userSubscriptionId,
-        amount,
-        paymentStatus || "COMPLETED",
-        stripePaymentIntentId || null,
-      ],
-    );
-    return result.rows[0];
-  }
-
-  async updatePayment(id, { amount, paymentStatus, stripePaymentIntentId }) {
-    const result = await this.db.query(
-      `UPDATE subscription_payments
-       SET subtotal = $1,
-           amount = $1,
-           payment_status = $2,
-           stripe_payment_intent_id = $3
-       WHERE id = $4
-       RETURNING *`,
-      [amount, paymentStatus, stripePaymentIntentId || null, id],
-    );
-    return result.rows[0];
-  }
-
   async updatePaymentStatus(
     id,
     paymentStatus,
@@ -203,12 +197,27 @@ class PaymentRepository {
     return result.rows[0];
   }
 
-  async deletePayment(id) {
-    const result = await this.db.query(
-      "DELETE FROM subscription_payments WHERE id = $1 RETURNING id",
-      [id],
-    );
-    return result.rows[0];
+  #buildFilters({ search, status, planId } = {}) {
+    const conditions = [];
+    const values = [];
+
+    if (status) {
+      values.push(status);
+      conditions.push(`sp.payment_status = $${values.length}`);
+    }
+    if (planId) {
+      values.push(planId);
+      conditions.push(`us.plan_id = $${values.length}`);
+    }
+    if (search) {
+      values.push(`%${search}%`);
+      conditions.push(
+        `(u.name ILIKE $${values.length} OR u.email ILIKE $${values.length} OR pl.name ILIKE $${values.length})`,
+      );
+    }
+
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+    return { where, values };
   }
 }
 

@@ -421,6 +421,7 @@ Billing is **prepaid, one-time** (Stripe Checkout `mode:"payment"` for a fixed
 | price | NUMERIC(10,2) | NOT NULL, CHECK ≥ 0 |
 | currency | VARCHAR(3) | NOT NULL, DEFAULT `usd` |
 | is_active | BOOLEAN | NOT NULL, DEFAULT TRUE |
+| features | JSONB | NOT NULL, DEFAULT `[]` (pricing UI feature list) |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
 Unique `(name, duration_days)`. Index `idx_subscription_plans_active`.
@@ -436,13 +437,9 @@ Plans with subscriptions are deactivated, never hard-deleted.
 | start_date | TIMESTAMPTZ | DEFAULT now |
 | end_date | TIMESTAMPTZ | NOT NULL |
 | status | subscription_status | DEFAULT `ACTIVE` |
-| cancel_at_period_end | BOOLEAN | NOT NULL, DEFAULT FALSE |
-| cancelled_at | TIMESTAMPTZ | nullable |
-| stripe_customer_id | TEXT | nullable |
-| stripe_subscription_id | TEXT | nullable (reserved) |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
-Partial unique `one_active_subscription_per_user` on `(user_id) WHERE status='ACTIVE'`. Indexes `idx_user_subscriptions_user`, `idx_user_subscriptions_status`, `idx_user_subscriptions_stripe_sub`.
+Partial unique `one_active_subscription_per_user` on `(user_id) WHERE status='ACTIVE'`. Indexes `idx_user_subscriptions_user`, `idx_user_subscriptions_status`. Overdue rows are lazily transitioned to `EXPIRED` on read/purchase (no scheduler).
 
 #### `subscription_payments`
 
@@ -457,12 +454,11 @@ Partial unique `one_active_subscription_per_user` on `(user_id) WHERE status='AC
 | payment_status | payment_status | DEFAULT `PENDING` |
 | coupon_id | UUID | FK → coupons(id) SET NULL |
 | stripe_payment_intent_id | TEXT | UNIQUE, nullable |
-| stripe_invoice_id | TEXT | nullable |
 | paid_at | TIMESTAMPTZ | nullable |
 | failure_reason | TEXT | nullable |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
-Indexes `idx_subscription_payment_user_subscription`, `idx_subscription_payments_status`, `idx_subscription_payments_invoice`. `subtotal - discount_amount = amount`.
+Indexes `idx_subscription_payment_user_subscription`, `idx_subscription_payments_status`. `subtotal - discount_amount = amount`.
 
 #### `coupons`
 
@@ -516,6 +512,7 @@ Indexes `idx_payment_refunds_payment`, `idx_payment_refunds_status`.
 | id | UUID | PK |
 | stripe_event_id | TEXT | NOT NULL, UNIQUE |
 | event_type | TEXT | NOT NULL |
+| status | TEXT | NOT NULL, DEFAULT `PENDING` (`PROCESSED` after handling) |
 | processed_at | TIMESTAMPTZ | nullable |
 | created_at | TIMESTAMPTZ | DEFAULT now |
 

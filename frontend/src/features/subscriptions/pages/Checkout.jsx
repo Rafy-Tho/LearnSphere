@@ -53,7 +53,7 @@ export default function Checkout() {
     );
   }
 
-  const currency = plan.currency || "usd";
+  const currency = plan.currency;
   const subtotal = Number(plan.price);
   const discount = coupon?.discount ?? 0;
   const total = coupon ? coupon.total : subtotal;
@@ -132,6 +132,12 @@ export default function Checkout() {
               <p className="mt-1 text-sm text-foreground-muted">
                 {plan.description || "Full access to the learning platform."}
               </p>
+              <p className="mt-3 text-sm font-medium text-foreground">
+                {formatMoney(plan.price, currency)} for {plan.duration_days} days
+              </p>
+              <p className="mt-1 text-xs text-foreground-muted">
+                One-time payment. No auto-renewal.
+              </p>
             </Card>
 
             <Card title="Coupon">
@@ -157,7 +163,7 @@ export default function Checkout() {
                       label="Coupon code"
                       icon={<BadgePercent size={18} />}
                       value={code}
-                      placeholder="WELCOME20"
+                      placeholder="Enter coupon code"
                       onChange={(event) =>
                         setCode(event.target.value.toUpperCase())
                       }
@@ -225,10 +231,15 @@ export default function Checkout() {
                 disabled={alreadyActive}
                 isLoading={checkout.isPending}
               >
-                {alreadyActive ? "Already subscribed" : "Confirm & Pay"}
+                {alreadyActive ? "Already subscribed" : "Continue to Stripe"}
               </Button>
 
-              <p className="mt-4 flex items-center justify-center gap-2 text-xs text-foreground-muted">
+              <p className="mt-4 text-center text-xs text-foreground-muted">
+                One-time payment for {plan.duration_days} days of access. Your
+                access ends automatically — no recurring charges.
+              </p>
+
+              <p className="mt-3 flex items-center justify-center gap-2 text-xs text-foreground-muted">
                 <ShieldCheck size={14} />
                 Secure payment powered by Stripe
               </p>

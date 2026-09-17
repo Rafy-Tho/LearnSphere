@@ -36,7 +36,8 @@ function CurrentPlan({ subscription }) {
     );
   }
 
-  const currency = subscription.currency || subscription.plan_currency || "usd";
+  const currency = subscription.currency || subscription.plan_currency;
+  const status = subscription.status || (subscription.is_active ? "ACTIVE" : "EXPIRED");
 
   if (!subscription.is_active) {
     return (
@@ -46,10 +47,10 @@ function CurrentPlan({ subscription }) {
             <p className="text-lg font-semibold text-foreground">
               {subscription.name}
             </p>
-            <BillingStatusBadge status="EXPIRED" />
+            <BillingStatusBadge status={status} />
           </div>
           <p className="mt-1 text-sm text-foreground-muted">
-            Your subscription ended on {formatDate(subscription.end_date)}.
+            Your access ended on {formatDate(subscription.end_date)}.
           </p>
         </div>
         <Button as={Link} to="/pricing">
@@ -66,7 +67,7 @@ function CurrentPlan({ subscription }) {
           <p className="text-lg font-semibold text-foreground">
             {subscription.name}
           </p>
-          <BillingStatusBadge status="ACTIVE" />
+          <BillingStatusBadge status={status} />
         </div>
         <p className="mt-1 text-sm text-foreground-muted">
           {formatMoney(subscription.price, currency)} /{" "}
@@ -82,7 +83,7 @@ function CurrentPlan({ subscription }) {
           </dd>
         </div>
         <div>
-          <dt className="text-foreground-muted">Expires</dt>
+          <dt className="text-foreground-muted">Access until</dt>
           <dd className="mt-0.5 font-medium text-foreground">
             {formatDate(subscription.end_date)}
           </dd>
@@ -175,8 +176,11 @@ export default function BillingDashboard() {
                   <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-foreground-muted">
                     <th className="py-3 pr-4 font-medium">Date</th>
                     <th className="py-3 pr-4 font-medium">Plan</th>
+                    <th className="py-3 pr-4 font-medium text-right">Subtotal</th>
+                    <th className="py-3 pr-4 font-medium text-right">Discount</th>
                     <th className="py-3 pr-4 font-medium text-right">Total</th>
-                    <th className="py-3 font-medium">Status</th>
+                    <th className="py-3 pr-4 font-medium">Status</th>
+                    <th className="py-3 font-medium">Refund</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -192,11 +196,31 @@ export default function BillingDashboard() {
                       <td className="py-3 pr-4 font-medium text-foreground">
                         {payment.plan_name || "Subscription"}
                       </td>
+                      <td className="py-3 pr-4 text-right text-foreground-muted">
+                        {formatMoney(
+                          payment.subtotal ?? payment.amount,
+                          payment.currency,
+                        )}
+                      </td>
+                      <td className="py-3 pr-4 text-right text-foreground-muted">
+                        {Number(payment.discount_amount) > 0
+                          ? `-${formatMoney(payment.discount_amount, payment.currency)}`
+                          : "—"}
+                      </td>
                       <td className="py-3 pr-4 text-right font-medium text-foreground">
                         {formatMoney(payment.amount, payment.currency)}
                       </td>
-                      <td className="py-3">
+                      <td className="py-3 pr-4">
                         <BillingStatusBadge status={payment.payment_status} />
+                      </td>
+                      <td className="py-3">
+                        {Number(payment.refunded_total) > 0 ? (
+                          <BillingStatusBadge
+                            status={payment.refund_status || "REFUNDED"}
+                          />
+                        ) : (
+                          <span className="text-foreground-muted">—</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -224,6 +248,23 @@ export default function BillingDashboard() {
                     <span className="font-medium text-foreground">
                       {formatMoney(payment.amount, payment.currency)}
                     </span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between text-xs text-foreground-muted">
+                    <span>
+                      Subtotal{" "}
+                      {formatMoney(
+                        payment.subtotal ?? payment.amount,
+                        payment.currency,
+                      )}
+                      {Number(payment.discount_amount) > 0
+                        ? ` · Discount -${formatMoney(payment.discount_amount, payment.currency)}`
+                        : ""}
+                    </span>
+                    {Number(payment.refunded_total) > 0 && (
+                      <BillingStatusBadge
+                        status={payment.refund_status || "REFUNDED"}
+                      />
+                    )}
                   </div>
                 </button>
               ))}

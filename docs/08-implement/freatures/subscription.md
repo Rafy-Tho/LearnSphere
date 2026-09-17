@@ -1,7 +1,8 @@
 # Billing & Subscription — Plan & Implementation (v2)
 
-> **Status:** implemented (DB `0018`–`0019`, backend, webhooks, learner frontend).
-> Admin coupon/refund endpoints and the admin billing UI remain deferred (D4).
+> **Status:** implemented (DB `0018`–`0021`, backend, webhooks, learner frontend).
+> Admin coupon/refund endpoints, billing stats, and the read-only admin payment
+> view are implemented; the **admin billing UI remains deferred** (D4).
 
 Goal: make billing a complete, production-quality feature on top of the **existing
 prepaid, one-time Stripe Checkout** implementation. This document replaces the
@@ -416,12 +417,17 @@ New dashboard page (route under the learning dashboard):
 | SUB-DOC-1 | Update database/API design + progress docs | Docs |
 | SUB-TEST-1 | Lint/build + manual flow verification | Verify |
 
-### Deferred to the admin phase
+### Admin phase
 
-- Admin coupon CRUD + redemptions list.
-- Admin refund issuance (full/partial through Stripe).
-- Billing overview dashboard (active subscriptions, revenue, payments, refunds, active coupons).
-- Admin subscription/payment/coupon/refund UI.
+Backend complete (migrations `0020`–`0021`): admin coupon CRUD + redemptions,
+refund issuance (full/partial through Stripe), billing stats, read-only
+subscriptions with an audited `/admin/subscriptions/override`, and read-only
+payments (create/edit/delete/mark-completed removed).
+
+Still deferred:
+
+- Admin billing UI (coupons, refunds, read-only payments, stats, override).
+- Admin subscription/payment/coupon/refund screens.
 
 ---
 

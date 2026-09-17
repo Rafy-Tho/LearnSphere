@@ -34,12 +34,28 @@ class PlanService {
     return { plans, pagination: buildPagination({ total, page, limit }) };
   }
 
-  async createPlan({ name, description, duration_days, price, currency }) {
+  async createPlan({
+    name,
+    description,
+    duration_days,
+    price,
+    currency,
+    features,
+  }) {
     if (!name || !duration_days || price === undefined) {
       throw new ApiError(
         StatusCode.BAD_REQUEST,
         "Name, duration_days, and price are required",
       );
+    }
+    if (Number(duration_days) <= 0) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        "duration_days must be greater than 0",
+      );
+    }
+    if (Number(price) < 0) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "price must be at least 0");
     }
     return this.planRepository.create({
       name,
@@ -47,15 +63,26 @@ class PlanService {
       durationDays: duration_days,
       price,
       currency,
+      features,
     });
   }
 
   async updatePlan(
     planId,
-    { name, description, duration_days, price, currency, is_active },
+    { name, description, duration_days, price, currency, is_active, features },
   ) {
     const existingPlan = await this.planRepository.findById(planId);
     if (!existingPlan) throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
+
+    if (duration_days !== undefined && Number(duration_days) <= 0) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        "duration_days must be greater than 0",
+      );
+    }
+    if (price !== undefined && Number(price) < 0) {
+      throw new ApiError(StatusCode.BAD_REQUEST, "price must be at least 0");
+    }
 
     return this.planRepository.update(planId, {
       name: name || existingPlan.name,
@@ -66,6 +93,8 @@ class PlanService {
       currency: currency || existingPlan.currency,
       isActive:
         is_active !== undefined ? is_active : existingPlan.is_active,
+      features:
+        features !== undefined ? features : existingPlan.features || [],
     });
   }
 

@@ -68,7 +68,8 @@ export default function PricingSection() {
         )}
 
         <p className="text-center text-foreground-muted text-sm mt-12">
-          Payments are processed securely by Stripe.
+          One-time payment for a fixed access period. No auto-renewal. Payments
+          are processed securely by Stripe.
         </p>
       </div>
     </section>

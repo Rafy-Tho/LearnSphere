@@ -9,7 +9,7 @@ connectCloudinary();
 
 const app = express();
 
-await registerMiddleware(app);
+registerMiddleware(app);
 registerRoutes(app);
 
 // Not found + centralized error handling (must be last)

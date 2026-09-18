@@ -24,7 +24,7 @@ export function resolveTrustProxy(value) {
   return list.length > 0 ? list : 1;
 }
 
-export async function registerMiddleware(app) {
+export function registerMiddleware(app) {
   // 1. Trust proxy: exact hops/CIDR so X-Forwarded-For cannot be spoofed.
   app.set("trust proxy", resolveTrustProxy(environment.TRUST_PROXY));
 

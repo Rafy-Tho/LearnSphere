@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const refundWindowDays = Number(process.env.REFUND_WINDOW_DAYS);
+
 const environment = {
   PORT: process.env.PORT,
   NODE_ENV: process.env.NODE_ENV,
@@ -28,6 +30,11 @@ const environment = {
   // Stripe api key
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+  // learner refund window (days from payment.paid_at); defaults to 14
+  REFUND_WINDOW_DAYS:
+    Number.isFinite(refundWindowDays) && refundWindowDays >= 0
+      ? refundWindowDays
+      : 14,
   // cloudinary
   CLOUDINARY_NAME: process.env.CLOUDINARY_NAME,
   CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,

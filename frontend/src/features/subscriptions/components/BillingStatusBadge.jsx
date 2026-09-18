@@ -22,6 +22,8 @@ const STATUS_CONFIG = {
     variant: "warning",
     Icon: RotateCcw,
   },
+  APPROVED: { label: "Approved", variant: "success", Icon: CheckCircle2 },
+  REJECTED: { label: "Rejected", variant: "destructive", Icon: XCircle },
   SUCCEEDED: { label: "Succeeded", variant: "success", Icon: CheckCircle2 },
 };
 

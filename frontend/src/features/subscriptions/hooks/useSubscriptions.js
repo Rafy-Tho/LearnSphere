@@ -45,3 +45,22 @@ export function usePayment(paymentId) {
     enabled: !!paymentId,
   });
 }
+
+export function useRefundRequests(params = {}) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: queryKeys.refundRequests(params),
+    queryFn: ({ signal }) =>
+      subscriptionsApi.getRefundRequests(params, { signal }),
+    enabled: !!user,
+  });
+}
+
+export function usePaymentRefundRequests(paymentId) {
+  return useQuery({
+    queryKey: queryKeys.paymentRefundRequests(paymentId),
+    queryFn: ({ signal }) =>
+      subscriptionsApi.getPaymentRefundRequests(paymentId, { signal }),
+    enabled: !!paymentId,
+  });
+}

@@ -5,18 +5,12 @@ import {
   buildPagination,
   parsePagination,
 } from "../../common/query/pagination.js";
-import environment from "../../config/environment.js";
-import stripe from "../../config/stripe.js";
 import { withTransaction } from "../../config/database.js";
 import userRepository from "../users/repository.js";
-import couponService from "./coupon.service.js";
+import checkoutService from "./checkout.service.js";
 import paymentRepository from "./payment.repository.js";
 import planRepository from "./plan.repository.js";
 import subscriptionRepository from "./subscription.repository.js";
-
-function roundMoney(value) {
-  return Math.round(Number(value) * 100) / 100;
-}
 
 function daysRemaining(endDate) {
   if (!endDate) return 0;
@@ -28,13 +22,13 @@ class SubscriptionService {
   constructor({
     subscriptionRepository,
     planRepository,
-    couponService,
+    checkoutService,
     userRepository,
     paymentRepository,
   }) {
     this.subscriptionRepository = subscriptionRepository;
     this.planRepository = planRepository;
-    this.couponService = couponService;
+    this.checkoutService = checkoutService;
     this.userRepository = userRepository;
     this.paymentRepository = paymentRepository;
   }
@@ -80,78 +74,14 @@ class SubscriptionService {
     };
   }
 
+  // Checkout creation lives in checkout.service.js. Delegated so subscription
+  // state concerns stay separate from the checkout/Stripe workflow.
   async createStripeSession({ planId, userId, couponCode }) {
-    const plan = await this.planRepository.findById(planId);
-    if (!plan) {
-      throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
-    }
-    if (!plan.is_active) {
-      throw new ApiError(StatusCode.BAD_REQUEST, "Plan is not available");
-    }
-
-    // Clear any overdue ACTIVE rows so the new subscription can be provisioned.
-    await this.subscriptionRepository.expireOverdueSubscriptions({ userId });
-
-    const activeSubscription =
-      await this.subscriptionRepository.getActivePaidSubscription(userId);
-    if (activeSubscription) {
-      throw new ApiError(
-        StatusCode.BAD_REQUEST,
-        "You already have an active subscription",
-      );
-    }
-
-    let coupon = null;
-    let subtotal = roundMoney(plan.price);
-    let discount = 0;
-    let currency = plan.currency || "usd";
-
-    if (couponCode) {
-      const result = await this.couponService.validate({
-        code: couponCode,
-        plan,
-        userId,
-      });
-      coupon = result.coupon;
-      subtotal = result.subtotal;
-      discount = result.discount;
-      currency = result.currency;
-    }
-
-    const total = roundMoney(subtotal - discount);
-    const unitAmount = Math.round(total * 100);
-    const user = await this.userRepository.findById(userId);
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "payment",
-      customer_email: user?.email || undefined,
-      line_items: [
-        {
-          price_data: {
-            currency,
-            product_data: {
-              name: plan.name,
-              description: plan.description || undefined,
-            },
-            unit_amount: unitAmount,
-          },
-          quantity: 1,
-        },
-      ],
-      success_url: `${environment.CLIENT_URL_1}/payment-success?session_id={CHECKOUT_SESSION_ID}&planId=${planId}`,
-      cancel_url: `${environment.CLIENT_URL_1}/payment-cancel?planId=${planId}`,
-      metadata: {
-        userId,
-        planId,
-        couponCode: coupon?.code || "",
-        subtotal: String(subtotal),
-        discount: String(discount),
-        amount: String(total),
-      },
+    return this.checkoutService.createCheckoutSession({
+      planId,
+      userId,
+      couponCode,
     });
-
-    return { session_url: session.url };
   }
 
   async getUserSubscriptions(query = {}) {
@@ -256,7 +186,7 @@ export { SubscriptionService };
 export default new SubscriptionService({
   subscriptionRepository,
   planRepository,
-  couponService,
+  checkoutService,
   userRepository,
   paymentRepository,
 });

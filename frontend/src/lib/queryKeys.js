@@ -52,6 +52,13 @@ export const queryKeys = {
   paymentsRoot: () => ["payments"],
   payments: (params) => ["payments", params],
   payment: (id) => ["payment", id],
+  refundRequestsRoot: () => ["refund-requests"],
+  refundRequests: (params) => ["refund-requests", params],
+  refundRequest: (id) => ["refund-request", id],
+  paymentRefundRequests: (paymentId) => [
+    "payment-refund-requests",
+    paymentId,
+  ],
 
   recentlyViewed: () => ["get-recently-viewed-courses"],
   recommended: () => ["recommended-course"],
@@ -84,6 +91,9 @@ export const userScopedQueryRoots = new Set([
   queryKeys.subscription(null)[0],
   queryKeys.paymentsRoot()[0],
   queryKeys.payment(null)[0],
+  queryKeys.refundRequestsRoot()[0],
+  queryKeys.refundRequest(null)[0],
+  queryKeys.paymentRefundRequests(null)[0],
   queryKeys.recentlyViewed()[0],
   queryKeys.recommended()[0],
   queryKeys.inProgress()[0],

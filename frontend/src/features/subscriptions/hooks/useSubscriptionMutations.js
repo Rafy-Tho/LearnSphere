@@ -23,3 +23,27 @@ export function useValidateCoupon() {
     mutationFn: (payload) => subscriptionsApi.validateCoupon(payload),
   });
 }
+
+export function useCreateRefundRequest() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: ["create-refund-request"],
+    mutationFn: ({ paymentId, requestedAmount, reason, userNote }) =>
+      subscriptionsApi.createRefundRequest(paymentId, {
+        ...(requestedAmount !== undefined && requestedAmount !== null
+          ? { requested_amount: requestedAmount }
+          : {}),
+        reason,
+        ...(userNote ? { user_note: userNote } : {}),
+      }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.paymentsRoot() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.refundRequestsRoot(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.paymentRefundRequests(variables.paymentId),
+      });
+    },
+  });
+}

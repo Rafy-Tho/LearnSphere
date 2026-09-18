@@ -9,7 +9,8 @@
     "db:migrate": "node src/db/migrate.js up",
     "db:status": "node src/db/migrate.js status",
     "db:seed": "node src/db/seed.js up",
-    "db:seed:status": "node src/db/seed.js status"
+    "db:seed:status": "node src/db/seed.js status",
+    "billing:reconcile": "node src/db/reconcile-billing.js"
   },
   "keywords": [],
   "author": "",

@@ -214,7 +214,11 @@ export default function BillingDashboard() {
                         <BillingStatusBadge status={payment.payment_status} />
                       </td>
                       <td className="py-3">
-                        {Number(payment.refunded_total) > 0 ? (
+                        {payment.refund_request_status ? (
+                          <BillingStatusBadge
+                            status={payment.refund_request_status}
+                          />
+                        ) : Number(payment.refunded_total) > 0 ? (
                           <BillingStatusBadge
                             status={payment.refund_status || "REFUNDED"}
                           />
@@ -260,10 +264,16 @@ export default function BillingDashboard() {
                         ? ` · Discount -${formatMoney(payment.discount_amount, payment.currency)}`
                         : ""}
                     </span>
-                    {Number(payment.refunded_total) > 0 && (
+                    {payment.refund_request_status ? (
                       <BillingStatusBadge
-                        status={payment.refund_status || "REFUNDED"}
+                        status={payment.refund_request_status}
                       />
+                    ) : (
+                      Number(payment.refunded_total) > 0 && (
+                        <BillingStatusBadge
+                          status={payment.refund_status || "REFUNDED"}
+                        />
+                      )
                     )}
                   </div>
                 </button>

@@ -52,6 +52,11 @@ erDiagram
   subscription_plans ||--o{ user_subscriptions : chosen
   users ||--o{ user_subscriptions : owns
   user_subscriptions ||--o{ subscription_payments : billed
+  users ||--o{ checkout_orders : attempts
+  subscription_plans ||--o{ checkout_orders : quoted
+  checkout_orders ||--o| subscription_payments : paid_by
+  coupons ||--o{ coupon_reservations : reserves
+  subscription_payments ||--o{ refund_requests : requested
   users ||--o{ course_reviews : writes
   courses ||--o{ course_reviews : reviewed
   course_reviews ||--o{ review_helpful_votes : voted
@@ -69,6 +74,8 @@ erDiagram
 | `lesson_type` | `TEXT`, `QUIZ` |
 | `subscription_status` | `ACTIVE`, `EXPIRED`, `CANCELLED`, `PENDING` |
 | `payment_status` | `PENDING`, `COMPLETED`, `FAILED`, `REFUNDED`, `PARTIALLY_REFUNDED` |
+| `checkout_order_status` | `CREATED`, `CHECKOUT_STARTED`, `PAID`, `FAILED`, `EXPIRED`, `CANCELLED` |
+| `refund_request_status` | `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED` |
 | `discount_type` | `PERCENTAGE`, `FIXED_AMOUNT` |
 | `refund_status` | `PENDING`, `SUCCEEDED`, `FAILED` |
 | `access_course_type` | `FREE`, `SUBSCRIPTION` |
@@ -441,6 +448,55 @@ Plans with subscriptions are deactivated, never hard-deleted.
 
 Partial unique `one_active_subscription_per_user` on `(user_id) WHERE status='ACTIVE'`. Indexes `idx_user_subscriptions_user`, `idx_user_subscriptions_status`. Overdue rows are lazily transitioned to `EXPIRED` on read/purchase (no scheduler).
 
+#### `checkout_orders`
+
+A purchase attempt created when checkout starts, **before** any payment exists.
+Snapshots the financial values so history never depends on the current plan.
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| user_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| plan_id | UUID | NOT NULL, FK → subscription_plans(id) **RESTRICT** |
+| coupon_id | UUID | nullable, FK → coupons(id) SET NULL |
+| plan_name | VARCHAR(50) | NOT NULL (snapshot) |
+| duration_days | INT | NOT NULL, CHECK > 0 (snapshot) |
+| subtotal | NUMERIC(10,2) | NOT NULL, CHECK ≥ 0 |
+| discount_amount | NUMERIC(10,2) | NOT NULL, DEFAULT 0, CHECK ≥ 0 |
+| total_amount | NUMERIC(10,2) | NOT NULL, CHECK ≥ 0 |
+| currency | VARCHAR(3) | NOT NULL, DEFAULT `usd` |
+| status | checkout_order_status | NOT NULL, DEFAULT `CREATED` |
+| stripe_checkout_session_id | TEXT | UNIQUE, nullable |
+| stripe_payment_intent_id | TEXT | UNIQUE, nullable |
+| expires_at | TIMESTAMPTZ | NOT NULL |
+| created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
+
+Indexes `idx_checkout_orders_user`, `idx_checkout_orders_status`, plus the
+partial unique `one_open_checkout_order_per_context (user_id, plan_id,
+COALESCE(coupon_id, …)) WHERE status IN ('CREATED','CHECKOUT_STARTED')` (at most
+one open order per purchase context). Statuses:
+`CREATED → CHECKOUT_STARTED → PAID`, or `FAILED`/`EXPIRED`/`CANCELLED`.
+
+#### `coupon_reservations`
+
+Holds coupon capacity while a checkout is in flight so the global redemption
+limit cannot be exceeded by concurrent checkouts. `released_at IS NULL` = active.
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| coupon_id | UUID | NOT NULL, FK → coupons(id) CASCADE |
+| user_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| checkout_order_id | UUID | NOT NULL, FK → checkout_orders(id) CASCADE, UNIQUE |
+| expires_at | TIMESTAMPTZ | NOT NULL |
+| released_at | TIMESTAMPTZ | nullable |
+| created_at | TIMESTAMPTZ | DEFAULT now |
+
+Partial unique `unique_active_coupon_reservation (coupon_id, user_id) WHERE
+released_at IS NULL`; index `idx_coupon_reservations_coupon`. A reservation is
+released on order expiry/cancel (frees `coupons.reserved_count`) or finalized on
+payment (frees reserved, increments `redemption_count`).
+
 #### `subscription_payments`
 
 | Column | Type | Constraints |
@@ -453,12 +509,17 @@ Partial unique `one_active_subscription_per_user` on `(user_id) WHERE status='AC
 | currency | VARCHAR(3) | NOT NULL, DEFAULT `usd` |
 | payment_status | payment_status | DEFAULT `PENDING` |
 | coupon_id | UUID | FK → coupons(id) SET NULL |
+| provider | VARCHAR(20) | NOT NULL, DEFAULT `STRIPE` |
+| payment_method | VARCHAR(30) | NOT NULL, DEFAULT `card` |
+| checkout_order_id | UUID | nullable, FK → checkout_orders(id) **SET NULL** |
 | stripe_payment_intent_id | TEXT | UNIQUE, nullable |
 | paid_at | TIMESTAMPTZ | nullable |
 | failure_reason | TEXT | nullable |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
-Indexes `idx_subscription_payment_user_subscription`, `idx_subscription_payments_status`. `subtotal - discount_amount = amount`.
+Indexes `idx_subscription_payment_user_subscription`,
+`idx_subscription_payments_status`, `idx_subscription_payments_checkout_order`.
+`subtotal - discount_amount = amount`. Created only after confirmed payment.
 
 #### `coupons`
 
@@ -470,6 +531,7 @@ Indexes `idx_subscription_payment_user_subscription`, `idx_subscription_payments
 | discount_value | NUMERIC(10,2) | NOT NULL, CHECK ≥ 0 |
 | max_redemptions | INT | nullable, CHECK > 0 |
 | redemption_count | INT | NOT NULL, DEFAULT 0 |
+| reserved_count | INT | NOT NULL, DEFAULT 0, CHECK ≥ 0 (in-flight reservations) |
 | starts_at / expires_at | TIMESTAMPTZ | nullable |
 | is_active | BOOLEAN | NOT NULL, DEFAULT TRUE |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
@@ -504,6 +566,34 @@ Unique `(coupon_id, user_id)` (one use per user) and unique `(payment_id)`. Inde
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
 Indexes `idx_payment_refunds_payment`, `idx_payment_refunds_status`.
+
+#### `refund_requests`
+
+A learner's request for a refund. Separate from `payment_refunds` (the actual
+financial refund handled by the admin workflow). Creating a request never
+creates a Stripe refund or changes payment/subscription status.
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| payment_id | UUID | NOT NULL, FK → subscription_payments(id) CASCADE |
+| user_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| requested_amount | NUMERIC(10,2) | NOT NULL, CHECK > 0 |
+| currency | VARCHAR(3) | NOT NULL, DEFAULT `usd` |
+| reason | VARCHAR(255) | NOT NULL |
+| user_note | TEXT | nullable |
+| status | refund_request_status | NOT NULL, DEFAULT `PENDING` |
+| reviewed_by | UUID | nullable, FK → users(id) SET NULL |
+| admin_note | TEXT | nullable |
+| requested_at | TIMESTAMPTZ | DEFAULT now |
+| reviewed_at | TIMESTAMPTZ | nullable |
+| created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
+
+Partial unique `one_pending_refund_request_per_payment (payment_id) WHERE
+status = 'PENDING'` (at most one open request per payment); indexes
+`idx_refund_requests_payment`, `idx_refund_requests_user`,
+`idx_refund_requests_status`. Statuses: `PENDING`, `APPROVED`, `REJECTED`,
+`CANCELLED`. Refundable balance is `amount − SUM(successful refunds)`.
 
 #### `stripe_webhook_events`
 
@@ -566,14 +656,14 @@ Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `
 ## 5. Triggers & Functions
 
 - `set_updated_at()` — sets `NEW.updated_at = CURRENT_TIMESTAMP`.
-- 19 `BEFORE UPDATE` triggers, one per table with `updated_at`.
-- Tables without triggers: `lesson_completion`, `certificates`, `review_helpful_votes`, `review_reports`, `saved_courses`, `user_activities`, `user_xp_transactions`.
+- 21 `BEFORE UPDATE` triggers, one per table with `updated_at`.
+- Tables without triggers: `lesson_completion`, `certificates`, `review_helpful_votes`, `review_reports`, `saved_courses`, `user_activities`, `user_xp_transactions`, `coupon_reservations`.
 
 ## 6. Indexes & Unique Constraints
 
-Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_saved_courses_user`, `idx_saved_courses_course`, `idx_subscription_plans_active`, `idx_user_subscriptions_user`, `idx_user_subscriptions_status`, `idx_user_subscriptions_stripe_sub`, `idx_subscription_payment_user_subscription`, `idx_subscription_payments_status`, `idx_subscription_payments_invoice`, `idx_coupons_active`, `idx_coupon_redemptions_coupon`, `idx_coupon_redemptions_user`, `idx_payment_refunds_payment`, `idx_payment_refunds_status`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, `idx_user_activities_user_created`, `idx_user_activities_user_type`, `idx_user_xp_transactions_user_created`, `idx_user_auth_providers_user`, `idx_quiz_attempts_user_lesson`, `idx_quiz_attempts_lesson`, `idx_quiz_answers_attempt`, `idx_quiz_answers_quiz`, plus the partial uniques `one_active_subscription_per_user` and `unique_user_xp_reference`.
+Explicit indexes: `idx_modules_course`, `idx_chapters_module`, `idx_lessons_chapter`, `idx_lesson_contents_lesson`, `idx_quizzes_lesson`, `idx_quiz_options_quiz`, `idx_enrollments_user`, `idx_enrollments_course`, `idx_saved_courses_user`, `idx_saved_courses_course`, `idx_subscription_plans_active`, `idx_user_subscriptions_user`, `idx_user_subscriptions_status`, `idx_subscription_payment_user_subscription`, `idx_subscription_payments_status`, `idx_subscription_payments_checkout_order`, `idx_checkout_orders_user`, `idx_checkout_orders_status`, `idx_coupon_reservations_coupon`, `idx_coupons_active`, `idx_coupon_redemptions_coupon`, `idx_coupon_redemptions_user`, `idx_payment_refunds_payment`, `idx_payment_refunds_status`, `idx_refund_requests_payment`, `idx_refund_requests_user`, `idx_refund_requests_status`, `idx_course_reviews_course`, `idx_course_reviews_user`, `idx_learn_progress_user`, `idx_learn_progress_course`, `idx_lesson_completion_user`, `idx_lesson_completion_lesson`, `idx_certificates_user`, `idx_certificates_course`, `idx_user_activities_user_created`, `idx_user_activities_user_type`, `idx_user_xp_transactions_user_created`, `idx_user_auth_providers_user`, `idx_quiz_attempts_user_lesson`, `idx_quiz_attempts_lesson`, `idx_quiz_answers_attempt`, `idx_quiz_answers_quiz`, plus the partial uniques `one_active_subscription_per_user`, `unique_user_xp_reference`, `unique_active_coupon_reservation`, `one_open_checkout_order_per_context`, and `one_pending_refund_request_per_payment`.
 
-Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_attempt_quiz` (quiz_answers), `unique_user_course` (enrollments), `unique_user_saved_course` (saved_courses), `unique_plan_duration`, `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`, `uq_user_auth_provider`.
+Composite unique constraints: `unique_modules_course_position`, `unique_chapters_module_position`, `unique_lessons_chapter_position`, `unique_lesson_contents_lesson_position`, `unique_quizzes_lesson_position`, `unique_quiz_options_quiz_position`, `unique_attempt_quiz` (quiz_answers), `unique_user_course` (enrollments), `unique_user_saved_course` (saved_courses), `unique_plan_duration`, `unique_coupon_reservation_order` (coupon_reservations), `unique_user_review`, `unique_user_vote`, `unique_user_report`, `unique_user_course_progress`, `unique_user_lesson_completion`, `unique_user_course_certificate`, `uq_user_auth_provider`.
 
 ## 7. Cascade & Integrity Rules
 
@@ -581,7 +671,11 @@ Composite unique constraints: `unique_modules_course_position`, `unique_chapters
 |---|---|
 | courses.category_id → categories.id | **RESTRICT** |
 | user_subscriptions.plan_id → subscription_plans.id | **RESTRICT** (protects billing history) |
+| checkout_orders.plan_id → subscription_plans.id | **RESTRICT** (protects billing history) |
 | subscription_payments.coupon_id → coupons.id | **SET NULL** |
+| checkout_orders.coupon_id → coupons.id | **SET NULL** |
+| subscription_payments.checkout_order_id → checkout_orders.id | **SET NULL** |
+| refund_requests.reviewed_by → users.id | **SET NULL** |
 | learn_progress.current_lesson_id → lessons.id | **SET NULL** |
 | user_activities.lesson_id → lessons.id | **SET NULL** |
 | All other child FKs | **CASCADE** |
@@ -614,9 +708,12 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 | `CertificateRepository` | certificates, courses, users, lessons, chapters, modules, lesson_completion |
 | `PlanRepository` | subscription_plans, user_subscriptions |
 | `SubscriptionRepository` | user_subscriptions, subscription_plans, subscription_payments, users |
-| `PaymentRepository` | subscription_payments, user_subscriptions, subscription_plans, coupons, payment_refunds |
+| `PaymentRepository` | subscription_payments, user_subscriptions, subscription_plans, coupons, payment_refunds, refund_requests |
 | `CouponRepository` | coupons, coupon_redemptions |
 | `RefundRepository` | payment_refunds |
+| `CheckoutOrderRepository` | checkout_orders |
+| `CouponReservationRepository` | coupon_reservations, coupons |
+| `RefundRequestRepository` | refund_requests, subscription_payments, user_subscriptions, subscription_plans |
 | `WebhookEventRepository` | stripe_webhook_events |
 | `ReviewRepository` | course_reviews, review_helpful_votes, review_reports, users |
 | `SavedCourseRepository` | saved_courses, courses, learn_progress, lesson_completion, modules, chapters, lessons |

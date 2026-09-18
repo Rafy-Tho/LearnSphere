@@ -136,6 +136,7 @@ class CouponRepository {
       `INSERT INTO coupon_redemptions
          (coupon_id, user_id, payment_id, discount_amount)
        VALUES ($1, $2, $3, $4)
+       ON CONFLICT (payment_id) DO NOTHING
        RETURNING *`,
       [couponId, userId, paymentId, discountAmount],
     );
@@ -147,6 +148,26 @@ class CouponRepository {
       `UPDATE coupons
        SET redemption_count = redemption_count + 1
        WHERE id = $1
+       RETURNING *`,
+      [couponId],
+    );
+    return result.rows[0];
+  }
+
+  // Conditionally consumes one redemption only when the coupon is currently
+  // valid and capacity remains. Returns the coupon row, or undefined when the
+  // coupon cannot be redeemed. Used when a reservation was already released
+  // (e.g. a delayed webhook).
+  async tryIncrementRedemptionCount(couponId, client = this.db) {
+    const result = await client.query(
+      `UPDATE coupons
+       SET redemption_count = redemption_count + 1
+       WHERE id = $1
+         AND is_active = TRUE
+         AND (starts_at IS NULL OR starts_at <= NOW())
+         AND (expires_at IS NULL OR expires_at > NOW())
+         AND (max_redemptions IS NULL
+              OR redemption_count + reserved_count < max_redemptions)
        RETURNING *`,
       [couponId],
     );

@@ -1,5 +1,6 @@
 import { checkSchema } from "express-validator";
 import {
+  floatValidator,
   textValidator,
   uuidParamValidator,
   uuidValidator,
@@ -28,4 +29,14 @@ export const checkoutBodyValidator = checkSchema({
 export const couponValidateValidator = checkSchema({
   code: textValidator("Coupon code", false, 50),
   plan_id: uuidValidator("Plan ID"),
+});
+
+export const refundRequestIdParamValidator = checkSchema({
+  requestId: uuidParamValidator("Refund request ID"),
+});
+
+export const createRefundRequestValidator = checkSchema({
+  requested_amount: floatValidator("Requested amount", true),
+  reason: textValidator("Reason", false, 255),
+  user_note: textValidator("User note", true, 1000),
 });

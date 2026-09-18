@@ -16,4 +16,15 @@ export const subscriptionsApi = {
       options,
     ),
   getPayment: (id, options) => api.get(`/users/me/payments/${id}`, options),
+  getRefundRequests: (params, options) =>
+    api.getPaginated(
+      `/users/me/refund-requests${buildQuery(params)}`,
+      options,
+    ),
+  getRefundRequest: (id, options) =>
+    api.get(`/users/me/refund-requests/${id}`, options),
+  getPaymentRefundRequests: (paymentId, options) =>
+    api.get(`/users/me/payments/${paymentId}/refund-requests`, options),
+  createRefundRequest: (paymentId, payload) =>
+    api.post(`/users/me/payments/${paymentId}/refund-requests`, payload),
 };

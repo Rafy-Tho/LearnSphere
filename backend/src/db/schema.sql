@@ -24,6 +24,10 @@ CREATE TYPE discount_type AS ENUM ('PERCENTAGE','FIXED_AMOUNT');
 
 CREATE TYPE refund_status AS ENUM ('PENDING','SUCCEEDED','FAILED');
 
+CREATE TYPE checkout_order_status AS ENUM ('CREATED','CHECKOUT_STARTED','PAID','FAILED','EXPIRED','CANCELLED');
+
+CREATE TYPE refund_request_status AS ENUM ('PENDING','APPROVED','REJECTED','CANCELLED');
+
 CREATE TYPE access_course_type AS ENUM ('FREE','SUBSCRIPTION');
 
 CREATE TYPE gender AS ENUM ('MALE','FEMALE');
@@ -465,6 +469,7 @@ CREATE TABLE coupons (
   discount_value NUMERIC(10,2) NOT NULL CHECK (discount_value >= 0),
   max_redemptions INT CHECK (max_redemptions IS NULL OR max_redemptions > 0),
   redemption_count INT NOT NULL DEFAULT 0 CHECK (redemption_count >= 0),
+  reserved_count INT NOT NULL DEFAULT 0 CHECK (reserved_count >= 0),
   starts_at TIMESTAMP WITH TIME ZONE,
   expires_at TIMESTAMP WITH TIME ZONE,
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -477,6 +482,69 @@ CREATE INDEX idx_coupons_active ON coupons(is_active);
 CREATE TRIGGER trg_coupons_updated_at
 BEFORE UPDATE ON coupons
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- =========================
+-- CHECKOUT ORDERS
+-- =========================
+-- A purchase attempt before an actual payment exists. Financial values are
+-- snapshotted so history never depends on the current plan.
+CREATE TABLE checkout_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  plan_id UUID NOT NULL REFERENCES subscription_plans(id) ON DELETE RESTRICT,
+  coupon_id UUID REFERENCES coupons(id) ON DELETE SET NULL,
+  plan_name VARCHAR(50) NOT NULL,
+  duration_days INT NOT NULL CHECK (duration_days > 0),
+  subtotal NUMERIC(10,2) NOT NULL CHECK (subtotal >= 0),
+  discount_amount NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (discount_amount >= 0),
+  total_amount NUMERIC(10,2) NOT NULL CHECK (total_amount >= 0),
+  currency VARCHAR(3) NOT NULL DEFAULT 'usd',
+  status checkout_order_status NOT NULL DEFAULT 'CREATED',
+  stripe_checkout_session_id TEXT UNIQUE,
+  stripe_payment_intent_id TEXT UNIQUE,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_checkout_orders_user ON checkout_orders(user_id);
+CREATE INDEX idx_checkout_orders_status ON checkout_orders(status);
+
+-- At most one open order per (user, plan, coupon) purchase context.
+CREATE UNIQUE INDEX one_open_checkout_order_per_context
+ON checkout_orders(
+  user_id,
+  plan_id,
+  COALESCE(coupon_id, '00000000-0000-0000-0000-000000000000'::uuid)
+)
+WHERE status IN ('CREATED', 'CHECKOUT_STARTED');
+
+CREATE TRIGGER trg_checkout_orders_updated_at
+BEFORE UPDATE ON checkout_orders
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- =========================
+-- COUPON RESERVATIONS
+-- =========================
+-- Holds coupon capacity while a checkout is in flight. released_at IS NULL =
+-- active; finalize/release stamps released_at.
+CREATE TABLE coupon_reservations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  coupon_id UUID NOT NULL REFERENCES coupons(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  checkout_order_id UUID NOT NULL REFERENCES checkout_orders(id) ON DELETE CASCADE,
+  expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  released_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT unique_coupon_reservation_order UNIQUE (checkout_order_id)
+);
+
+CREATE UNIQUE INDEX unique_active_coupon_reservation
+ON coupon_reservations(coupon_id, user_id)
+WHERE released_at IS NULL;
+
+CREATE INDEX idx_coupon_reservations_coupon
+ON coupon_reservations(coupon_id);
 
 -- ========================
 -- SUBSCRIPTION PAYMENTS
@@ -491,6 +559,9 @@ CREATE TABLE subscription_payments(
   currency VARCHAR(3) NOT NULL DEFAULT 'usd',
   payment_status payment_status DEFAULT 'PENDING',
   coupon_id UUID REFERENCES coupons(id) ON DELETE SET NULL,
+  provider VARCHAR(20) NOT NULL DEFAULT 'STRIPE',
+  payment_method VARCHAR(30) NOT NULL DEFAULT 'card',
+  checkout_order_id UUID REFERENCES checkout_orders(id) ON DELETE SET NULL,
   stripe_payment_intent_id TEXT UNIQUE,
   paid_at TIMESTAMP WITH TIME ZONE,
   failure_reason TEXT,
@@ -500,6 +571,7 @@ CREATE TABLE subscription_payments(
 
 CREATE INDEX idx_subscription_payment_user_subscription ON subscription_payments(user_subscription_id);
 CREATE INDEX idx_subscription_payments_status ON subscription_payments(payment_status);
+CREATE INDEX idx_subscription_payments_checkout_order ON subscription_payments(checkout_order_id);
 
 CREATE TRIGGER trg_subscription_payments_updated_at
 BEFORE UPDATE ON subscription_payments
@@ -543,6 +615,40 @@ CREATE INDEX idx_payment_refunds_status ON payment_refunds(refund_status);
 
 CREATE TRIGGER trg_payment_refunds_updated_at
 BEFORE UPDATE ON payment_refunds
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- =========================
+-- REFUND REQUESTS
+-- =========================
+-- Learner's request for a refund. Distinct from payment_refunds (the actual
+-- financial refund handled by the admin workflow).
+CREATE TABLE refund_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  payment_id UUID NOT NULL REFERENCES subscription_payments(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  requested_amount NUMERIC(10,2) NOT NULL CHECK (requested_amount > 0),
+  currency VARCHAR(3) NOT NULL DEFAULT 'usd',
+  reason VARCHAR(255) NOT NULL,
+  user_note TEXT,
+  status refund_request_status NOT NULL DEFAULT 'PENDING',
+  reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  admin_note TEXT,
+  requested_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  reviewed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX one_pending_refund_request_per_payment
+ON refund_requests(payment_id)
+WHERE status = 'PENDING';
+
+CREATE INDEX idx_refund_requests_payment ON refund_requests(payment_id);
+CREATE INDEX idx_refund_requests_user ON refund_requests(user_id);
+CREATE INDEX idx_refund_requests_status ON refund_requests(status);
+
+CREATE TRIGGER trg_refund_requests_updated_at
+BEFORE UPDATE ON refund_requests
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- =========================

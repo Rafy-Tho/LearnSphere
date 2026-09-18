@@ -4,18 +4,27 @@ const PAYMENT_SELECT = `
   sp.*,
   c.code AS coupon_code,
   COALESCE(r.refunded_total, 0) AS refunded_total,
-  r.refund_status AS refund_status
+  r.refund_status AS refund_status,
+  GREATEST(sp.amount - COALESCE(r.refunded_total, 0), 0) AS refundable_amount,
+  rr.status AS refund_request_status
 `;
 
 const PAYMENT_JOINS = `
   LEFT JOIN coupons c ON c.id = sp.coupon_id
   LEFT JOIN (
     SELECT payment_id,
-           SUM(amount) AS refunded_total,
+           SUM(amount) FILTER (WHERE refund_status = 'SUCCEEDED') AS refunded_total,
            (ARRAY_AGG(refund_status ORDER BY created_at DESC))[1] AS refund_status
     FROM payment_refunds
     GROUP BY payment_id
   ) r ON r.payment_id = sp.id
+  LEFT JOIN LATERAL (
+    SELECT status
+    FROM refund_requests
+    WHERE payment_id = sp.id
+    ORDER BY created_at DESC
+    LIMIT 1
+  ) rr ON TRUE
 `;
 
 class PaymentRepository {
@@ -32,6 +41,9 @@ class PaymentRepository {
       currency = "usd",
       couponId = null,
       paymentStatus = "COMPLETED",
+      provider = "STRIPE",
+      paymentMethod = "card",
+      checkoutOrderId = null,
       stripePaymentIntentId = null,
       paidAt = new Date(),
     },
@@ -40,8 +52,9 @@ class PaymentRepository {
     const result = await client.query(
       `INSERT INTO subscription_payments
          (user_subscription_id, subtotal, discount_amount, amount, currency,
-          coupon_id, payment_status, stripe_payment_intent_id, paid_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          coupon_id, payment_status, provider, payment_method, checkout_order_id,
+          stripe_payment_intent_id, paid_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
        RETURNING *`,
       [
         userSubscriptionId,
@@ -51,6 +64,9 @@ class PaymentRepository {
         currency,
         couponId,
         paymentStatus,
+        provider,
+        paymentMethod,
+        checkoutOrderId,
         stripePaymentIntentId,
         paidAt,
       ],

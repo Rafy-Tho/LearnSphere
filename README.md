@@ -2,7 +2,7 @@
 
 Learning Online Platform is a full-stack web application for delivering structured online courses with authentication, enrollment, progress tracking, quizzes, reviews, and subscription payments.
 
-> **Progress:** the backend is module-based (`app/`, `config/`, `db/`, `common/`, `modules/`) and hardened; the learner frontend refactor is complete; the admin refactor has not started. See [`docs/progress/`](./docs/progress/).
+> **Progress:** the backend is module-based (`app/`, `config/`, `db/`, `common/`, `modules/`) and hardened; the learner frontend and admin refactors are complete. See [`docs/progress/`](./docs/progress/).
 
 ## Project Purpose
 

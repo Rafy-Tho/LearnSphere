@@ -59,7 +59,7 @@ Full scope: `docs/01-planning/scope.md`.
 
 ## 4. Architecture
 
-> **Progress:** the backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started. See [`docs/progress/`](./docs/progress/).
+> **Progress:** the backend is module-based and hardened; the learner frontend and admin refactors are complete. See [`docs/progress/`](./docs/progress/).
 
 ### 4.1 Backend Layering
 

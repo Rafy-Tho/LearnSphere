@@ -8,7 +8,7 @@ Single place to track what is done, what is in progress, and what is left. Keep 
 |---|---|---|---|
 | Backend API | [`backend-progress.md`](./backend-progress.md) | 🟡 | Module structure, DB migrations, API/naming/security work done; a few module gaps left |
 | Learner frontend | [`frontend-user.md`](./frontend-user.md) | ✅ | Feature architecture, UI primitives, performance, API/state, design tokens |
-| Admin dashboard | [`frontend-admin.md`](./frontend-admin.md) | ⬜ | Not started (learner app refactor came first) |
+| Admin dashboard | [`frontend-admin.md`](./frontend-admin.md) | ✅ | Feature architecture, apiClient/query patterns, billing UI aligned with prepaid API |
 
 ## How To Update
 

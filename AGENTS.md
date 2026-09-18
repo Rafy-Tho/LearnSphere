@@ -2,7 +2,7 @@
 
 This is the conventional agent entry point. The full guide lives in [`agent.md`](./agent.md); the authoritative rules live in [`ai/`](./ai/).
 
-> **Progress:** what is done and what is left lives in [`docs/progress/`](./docs/progress/). The backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started.
+> **Progress:** what is done and what is left lives in [`docs/progress/`](./docs/progress/). The backend is module-based and hardened; the learner frontend and admin refactors are complete.
 
 ## Start Here
 

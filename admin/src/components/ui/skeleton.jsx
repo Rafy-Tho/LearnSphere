@@ -1,4 +1,4 @@
-import { cn } from "../../libs/utils";
+import { cn } from "../../lib/utils";
 import { Loader2 } from "lucide-react";
 
 function Skeleton({ className, ...props }) {

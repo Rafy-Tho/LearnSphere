@@ -2,7 +2,7 @@
 
 Condensed, authoritative context. Read this before making changes.
 
-> **Progress:** the backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started. See [`docs/progress/`](../docs/progress/).
+> **Progress:** the backend is module-based and hardened; the learner frontend and admin refactors are complete. See [`docs/progress/`](../docs/progress/).
 
 ## What This Is
 
@@ -43,9 +43,9 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 | Learner routes | `frontend/src/app/router.jsx` |
 | Learner data hooks | `frontend/src/features/*/hooks`, `frontend/src/hooks/` |
 | Learner API client | `frontend/src/lib/apiClient.js`, keys in `frontend/src/lib/queryKeys.js` |
-| Admin routes | `admin/src/App.jsx` |
-| Admin data hooks | `admin/src/hooks/` |
-| Admin services | `admin/src/services/*Api.js` (+ `http.js`) |
+| Admin routes | `admin/src/app/router.jsx` |
+| Admin data hooks | `admin/src/features/*/hooks`, `admin/src/hooks/` |
+| Admin API client | `admin/src/lib/apiClient.js`, feature services in `admin/src/features/*/services/` |
 
 ## Known Issues & Residuals (do not "fix" silently; confirm first)
 

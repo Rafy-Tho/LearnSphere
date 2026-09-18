@@ -2,7 +2,7 @@
 
 These rules define the architectural boundaries you must preserve. Violations should be treated as bugs.
 
-> **Progress:** the backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started. See [`docs/progress/`](../docs/progress/).
+> **Progress:** the backend is module-based and hardened; the learner frontend and admin refactors are complete. See [`docs/progress/`](../docs/progress/).
 
 ## 1. Backend Layering
 

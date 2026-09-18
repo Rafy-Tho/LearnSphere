@@ -1,7 +1,7 @@
 import * as React from "react";
 import { cva } from "class-variance-authority";
 
-import { cn } from "../../libs/utils";
+import { cn } from "../../lib/utils";
 import { AlertCircle, Info } from "lucide-react";
 
 const alertVariants = cva(

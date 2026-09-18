@@ -1,6 +1,6 @@
 # Architecture
 
-> **Progress:** the backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started. See [`../progress/`](../progress/).
+> **Progress:** the backend is module-based and hardened; the learner frontend and admin refactors are complete. See [`../progress/`](../progress/).
 
 ## 1. Overview
 

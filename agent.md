@@ -2,7 +2,7 @@
 
 Entry point for AI coding agents working in this repository. Read this first, then load the detailed rules in `ai/`.
 
-> **Progress:** what is done and what is left lives in [`docs/progress/`](./docs/progress/). The backend is module-based and hardened; the learner frontend refactor is complete; the admin refactor has not started.
+> **Progress:** what is done and what is left lives in [`docs/progress/`](./docs/progress/). The backend is module-based and hardened; the learner frontend and admin refactors are complete.
 
 ## 1. What This Project Is
 

@@ -1,7 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queryKeys';
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
 import { useQuestionActions } from './use-question-actions';
 import { useOptionActions } from './use-option-actions';
 import { toast } from '@/hooks/use-toast';
@@ -12,28 +9,23 @@ const DEFAULT_OPTIONS = [
   { text: '', is_correct: false, position: 2 },
 ];
 
-export function useQuizCrud({
-  quizzes,
-  setQuizzes,
-  quizOptions,
-  setQuizOptions,
-}) {
+export function useQuizCrud() {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [parentId, setParentId] = useState('');
+  const [position, setPosition] = useState(1);
   const [quizForm, setQuizForm] = useState(DEFAULT_QUIZ);
   const [optionsForm, setOptionsForm] = useState(DEFAULT_OPTIONS);
   const [deletedOptionIds, setDeletedOptionIds] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { createQuestion, updateQuestion, deleteQuestion } = useQuestionActions();
+  const { createQuestion, updateQuestion, deleteQuestion } =
+    useQuestionActions();
   const { createOption, updateOption, deleteOption } = useOptionActions();
 
-  const params = useParams();
-  const queryClient = useQueryClient();
-
-  const openCreate = (lessonId) => {
+  const openCreate = (lessonId, nextPosition = 1) => {
     setParentId(lessonId);
+    setPosition(nextPosition);
     setEditing(null);
     setQuizForm(DEFAULT_QUIZ);
     setOptionsForm(DEFAULT_OPTIONS);
@@ -45,9 +37,7 @@ export function useQuizCrud({
     setParentId(q.lesson_id);
     setEditing(q);
     setQuizForm({ question: q.question, explanation: q.explanation || '' });
-    const opts = quizOptions
-      .filter((o) => o.quiz_id === q.id)
-      .sort((a, b) => a.position - b.position);
+    const opts = [...(q.options ?? [])].sort((a, b) => a.position - b.position);
     setOptionsForm(
       opts.length > 0
         ? opts.map((o) => ({
@@ -64,65 +54,48 @@ export function useQuizCrud({
 
   const save = async () => {
     if (!quizForm.question) return;
-    const quizId = editing?.id || crypto.randomUUID();
     setIsLoading(true);
 
     if (editing) {
       try {
-        const response = await updateQuestion({
+        await updateQuestion({
           id: editing.id,
           data: {
             question: quizForm.question,
             explanation: quizForm.explanation,
-            position:
-              quizzes.filter((q) => q.lesson_id === parentId).length + 1,
+            position: editing.position,
           },
         });
-        setQuizzes((qs) =>
-          qs.map((q) => (q.id === editing.id ? response : q)),
-        );
 
         await Promise.all(deletedOptionIds.map((id) => deleteOption(id)));
 
-        const savedOptions = await Promise.all(
+        await Promise.all(
           optionsForm
             .filter((o) => o.text.trim())
-            .map(async (o, i) => {
-              if (o.id) {
-                const res = await updateOption({
-                  id: o.id,
-                  data: {
-                    text: o.text,
-                    isCorrect: o.is_correct,
-                    position: o.position ?? i + 1,
-                  },
-                });
-                return res;
-              } else {
-                const res = await createOption({
-                  id: editing.id,
-                  data: {
-                    text: o.text,
-                    isCorrect: o.is_correct,
-                    position: o.position ?? i + 1,
-                  },
-                });
-                return res;
-              }
-            }),
+            .map((o, i) =>
+              o.id
+                ? updateOption({
+                    id: o.id,
+                    data: {
+                      text: o.text,
+                      isCorrect: o.is_correct,
+                      position: o.position ?? i + 1,
+                    },
+                  })
+                : createOption({
+                    id: editing.id,
+                    data: {
+                      text: o.text,
+                      isCorrect: o.is_correct,
+                      position: o.position ?? i + 1,
+                    },
+                  }),
+            ),
         );
-
-        setQuizOptions((prev) => [
-          ...prev.filter((o) => o.quiz_id !== quizId),
-          ...savedOptions,
-        ]);
 
         toast({
           title: 'Quiz updated successfully',
           description: 'The quiz has been updated successfully',
-        });
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.courseDetails(params.courseId),
         });
       } catch (err) {
         toast({
@@ -143,39 +116,28 @@ export function useQuizCrud({
           data: {
             question: quizForm.question,
             explanation: quizForm.explanation,
-            position:
-              quizzes.filter((q) => q.lesson_id === parentId).length + 1,
+            position,
           },
         });
-        setQuizzes((qs) => [...qs, response]);
 
-        const newOptions = await Promise.all(
+        await Promise.all(
           optionsForm
             .filter((o) => o.text.trim())
-            .map(async (o, i) => {
-              const res = await createOption({
+            .map((o, i) =>
+              createOption({
                 id: response?.id,
                 data: {
                   text: o.text,
                   isCorrect: o.is_correct,
                   position: i + 1,
                 },
-              });
-              return res;
-            }),
+              }),
+            ),
         );
-
-        setQuizOptions((prev) => [
-          ...prev.filter((o) => o.quiz_id !== quizId),
-          ...newOptions,
-        ]);
 
         toast({
           title: 'Quiz created successfully',
           description: 'The quiz has been created successfully',
-        });
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.courseDetails(params.courseId),
         });
       } catch (err) {
         toast({
@@ -222,8 +184,6 @@ export function useQuizCrud({
   const remove = async (id) => {
     try {
       await deleteQuestion(id);
-      setQuizOptions((os) => os.filter((o) => o.quiz_id !== id));
-      setQuizzes((qs) => qs.filter((q) => q.id !== id));
       toast({
         title: 'Quiz deleted successfully',
         description: 'The quiz has been deleted successfully',

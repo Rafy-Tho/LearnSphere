@@ -234,6 +234,15 @@ export default function Checkout() {
                 {alreadyActive ? "Already subscribed" : "Continue to Stripe"}
               </Button>
 
+              <div className="mt-4 rounded-md bg-slate-50 p-3 text-center">
+                <p className="text-xs text-slate-600">
+                  <strong>Sandbox Mode:</strong> This is a test payment. No real money is charged.
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  Use card: 4242 4242 4242 4242 (any future date, any 3-digit CVC)
+                </p>
+              </div>
+
               <p className="mt-4 text-center text-xs text-foreground-muted">
                 One-time payment for {plan.duration_days} days of access. Your
                 access ends automatically — no recurring charges.

@@ -37,6 +37,17 @@ class AdminUserController {
     return sendSuccess(res, user, { message: "User updated successfully" });
   });
 
+  setPassword = asyncHandler(async (req, res) => {
+    await this.adminUserService.setPassword(
+      req.params.userId,
+      req.body.newPassword,
+    );
+
+    return sendSuccess(res, null, {
+      message: "Password updated successfully",
+    });
+  });
+
   deleteUser = asyncHandler(async (req, res) => {
     await this.adminUserService.deleteUser(req.params.userId);
 

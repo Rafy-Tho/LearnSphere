@@ -50,6 +50,22 @@ export function useDeleteUser() {
   return { deleteUser, isPending, error };
 }
 
+export function useSetUserPassword() {
+  const queryClient = useQueryClient();
+  const {
+    mutateAsync: setPassword,
+    isPending,
+    error,
+  } = useMutation({
+    mutationKey: ['set-user-password'],
+    mutationFn: ({ id, data }) => usersApi.setPassword(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.usersRoot() });
+    },
+  });
+  return { setPassword, isPending, error };
+}
+
 export function useUpdatePassword() {
   const {
     mutateAsync: updatePassword,

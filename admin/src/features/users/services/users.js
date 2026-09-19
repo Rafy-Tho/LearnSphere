@@ -12,5 +12,6 @@ export const usersApi = {
     api.getPaginated(`/admin/users${toQueryString(params)}`),
   createUser: (data) => api.post("/admin/users", data),
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
+  setPassword: (id, data) => api.patch(`/admin/users/${id}/password`, data),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
 };

@@ -5,6 +5,7 @@ import { validateResult } from "../../common/middleware/validate-result.js";
 import { ADMIN } from "../../common/constants/constants.js";
 import adminUserController from "./admin-user.controller.js";
 import {
+  adminSetPasswordValidator,
   createUserValidator,
   updateUserValidator,
   userIdParamValidator,
@@ -27,5 +28,13 @@ adminUsersRoute
     validateResult,
     adminUserController.deleteUser,
   );
+
+adminUsersRoute.patch(
+  "/:userId/password",
+  userIdParamValidator,
+  adminSetPasswordValidator,
+  validateResult,
+  adminUserController.setPassword,
+);
 
 export default adminUsersRoute;

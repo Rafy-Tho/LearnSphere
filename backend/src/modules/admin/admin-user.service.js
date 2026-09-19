@@ -38,7 +38,7 @@ class AdminUserService {
     };
   }
 
-  async createUser({ name, email, role, status }) {
+  async createUser({ name, email, role, status, password }) {
     if (!name || !email) {
       throw new ApiError(StatusCode.BAD_REQUEST, "Name and email are required");
     }
@@ -51,9 +51,10 @@ class AdminUserService {
       );
     }
 
-    // Random unguessable password; the user sets their own via the invite below.
-    const randomPassword = crypto.randomBytes(32).toString("hex");
-    const hashedPassword = await this.hashService.hash(randomPassword);
+    // Use the admin-provided password when present; otherwise generate an
+    // unguessable one and let the user set their own via the invite below.
+    const rawPassword = password || crypto.randomBytes(32).toString("hex");
+    const hashedPassword = await this.hashService.hash(rawPassword);
 
     const user = await withTransaction(async (client) => {
       const createdUser = await this.userRepository.create(
@@ -77,6 +78,10 @@ class AdminUserService {
 
       await this.userRepository.createProfile(createdUser.id, client);
 
+      // Accounts provisioned by an admin are considered email-verified: the
+      // admin vouches for the address, so no second verification email is sent.
+      await this.userRepository.markEmailVerified(createdUser.id, client);
+
       return createdUser;
     });
 
@@ -86,14 +91,27 @@ class AdminUserService {
       status: status || user.status,
     });
 
-    // Invite: send a password-reset code so the user can set their own password.
-    try {
-      await this.authService.sendResetCode(email);
-    } catch (error) {
-      logger.error("Failed to send admin invite", { message: error.message });
+    // Invite only when the admin did not set a password directly.
+    if (!password) {
+      try {
+        await this.authService.sendResetCode(email);
+      } catch (error) {
+        logger.error("Failed to send admin invite", { message: error.message });
+      }
     }
 
     return user;
+  }
+
+  async setPassword(userId, newPassword) {
+    const existingUser = await this.userRepository.findById(userId);
+    if (!existingUser) {
+      throw new ApiError(StatusCode.NOT_FOUND, "User not found");
+    }
+
+    await this.authService.adminSetPassword({ userId, newPassword });
+
+    logger.audit("admin.user.password", { userId });
   }
 
   async updateUser(userId, userData) {

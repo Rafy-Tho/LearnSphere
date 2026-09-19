@@ -2,6 +2,7 @@ import { checkSchema } from "express-validator";
 import {
   emailValidator,
   enumValidator,
+  passwordValidator,
   textValidator,
   uuidParamValidator,
 } from "../../common/validation.js";
@@ -14,6 +15,11 @@ export const createUserValidator = checkSchema({
   email: emailValidator("Email"),
   role: enumValidator("Role", ROLES, true),
   status: enumValidator("Status", STATUSES, true),
+  password: passwordValidator("Password", true),
+});
+
+export const adminSetPasswordValidator = checkSchema({
+  newPassword: passwordValidator("New Password"),
 });
 
 export const updateUserValidator = checkSchema({

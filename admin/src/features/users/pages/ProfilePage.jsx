@@ -69,10 +69,15 @@ export default function ProfilePage() {
       });
       return;
     }
-    if (newPassword.length < 6) {
+    if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,100}$/.test(
+        newPassword,
+      )
+    ) {
       toast({
         title: "Error!",
-        description: "Password must be at least 6 characters.",
+        description:
+          "Password must be 8-100 characters with uppercase, lowercase, number and symbol.",
         variant: "destructive",
       });
       return;

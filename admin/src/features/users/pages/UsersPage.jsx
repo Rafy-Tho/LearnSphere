@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound } from "lucide-react";
 import { DataTable } from "@/components/common/DataTable";
 import { FormModal } from "@/components/common/FormModal";
 import PaginatedTable from "@/components/common/PaginationTable";
@@ -28,10 +28,14 @@ import {
   useCreateUser,
   useUpdateUser,
   useDeleteUser,
+  useSetUserPassword,
 } from "@/features/users/hooks";
 import { useToast } from "@/hooks/use-toast";
 
 const PAGE_SIZE = 10;
+
+const PASSWORD_PATTERN =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,100}$/;
 
 export default function UsersPage({ filterRole, title, subtitle }) {
   const { toast } = useToast();
@@ -40,16 +44,21 @@ export default function UsersPage({ filterRole, title, subtitle }) {
   const { createUser, isPending: isCreating } = useCreateUser();
   const { updateUser, isPending: isUpdating } = useUpdateUser();
   const { deleteUser, isPending: isDeleting } = useDeleteUser();
+  const { setPassword, isPending: isSettingPassword } = useSetUserPassword();
   const users = data?.data || [];
   const totalPages = data?.pagination?.totalPages || 1;
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [passwordUser, setPasswordUser] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [form, setForm] = useState({
     name: "",
     email: "",
     role: filterRole || "LEARNER",
     status: "ACTIVE",
+    password: "",
   });
 
   const openCreate = useCallback(() => {
@@ -59,6 +68,7 @@ export default function UsersPage({ filterRole, title, subtitle }) {
       email: "",
       role: filterRole || "LEARNER",
       status: "ACTIVE",
+      password: "",
     });
     setModalOpen(true);
   }, [filterRole]);
@@ -70,18 +80,30 @@ export default function UsersPage({ filterRole, title, subtitle }) {
       email: user.email,
       role: user.role,
       status: user.status,
+      password: "",
     });
     setModalOpen(true);
   }, []);
 
   const handleSave = async () => {
     if (!form.name || !form.email) return;
+    if (!editing && form.password && !PASSWORD_PATTERN.test(form.password)) {
+      toast({
+        title: "Error!",
+        description:
+          "Password must be 8-100 characters with uppercase, lowercase, number and symbol.",
+        variant: "destructive",
+      });
+      return;
+    }
     try {
       if (editing) {
         await updateUser({ id: editing.id, data: form });
         toast({ title: "Success!", description: "User updated successfully." });
       } else {
-        await createUser(form);
+        const payload = { ...form };
+        if (!payload.password) delete payload.password;
+        await createUser(payload);
         toast({ title: "Success!", description: "User created successfully." });
       }
       setModalOpen(false);
@@ -90,6 +112,55 @@ export default function UsersPage({ filterRole, title, subtitle }) {
       toast({
         title: "Error!",
         description: error.message || "Something went wrong.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openPasswordDialog = useCallback((user) => {
+    setPasswordUser(user);
+    setNewPassword("");
+    setConfirmPassword("");
+  }, []);
+
+  const cancelPasswordDialog = useCallback(() => {
+    setPasswordUser(null);
+    setNewPassword("");
+    setConfirmPassword("");
+  }, []);
+
+  const handleSetPassword = async () => {
+    if (!PASSWORD_PATTERN.test(newPassword)) {
+      toast({
+        title: "Error!",
+        description:
+          "Password must be 8-100 characters with uppercase, lowercase, number and symbol.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error!",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    try {
+      await setPassword({
+        id: passwordUser.id,
+        data: { newPassword },
+      });
+      toast({
+        title: "Success!",
+        description: `Password updated for ${passwordUser.name}.`,
+      });
+      cancelPasswordDialog();
+    } catch (error) {
+      toast({
+        title: "Error!",
+        description: error.message || "Failed to update password.",
         variant: "destructive",
       });
     }
@@ -176,6 +247,17 @@ export default function UsersPage({ filterRole, title, subtitle }) {
           >
             <Pencil className="h-4 w-4" />
           </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            title="Set password"
+            onClick={(e) => {
+              e.stopPropagation();
+              openPasswordDialog(u);
+            }}
+          >
+            <KeyRound className="h-4 w-4" />
+          </Button>
            <Button
             variant="ghost"
             size="icon"
@@ -192,7 +274,7 @@ export default function UsersPage({ filterRole, title, subtitle }) {
       ),
     },
     ],
-    [filterRole, openEdit, openDeleteDialog, isDeleting],
+    [filterRole, openEdit, openPasswordDialog, openDeleteDialog, isDeleting],
   );
 
   return (
@@ -279,12 +361,81 @@ export default function UsersPage({ filterRole, title, subtitle }) {
               </SelectContent>
             </Select>
           </div>
+          {!editing && (
+            <div>
+              <label className="text-sm font-medium text-foreground">
+                Password (optional)
+              </label>
+              <Input
+                type="password"
+                value={form.password}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, password: e.target.value }))
+                }
+                placeholder="Leave blank to email an invite"
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                8-100 characters with uppercase, lowercase, number and symbol.
+              </p>
+            </div>
+          )}
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={() => setModalOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={isCreating || isUpdating}>
               {editing ? "Update" : "Create"}
+            </Button>
+          </div>
+        </div>
+      </FormModal>
+
+      <FormModal
+        open={!!passwordUser}
+        onOpenChange={(open) => {
+          if (!open) cancelPasswordDialog();
+        }}
+        title="Set Password"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-foreground">
+              New password for {passwordUser?.name}
+            </label>
+            <Input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter new password"
+              className="mt-1"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              8-100 characters with uppercase, lowercase, number and symbol.
+              Existing sessions will be signed out.
+            </p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-foreground">
+              Confirm password
+            </label>
+            <Input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Re-enter password"
+              className="mt-1"
+            />
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={cancelPasswordDialog}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSetPassword}
+              disabled={isSettingPassword}
+            >
+              {isSettingPassword ? "Saving..." : "Save Password"}
             </Button>
           </div>
         </div>

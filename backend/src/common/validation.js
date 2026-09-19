@@ -32,12 +32,19 @@ export const emailValidator = (field, optional = false) => ({
   },
 });
 
-export const passwordValidator = (field) => ({
+export const passwordValidator = (field, optional = false) => ({
   in: ["body"],
-  notEmpty: {
-    errorMessage: `${field} is required`,
-    bail: true,
-  },
+  ...(optional && {
+    optional: {
+      options: { nullable: true, checkFalsy: true },
+    },
+  }),
+  ...(!optional && {
+    notEmpty: {
+      errorMessage: `${field} is required`,
+      bail: true,
+    },
+  }),
   isLength: {
     options: { min: 8, max: 100 },
     errorMessage: `${field} must be between 8 and 100 characters`,

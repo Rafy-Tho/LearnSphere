@@ -294,6 +294,25 @@ class AuthService {
     await this.sessionRepository.deleteByUserId(userId);
     logger.audit("auth.password.change", { userId });
   }
+
+  // Admin override: sets a password without the old-password check. Setting the
+  // password also proves ownership of the account's email (the admin vouches for
+  // the user), so the email is marked verified and all existing sessions are
+  // invalidated to force a fresh login with the new password.
+  async adminSetPassword({ userId, newPassword }) {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new ApiError(StatusCode.NOT_FOUND, "User Doesn't Exist");
+    }
+
+    const passwordHash = await this.hashService.hash(newPassword);
+    await withTransaction(async (client) => {
+      await this.userRepository.updatePassword({ userId, passwordHash }, client);
+      await this.userRepository.markEmailVerified(userId, client);
+      await this.sessionRepository.deleteByUserId(userId, client);
+    });
+    logger.audit("auth.password.admin_set", { userId });
+  }
 }
 
 export { AuthService };

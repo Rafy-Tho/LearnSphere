@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export function useDeleteDialog({
   onDeleteObjective,
@@ -10,8 +10,8 @@ export function useDeleteDialog({
 }) {
   const [deleteDialog, setDeleteDialog] = useState(null);
 
-  const confirm = (type, id, name) => setDeleteDialog({ type, id, name });
-  const cancel = () => setDeleteDialog(null);
+  const confirm = useCallback((type, id, name) => setDeleteDialog({ type, id, name }), []);
+  const cancel = useCallback(() => setDeleteDialog(null), []);
 
   const execute = () => {
     if (!deleteDialog) return;

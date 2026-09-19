@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useQuestionActions } from './use-question-actions';
 import { useOptionActions } from './use-option-actions';
 import { toast } from '@/hooks/use-toast';
@@ -23,7 +23,7 @@ export function useQuizCrud() {
     useQuestionActions();
   const { createOption, updateOption, deleteOption } = useOptionActions();
 
-  const openCreate = (lessonId, nextPosition = 1) => {
+  const openCreate = useCallback((lessonId, nextPosition = 1) => {
     setParentId(lessonId);
     setPosition(nextPosition);
     setEditing(null);
@@ -31,9 +31,9 @@ export function useQuizCrud() {
     setOptionsForm(DEFAULT_OPTIONS);
     setDeletedOptionIds([]);
     setModal(true);
-  };
+  }, []);
 
-  const openEdit = (q) => {
+  const openEdit = useCallback((q) => {
     setParentId(q.lesson_id);
     setEditing(q);
     setQuizForm({ question: q.question, explanation: q.explanation || '' });
@@ -50,7 +50,7 @@ export function useQuizCrud() {
     );
     setDeletedOptionIds([]);
     setModal(true);
-  };
+  }, []);
 
   const save = async () => {
     if (!quizForm.question) return;

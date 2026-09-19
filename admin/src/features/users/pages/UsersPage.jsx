@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { DataTable } from "@/components/common/DataTable";
 import { FormModal } from "@/components/common/FormModal";
@@ -52,7 +52,7 @@ export default function UsersPage({ filterRole, title, subtitle }) {
     status: "ACTIVE",
   });
 
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setEditing(null);
     setForm({
       name: "",
@@ -61,9 +61,9 @@ export default function UsersPage({ filterRole, title, subtitle }) {
       status: "ACTIVE",
     });
     setModalOpen(true);
-  };
+  }, [filterRole]);
 
-  const openEdit = (user) => {
+  const openEdit = useCallback((user) => {
     setEditing(user);
     setForm({
       name: user.name,
@@ -72,7 +72,7 @@ export default function UsersPage({ filterRole, title, subtitle }) {
       status: user.status,
     });
     setModalOpen(true);
-  };
+  }, []);
 
   const handleSave = async () => {
     if (!form.name || !form.email) return;
@@ -95,30 +95,34 @@ export default function UsersPage({ filterRole, title, subtitle }) {
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await deleteUser(id);
-      toast({ title: "Success!", description: "User deleted successfully." });
-      if (users.length === 1 && page > 1) setPage((p) => p - 1);
-      setPendingDelete(null);
-    } catch (error) {
-      toast({
-        title: "Error!",
-        description: error.message || "Failed to delete user.",
-        variant: "destructive",
-      });
-    }
-  };
+  const handleDelete = useCallback(
+    async (id) => {
+      try {
+        await deleteUser(id);
+        toast({ title: "Success!", description: "User deleted successfully." });
+        if (users.length === 1 && page > 1) setPage((p) => p - 1);
+        setPendingDelete(null);
+      } catch (error) {
+        toast({
+          title: "Error!",
+          description: error.message || "Failed to delete user.",
+          variant: "destructive",
+        });
+      }
+    },
+    [deleteUser, toast, users.length, page],
+  );
 
-  const openDeleteDialog = (user) => {
+  const openDeleteDialog = useCallback((user) => {
     setPendingDelete(user);
-  };
+  }, []);
 
-  const cancelDelete = () => {
+  const cancelDelete = useCallback(() => {
     setPendingDelete(null);
-  };
+  }, []);
 
-  const columns = [
+  const columns = useMemo(
+    () => [
     {
       key: "name",
       header: "User",
@@ -187,7 +191,9 @@ export default function UsersPage({ filterRole, title, subtitle }) {
         </div>
       ),
     },
-  ];
+    ],
+    [filterRole, openEdit, openDeleteDialog, isDeleting],
+  );
 
   return (
     <div className="space-y-6">

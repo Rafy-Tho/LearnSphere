@@ -1,12 +1,14 @@
+import { useMemo } from "react";
 import { Pencil, Plus, Power, Trash2 } from "lucide-react";
 import { DataTable } from "@/components/common/DataTable";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 
-export function PlansTab({ plans, onAdd, onEdit, onToggle, onDelete }) {
-  const columns = [
-    {
-      key: "name",
+export function PlansTab({ plans, isLoading, onAdd, onEdit, onToggle, onDelete }) {
+  const columns = useMemo(
+    () => [
+      {
+        key: "name",
       header: "Plan Name",
       render: (p) => (
         <span className="font-medium text-foreground">{p.name}</span>
@@ -92,7 +94,9 @@ export function PlansTab({ plans, onAdd, onEdit, onToggle, onDelete }) {
         </div>
       ),
     },
-  ];
+    ],
+    [onEdit, onToggle, onDelete],
+  );
 
   return (
     <div className="space-y-4">
@@ -101,7 +105,7 @@ export function PlansTab({ plans, onAdd, onEdit, onToggle, onDelete }) {
           <Plus className="h-4 w-4" /> Add Plan
         </Button>
       </div>
-      <DataTable columns={columns} data={plans} />
+      <DataTable columns={columns} data={plans} isLoading={isLoading} />
     </div>
   );
 }

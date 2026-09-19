@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
 import { DataTable } from '@/components/common/DataTable';
 import { FormModal } from '@/components/common/FormModal';
@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function CategoriesPage() {
   const { data, isLoading, error } = useGetCategories();
-  const [categories, setCategories] = useState([]);
+  const categories = data ?? [];
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', slug: '', description: '' });
@@ -26,13 +26,13 @@ export default function CategoriesPage() {
   const { createCategory, isPending: isCreating } = useCreateCategory();
   const { deleteCategory, isPending: isDeleting } = useDeleteCategory();
   const { toast } = useToast();
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setEditing(null);
     setForm({ name: '', slug: '', description: '' });
     setModalOpen(true);
-  };
+  }, []);
 
-  const openEdit = (cat) => {
+  const openEdit = useCallback((cat) => {
     setEditing(cat);
     setForm({
       name: cat.name,
@@ -40,16 +40,13 @@ export default function CategoriesPage() {
       description: cat.description || '',
     });
     setModalOpen(true);
-  };
+  }, []);
 
   const handleSave = async () => {
     if (!form.name || !form.slug) return;
     if (editing) {
       try {
         await updateCategory({ id: editing.id, category: form });
-        setCategories((cats) =>
-          cats.map((c) => (c.id === editing.id ? { ...c, ...form } : c)),
-        );
         toast({
           title: 'Category updated',
           description: 'The category has been updated successfully.',
@@ -64,12 +61,11 @@ export default function CategoriesPage() {
       }
     } else {
       try {
-        const response = await createCategory(form);
+        await createCategory(form);
         toast({
           title: 'Category created',
           description: 'The category has been created successfully.',
         });
-        setCategories((cats) => [...cats, response]);
         setModalOpen(false);
       } catch (error) {
         toast({
@@ -81,10 +77,9 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = useCallback(async (id) => {
     try {
       await deleteCategory(id);
-      setCategories((cats) => cats.filter((c) => c.id !== id));
       toast({
         title: 'Category deleted',
         description: 'The category has been deleted successfully.',
@@ -96,10 +91,11 @@ export default function CategoriesPage() {
         variant: 'destructive',
       });
     }
-  };
+  }, [deleteCategory, toast]);
 
-  const columns = [
-    { key: 'name', header: 'Name' },
+  const columns = useMemo(
+    () => [
+      { key: 'name', header: 'Name' },
     {
       key: 'slug',
       header: 'Slug',
@@ -140,12 +136,9 @@ export default function CategoriesPage() {
         </div>
       ),
     },
-  ];
-  useEffect(() => {
-    if (data) {
-      setCategories([...data]);
-    }
-  }, [data]);
+    ],
+    [openEdit, handleDelete, isDeleting],
+  );
   if (isLoading) return <CategoriesPageSkeleton />;
   if (error) return <ErrorState message={error.message} />;
   return (

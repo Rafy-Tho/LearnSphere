@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useContentActions } from './use-content-actions';
 import { toast } from '@/hooks/use-toast';
 
@@ -12,19 +12,19 @@ export function useContentCrud() {
   const { createContent, updateContent, deleteContent, isCreating, isUpdating } =
     useContentActions();
 
-  const openCreate = (lessonId) => {
+  const openCreate = useCallback((lessonId) => {
     setParentId(lessonId);
     setEditing(null);
     setForm(DEFAULT_FORM);
     setModal(true);
-  };
+  }, []);
 
-  const openEdit = (lc) => {
+  const openEdit = useCallback((lc) => {
     setParentId(lc.lesson_id);
     setEditing(lc);
     setForm({ name: lc.name, content: lc.content, position: lc.position });
     setModal(true);
-  };
+  }, []);
 
   const save = async () => {
     if (!form.name || !form.content) return;

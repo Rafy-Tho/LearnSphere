@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Eye, Repeat } from "lucide-react";
 import { DataTable } from "@/components/common/DataTable";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -14,6 +15,7 @@ import {
 
 export function SubscriptionsTab({
   subscriptions,
+  isLoading,
   filters,
   onFilterChange,
   plans,
@@ -23,9 +25,10 @@ export function SubscriptionsTab({
   onOverride,
   onView,
 }) {
-  const columns = [
-    {
-      key: "user_name",
+  const columns = useMemo(
+    () => [
+      {
+        key: "user_name",
       header: "User",
       render: (s) => (
         <span className="font-medium text-foreground">{s.user_name}</span>
@@ -83,7 +86,9 @@ export function SubscriptionsTab({
         </Button>
       ),
     },
-  ];
+    ],
+    [onView],
+  );
 
   return (
     <div className="space-y-4">
@@ -135,7 +140,7 @@ export function SubscriptionsTab({
           </Button>
         </div>
       </div>
-      <DataTable columns={columns} data={subscriptions} />
+      <DataTable columns={columns} data={subscriptions} isLoading={isLoading} />
       {totalPages > 1 && (
         <PaginatedTable
           totalPage={totalPages}

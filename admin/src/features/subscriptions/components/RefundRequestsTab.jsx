@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { ClipboardCheck } from "lucide-react";
 import { DataTable } from "@/components/common/DataTable";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -14,6 +15,7 @@ import {
 
 export function RefundRequestsTab({
   requests,
+  isLoading,
   filters,
   onFilterChange,
   page,
@@ -21,9 +23,10 @@ export function RefundRequestsTab({
   onPageChange,
   onReview,
 }) {
-  const columns = [
-    {
-      key: "user_name",
+  const columns = useMemo(
+    () => [
+      {
+        key: "user_name",
       header: "User",
       render: (r) => (
         <div>
@@ -110,7 +113,9 @@ export function RefundRequestsTab({
         </Button>
       ),
     },
-  ];
+    ],
+    [onReview],
+  );
 
   return (
     <div className="space-y-4">
@@ -139,7 +144,7 @@ export function RefundRequestsTab({
           </SelectContent>
         </Select>
       </div>
-      <DataTable columns={columns} data={requests} />
+      <DataTable columns={columns} data={requests} isLoading={isLoading} />
       {totalPages > 1 && (
         <PaginatedTable
           totalPage={totalPages}

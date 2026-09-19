@@ -28,7 +28,7 @@ function App() {
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   );
 }

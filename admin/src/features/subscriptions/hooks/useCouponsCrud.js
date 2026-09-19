@@ -11,12 +11,15 @@ const DEFAULT_FORM = {
   is_active: true,
 };
 
-export function useCouponsCrud() {
+export function useCouponsCrud({ enabled = true } = {}) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(DEFAULT_FORM);
 
-  const { coupons, pagination, isLoading, error } = useGetCoupons();
+  const { coupons, pagination, isLoading, error } = useGetCoupons(
+    {},
+    { enabled },
+  );
 
   const { createCoupon, isCreating } = useCreateCoupon();
   const { updateCoupon, isUpdating } = useUpdateCoupon();

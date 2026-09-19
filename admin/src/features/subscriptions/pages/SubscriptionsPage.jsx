@@ -35,13 +35,16 @@ import {
 } from "@/components/ui/tabs";
 import { SubscriptionsPageSkeleton } from "@/components/ui/skeleton";
 import { useGetUsers } from "@/features/users/hooks";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 
 const PAGE_SIZE = 20;
 
 export default function SubscriptionsPage() {
+  const [activeTab, setActiveTab] = useState("plans");
+
   const statsHook = useBillingStats();
   const planHook = usePlansCrud();
-  const couponHook = useCouponsCrud();
+  const couponHook = useCouponsCrud({ enabled: activeTab === "coupons" });
 
   const [subFilters, setSubFilters] = useState({
     search: "",
@@ -49,11 +52,15 @@ export default function SubscriptionsPage() {
     plan_id: "",
   });
   const [subPage, setSubPage] = useState(1);
-  const subHook = useSubscriptions({
-    ...subFilters,
-    page: subPage,
-    limit: PAGE_SIZE,
-  });
+  const debouncedSubFilters = useDebouncedValue(subFilters);
+  const subHook = useSubscriptions(
+    {
+      ...debouncedSubFilters,
+      page: subPage,
+      limit: PAGE_SIZE,
+    },
+    { enabled: activeTab === "subscriptions" },
+  );
 
   const [payFilters, setPayFilters] = useState({
     search: "",
@@ -61,44 +68,50 @@ export default function SubscriptionsPage() {
     plan_id: "",
   });
   const [payPage, setPayPage] = useState(1);
-  const payHook = usePayments({
-    ...payFilters,
-    page: payPage,
-    limit: PAGE_SIZE,
-  });
+  const debouncedPayFilters = useDebouncedValue(payFilters);
+  const payHook = usePayments(
+    {
+      ...debouncedPayFilters,
+      page: payPage,
+      limit: PAGE_SIZE,
+    },
+    { enabled: activeTab === "payments" },
+  );
 
   const [requestFilters, setRequestFilters] = useState({
     search: "",
     status: "",
   });
   const [requestPage, setRequestPage] = useState(1);
-  const refundRequestsHook = useRefundRequests({
-    ...requestFilters,
-    page: requestPage,
-    limit: PAGE_SIZE,
-  });
+  const debouncedRequestFilters = useDebouncedValue(requestFilters);
+  const refundRequestsHook = useRefundRequests(
+    {
+      ...debouncedRequestFilters,
+      page: requestPage,
+      limit: PAGE_SIZE,
+    },
+    { enabled: activeTab === "refund-requests" },
+  );
 
   const [refundFilters, setRefundFilters] = useState({
     search: "",
     status: "",
   });
   const [refundPage, setRefundPage] = useState(1);
-  const refundsHook = useRefunds({
-    ...refundFilters,
-    page: refundPage,
-    limit: PAGE_SIZE,
-  });
+  const debouncedRefundFilters = useDebouncedValue(refundFilters);
+  const refundsHook = useRefunds(
+    {
+      ...debouncedRefundFilters,
+      page: refundPage,
+      limit: PAGE_SIZE,
+    },
+    { enabled: activeTab === "refunds" },
+  );
 
   const { overrideSubscription, isOverriding } = useSubscriptionOverride();
   const { refundPayment, isRefunding } = useRefund();
   const { approveRefundRequest, isApproving } = useApproveRefundRequest();
   const { rejectRefundRequest, isRejecting } = useRejectRefundRequest();
-
-  const { data: learnersData, isPending: playersPending } = useGetUsers({
-    role: "LEARNER",
-    limit: 100,
-  });
-  const learners = learnersData?.data || [];
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [overrideOpen, setOverrideOpen] = useState(false);
@@ -114,11 +127,13 @@ export default function SubscriptionsPage() {
   const [detailPaymentId, setDetailPaymentId] = useState(null);
   const [viewSubscriptionId, setViewSubscriptionId] = useState(null);
 
-  const isLoading =
-    statsHook.isLoading ||
-    planHook.isLoading ||
-    couponHook.isLoading ||
-    playersPending;
+  const { data: learnersData } = useGetUsers(
+    { role: "LEARNER", limit: 100 },
+    { enabled: overrideOpen },
+  );
+  const learners = learnersData?.data || [];
+
+  const isLoading = statsHook.isLoading || planHook.isLoading;
 
   if (isLoading) return <SubscriptionsPageSkeleton />;
 
@@ -198,7 +213,7 @@ export default function SubscriptionsPage() {
 
       <SubscriptionStats stats={statsHook.data} />
 
-      <Tabs defaultValue="plans" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="plans">Plans</TabsTrigger>
           <TabsTrigger value="subscriptions">User Subscriptions</TabsTrigger>
@@ -210,6 +225,7 @@ export default function SubscriptionsPage() {
         <TabsContent value="plans">
           <PlansTab
             plans={planHook.plans}
+            isLoading={planHook.isLoading}
             onAdd={planHook.openCreate}
             onEdit={planHook.openEdit}
             onToggle={planHook.toggleStatus}
@@ -219,6 +235,7 @@ export default function SubscriptionsPage() {
         <TabsContent value="subscriptions">
           <SubscriptionsTab
             subscriptions={subHook.subscriptions}
+            isLoading={subHook.isLoading}
             filters={subFilters}
             onFilterChange={updateSubFilters}
             plans={planHook.plans}
@@ -232,6 +249,7 @@ export default function SubscriptionsPage() {
         <TabsContent value="payments">
           <PaymentsTab
             payments={payHook.payments}
+            isLoading={payHook.isLoading}
             filters={payFilters}
             onFilterChange={updatePayFilters}
             plans={planHook.plans}
@@ -245,6 +263,7 @@ export default function SubscriptionsPage() {
         <TabsContent value="refund-requests">
           <RefundRequestsTab
             requests={refundRequestsHook.requests}
+            isLoading={refundRequestsHook.isLoading}
             filters={requestFilters}
             onFilterChange={updateRequestFilters}
             page={requestPage}
@@ -256,6 +275,7 @@ export default function SubscriptionsPage() {
         <TabsContent value="refunds">
           <RefundsTab
             refunds={refundsHook.refunds}
+            isLoading={refundsHook.isLoading}
             filters={refundFilters}
             onFilterChange={updateRefundFilters}
             page={refundPage}
@@ -266,6 +286,7 @@ export default function SubscriptionsPage() {
         <TabsContent value="coupons">
           <CouponsTab
             coupons={couponHook.coupons}
+            isLoading={couponHook.isLoading}
             onAdd={couponHook.openCreate}
             onEdit={couponHook.openEdit}
             onToggle={couponHook.toggleActive}

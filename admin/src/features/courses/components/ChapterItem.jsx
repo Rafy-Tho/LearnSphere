@@ -43,7 +43,7 @@ export const ChapterItem = memo(function ChapterItem({
   );
 
   return (
-    <Collapsible open={isExpanded} onOpenChange={onToggle}>
+    <Collapsible open={isExpanded} onOpenChange={() => onToggle(chapter.id)}>
       <CollapsibleTrigger asChild>
         <div className="flex items-center gap-3 py-3 px-3 cursor-pointer hover:bg-accent/20 rounded-lg mt-2 transition-colors">
           {isExpanded ? (
@@ -129,7 +129,7 @@ export const ChapterItem = memo(function ChapterItem({
                 courseId={courseId}
                 lesson={lesson}
                 isExpanded={expandedLessons.has(lesson.id)}
-                onToggle={() => onToggleLesson(lesson.id)}
+                onToggle={onToggleLesson}
                 onAddContent={onAddContent}
                 onAddQuiz={onAddQuiz}
                 onEdit={onEditLesson}

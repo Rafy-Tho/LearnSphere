@@ -12,7 +12,7 @@ export function useCreateUser() {
     mutationKey: ['create-user'],
     mutationFn: (data) => usersApi.createUser(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.users() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.usersRoot() });
     },
   });
   return { createUser, isPending, error };
@@ -28,7 +28,7 @@ export function useUpdateUser() {
     mutationKey: ['update-user'],
     mutationFn: ({ id, data }) => usersApi.updateUser(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.users() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.usersRoot() });
     },
   });
   return { updateUser, isPending, error };
@@ -44,7 +44,7 @@ export function useDeleteUser() {
     mutationKey: ['delete-user'],
     mutationFn: (id) => usersApi.deleteUser(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.users() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.usersRoot() });
     },
   });
   return { deleteUser, isPending, error };

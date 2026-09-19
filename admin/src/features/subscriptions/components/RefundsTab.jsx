@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { DataTable } from "@/components/common/DataTable";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Input } from "@/components/ui/input";
@@ -12,15 +13,17 @@ import {
 
 export function RefundsTab({
   refunds,
+  isLoading,
   filters,
   onFilterChange,
   page,
   totalPages,
   onPageChange,
 }) {
-  const columns = [
-    {
-      key: "user_name",
+  const columns = useMemo(
+    () => [
+      {
+        key: "user_name",
       header: "User",
       render: (r) => (
         <div>
@@ -75,7 +78,9 @@ export function RefundsTab({
         </span>
       ),
     },
-  ];
+    ],
+    [],
+  );
 
   return (
     <div className="space-y-4">
@@ -103,7 +108,7 @@ export function RefundsTab({
           </SelectContent>
         </Select>
       </div>
-      <DataTable columns={columns} data={refunds} />
+      <DataTable columns={columns} data={refunds} isLoading={isLoading} />
       {totalPages > 1 && (
         <PaginatedTable
           totalPage={totalPages}

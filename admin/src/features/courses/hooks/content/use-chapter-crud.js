@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useChapterActions } from './use-chapter-actions';
 import { toast } from '@/hooks/use-toast';
 
@@ -17,14 +17,14 @@ export function useChapterCrud() {
   const { createChapter, updateChapter, deleteChapter, isCreating, isUpdating } =
     useChapterActions();
 
-  const openCreate = (moduleId) => {
+  const openCreate = useCallback((moduleId) => {
     setParentId(moduleId);
     setEditing(null);
     setForm(DEFAULT_FORM);
     setModal(true);
-  };
+  }, []);
 
-  const openEdit = (ch) => {
+  const openEdit = useCallback((ch) => {
     setParentId(ch.module_id);
     setEditing(ch);
     setForm({
@@ -34,7 +34,7 @@ export function useChapterCrud() {
       position: ch.position,
     });
     setModal(true);
-  };
+  }, []);
 
   const save = async () => {
     if (!form.name) return;

@@ -2,10 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { subscriptionsApi } from '@/features/subscriptions/services/subscriptions';
 import { queryKeys } from '@/lib/queryKeys';
 
-export function useSubscriptions(params = {}) {
+export function useSubscriptions(params = {}, { enabled = true } = {}) {
   const { data, isLoading, error } = useQuery({
     queryKey: [...queryKeys.subscriptions(), params],
     queryFn: () => subscriptionsApi.getSubscriptions(params),
+    enabled,
   });
   const subscriptions = data?.data || [];
   return {
@@ -33,10 +34,11 @@ export function useBillingStats() {
   return { data, isLoading, error };
 }
 
-export function usePayments(params = {}) {
+export function usePayments(params = {}, { enabled = true } = {}) {
   const { data, isLoading, error } = useQuery({
     queryKey: [...queryKeys.payments(), params],
     queryFn: () => subscriptionsApi.getPayments(params),
+    enabled,
   });
   const payments = data?.data || [];
   return {
@@ -65,10 +67,11 @@ export function usePaymentRefunds(id) {
   return { refunds: data?.refunds || [], meta: data, isLoading, error };
 }
 
-export function useRefunds(params = {}) {
+export function useRefunds(params = {}, { enabled = true } = {}) {
   const { data, isLoading, error } = useQuery({
     queryKey: [...queryKeys.refunds(), params],
     queryFn: () => subscriptionsApi.getRefunds(params),
+    enabled,
   });
   const refunds = data?.data || [];
   return {
@@ -103,10 +106,11 @@ export function useRefundRequest(id) {
   return { request: data, isLoading, error };
 }
 
-export function useGetPlans(params = {}) {
+export function useGetPlans(params = {}, { enabled = true } = {}) {
   const { data, isLoading, error } = useQuery({
     queryKey: [...queryKeys.plans(), params],
     queryFn: () => subscriptionsApi.getPlans(params),
+    enabled,
   });
   const plans = data?.data || [];
   return {
@@ -117,10 +121,11 @@ export function useGetPlans(params = {}) {
   };
 }
 
-export function useGetCoupons(params = {}) {
+export function useGetCoupons(params = {}, { enabled = true } = {}) {
   const { data, isLoading, error } = useQuery({
     queryKey: [...queryKeys.coupons(), params],
     queryFn: () => subscriptionsApi.getCoupons(params),
+    enabled,
   });
   const coupons = data?.data || [];
   return {

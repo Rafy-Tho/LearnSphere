@@ -35,14 +35,18 @@ export const LessonItem = memo(function LessonItem({
     isLoading: contentsLoading,
     isError: contentsError,
     refetch: refetchContents,
-  } = useLessonContents(courseId, lesson.id, isExpanded);
+  } = useLessonContents(courseId, lesson.id, isExpanded && lesson.type === 'TEXT');
 
   const {
     questions,
     isLoading: questionsLoading,
     isError: questionsError,
     refetch: refetchQuestions,
-  } = useLessonQuestions(courseId, lesson.id, isExpanded);
+  } = useLessonQuestions(
+    courseId,
+    lesson.id,
+    isExpanded && lesson.type === 'QUIZ',
+  );
 
   const hasChildren =
     (lesson.content_count ?? 0) > 0 || (lesson.quiz_count ?? 0) > 0;
@@ -54,7 +58,7 @@ export const LessonItem = memo(function LessonItem({
       {/* Lesson row */}
       <div
         className="flex items-center gap-3 py-2 px-3 rounded-lg hover:bg-accent/10 transition-colors group cursor-pointer"
-        onClick={onToggle}
+        onClick={() => onToggle(lesson.id)}
       >
         {hasChildren ? (
           isExpanded ? (

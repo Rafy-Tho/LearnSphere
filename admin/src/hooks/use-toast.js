@@ -132,12 +132,17 @@ function useToast() {
         listeners.splice(index, 1);
       }
     };
-  }, [state]);
+  }, []);
+
+  const dismiss = React.useCallback(
+    (toastId) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    [],
+  );
 
   return {
     ...state,
     toast,
-    dismiss: (toastId) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    dismiss,
   };
 }
 

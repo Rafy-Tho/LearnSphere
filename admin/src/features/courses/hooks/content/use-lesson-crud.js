@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useLessonActions } from './use-lesson-actions';
 import { toast } from '@/hooks/use-toast';
 
@@ -16,14 +16,14 @@ export function useLessonCrud() {
   const { createLesson, updateLesson, deleteLesson, isCreating, isUpdating } =
     useLessonActions();
 
-  const openCreate = (chapterId) => {
+  const openCreate = useCallback((chapterId) => {
     setParentId(chapterId);
     setEditing(null);
     setForm(DEFAULT_FORM);
     setModal(true);
-  };
+  }, []);
 
-  const openEdit = (lesson) => {
+  const openEdit = useCallback((lesson) => {
     setParentId(lesson.chapter_id);
     setEditing(lesson);
     setForm({
@@ -32,7 +32,7 @@ export function useLessonCrud() {
       position: lesson.position,
     });
     setModal(true);
-  };
+  }, []);
 
   const save = async () => {
     if (!form.name) return;

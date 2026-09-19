@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChapterModal } from '@/features/courses/components/ChapterModal';
@@ -39,6 +40,32 @@ export default function CourseDetailPage() {
     deleteDialog,
   } = useCourseDetail({ objectives });
 
+  const confirmDelete = deleteDialog.confirm;
+  const handleDeleteModule = useCallback(
+    (m) => confirmDelete('module', m.id, m.name),
+    [confirmDelete],
+  );
+  const handleDeleteChapter = useCallback(
+    (ch) => confirmDelete('chapter', ch.id, ch.name),
+    [confirmDelete],
+  );
+  const handleDeleteLesson = useCallback(
+    (l) => confirmDelete('lesson', l.id, l.name),
+    [confirmDelete],
+  );
+  const handleDeleteContent = useCallback(
+    (lc) => confirmDelete('content', lc.id, lc.name),
+    [confirmDelete],
+  );
+  const handleDeleteQuiz = useCallback(
+    (q) => confirmDelete('quiz', q.id, q.question.slice(0, 30)),
+    [confirmDelete],
+  );
+  const handleDeleteObjective = useCallback(
+    (o) => confirmDelete('objective', o.id, o.content),
+    [confirmDelete],
+  );
+
   if (isLoading) return <CourseDetailPageSkeleton />;
   if (isError) return <ErrorState message={error?.message} />;
   if (Object.keys(course).length === 0) {
@@ -77,9 +104,7 @@ export default function CourseDetailPage() {
         onCancelEdit={objective.cancelEdit}
         onDraftChange={objective.setDraft}
         onEditKeyDown={objective.editKeyDown}
-        onDeleteObjective={(o) =>
-          deleteDialog.confirm('objective', o.id, o.content)
-        }
+        onDeleteObjective={handleDeleteObjective}
         onStartAdd={objective.startAdd}
         onNewObjectiveChange={objective.setNewText}
         onAddObjective={objective.confirmAdd}
@@ -96,31 +121,23 @@ export default function CourseDetailPage() {
             isExpanded={expandedModules.has(mod.id)}
             expandedChapters={expandedChapters}
             expandedLessons={expandedLessons}
-            onToggle={() => toggleModule(mod.id)}
+            onToggle={toggleModule}
             onAddChapter={chapterCrud.openCreate}
             onEdit={moduleCrud.openEdit}
-            onDelete={(m) => deleteDialog.confirm('module', m.id, m.name)}
+            onDelete={handleDeleteModule}
             onToggleChapter={toggleChapter}
             onAddLesson={lessonCrud.openCreate}
             onToggleLesson={toggleLesson}
             onAddContent={contentCrud.openCreate}
             onAddQuiz={quizCrud.openCreate}
             onEditChapter={chapterCrud.openEdit}
-            onDeleteChapter={(ch) =>
-              deleteDialog.confirm('chapter', ch.id, ch.name)
-            }
+            onDeleteChapter={handleDeleteChapter}
             onEditLesson={lessonCrud.openEdit}
-            onDeleteLesson={(l) =>
-              deleteDialog.confirm('lesson', l.id, l.name)
-            }
+            onDeleteLesson={handleDeleteLesson}
             onEditContent={contentCrud.openEdit}
-            onDeleteContent={(lc) =>
-              deleteDialog.confirm('content', lc.id, lc.name)
-            }
+            onDeleteContent={handleDeleteContent}
             onEditQuiz={quizCrud.openEdit}
-            onDeleteQuiz={(q) =>
-              deleteDialog.confirm('quiz', q.id, q.question.slice(0, 30))
-            }
+            onDeleteQuiz={handleDeleteQuiz}
           />
         ))}
 

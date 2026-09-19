@@ -1,4 +1,4 @@
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, keepPreviousData } from "@tanstack/react-query";
 import { queryKeys, userScopedQueryRoots } from "@/lib/queryKeys";
 
 export const queryClient = new QueryClient({
@@ -6,7 +6,11 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 30,
-      retry: 1,
+      retry: (failureCount, error) => {
+        if (error?.statusCode && error.statusCode < 500) return false;
+        return failureCount < 1;
+      },
+      placeholderData: keepPreviousData,
       refetchOnWindowFocus: false,
     },
   },

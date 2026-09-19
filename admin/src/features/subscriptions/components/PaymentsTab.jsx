@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import { Eye, Undo2 } from "lucide-react";
 import { DataTable } from "@/components/common/DataTable";
 import { StatusBadge } from "@/components/common/StatusBadge";
@@ -14,6 +15,7 @@ import {
 
 export function PaymentsTab({
   payments,
+  isLoading,
   filters,
   onFilterChange,
   plans,
@@ -23,9 +25,10 @@ export function PaymentsTab({
   onRefund,
   onView,
 }) {
-  const columns = [
-    {
-      key: "user_name",
+  const columns = useMemo(
+    () => [
+      {
+        key: "user_name",
       header: "User",
       render: (p) => (
         <span className="font-medium text-foreground">{p.user_name}</span>
@@ -103,7 +106,11 @@ export function PaymentsTab({
         </div>
       ),
     },
-  ];
+    ],
+    [onView, onRefund],
+  );
+
+  const handleRowClick = useCallback((p) => onView(p.id), [onView]);
 
   return (
     <div className="space-y-4">
@@ -154,7 +161,8 @@ export function PaymentsTab({
       <DataTable
         columns={columns}
         data={payments}
-        onRowClick={(p) => onView(p.id)}
+        isLoading={isLoading}
+        onRowClick={handleRowClick}
       />
       {totalPages > 1 && (
         <PaginatedTable

@@ -1,5 +1,5 @@
 import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DataTable } from '@/components/common/DataTable';
 import { FormModal } from '@/components/common/FormModal';
@@ -38,8 +38,6 @@ export default function CoursesPage() {
   const { data, isLoading, error } = useGetCourses(searchParams);
   const { data: categoriesData } = useGetCategories();
   const navigate = useNavigate();
-  const [courses, setCourses] = useState([]);
-  const [categories, setCategories] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -55,6 +53,13 @@ export default function CoursesPage() {
   });
   const totalPage = data?.pagination.totalPages || 1;
   const currentPage = parseInt(searchParams.get('page')) || 1;
+  const courses = data?.data ?? [];
+  const categories = categoriesData ?? [];
+
+  const handleView = useCallback(
+    (course) => navigate(`/courses/${course.id}`),
+    [navigate],
+  );
 
   const handlePageChange = (page) => {
     const params = new URLSearchParams(searchParams);
@@ -76,7 +81,7 @@ export default function CoursesPage() {
     setModalOpen(true);
   };
 
-  const openEdit = (course) => {
+  const openEdit = useCallback((course) => {
     setEditing(course);
     setForm({
       name: course.name,
@@ -89,7 +94,7 @@ export default function CoursesPage() {
       access_type: course.access_type,
     });
     setModalOpen(true);
-  };
+  }, []);
 
   const handleSave = async () => {
     if (!form.name || !form.slug || !form.category_id) return;
@@ -106,16 +111,6 @@ export default function CoursesPage() {
     if (editing) {
       try {
         await updateCourse({ id: editing.id, data });
-        setCourses((cs) =>
-          cs.map((c) =>
-            c.id === editing.id
-              ? {
-                  ...c,
-                  ...form,
-                }
-              : c,
-          ),
-        );
         toast({
           title: 'Success',
           description: 'Course updated successfully',
@@ -131,8 +126,7 @@ export default function CoursesPage() {
       }
     } else {
       try {
-        const response = await createCourse(data);
-        setCourses((cs) => [response, ...cs]);
+        await createCourse(data);
         toast({
           title: 'Success',
           description: 'Course created successfully',
@@ -152,16 +146,15 @@ export default function CoursesPage() {
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = useCallback((id) => {
     setDeleteTarget(id);
-  };
+  }, []);
 
   // Delete handler
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     try {
       await deleteCourse(deleteTarget);
-      setCourses((cs) => cs.filter((c) => c.id !== deleteTarget));
       toast({
         title: 'Success',
         description: 'Course deleted successfully',
@@ -176,16 +169,17 @@ export default function CoursesPage() {
       setDeleteTarget(null);
     }
   };
-  const columns = [
-    {
-      key: 'name',
-      header: 'Course',
-      render: (c) => (
-        <div>
-          <p className="font-medium text-foreground">{c.name}</p>
-        </div>
-      ),
-    },
+  const columns = useMemo(
+    () => [
+      {
+        key: 'name',
+        header: 'Course',
+        render: (c) => (
+          <div>
+            <p className="font-medium text-foreground">{c.name}</p>
+          </div>
+        ),
+      },
 
     {
       key: 'level',
@@ -221,7 +215,7 @@ export default function CoursesPage() {
             size="icon"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/courses/${c.id}`);
+              handleView(c);
             }}
           >
             <Eye className="h-4 w-4" />
@@ -250,17 +244,9 @@ export default function CoursesPage() {
         </div>
       ),
     },
-  ];
-  useEffect(() => {
-    if (data?.data) {
-      setCourses(data.data);
-    }
-  }, [data?.data]);
-  useEffect(() => {
-    if (categoriesData) {
-      setCategories(categoriesData);
-    }
-  }, [categoriesData]);
+    ],
+    [handleView, openEdit, handleDelete],
+  );
   if (isLoading) return <CoursesPageSkeleton />;
   if (error) return <ErrorState message={error.message} />;
   return (
@@ -278,7 +264,7 @@ export default function CoursesPage() {
       <DataTable
         columns={columns}
         data={courses}
-        onRowClick={(c) => navigate(`/courses/${c.id}`)}
+        onRowClick={handleView}
       />
 
       <FormModal

@@ -6,7 +6,6 @@ function toQueryString(params) {
 }
 
 export const usersApi = {
-  getProfile: () => api.get("/users/me/profile"),
   updateProfile: (data) => api.patch("/users/me/profile", data),
   updatePassword: (data) => api.patch("/users/me/password", data),
   getUsers: (params) =>

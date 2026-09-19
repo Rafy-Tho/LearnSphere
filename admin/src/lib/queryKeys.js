@@ -38,6 +38,7 @@ export const queryKeys = {
 
   // Users
   users: (params) => ['admin-users', params],
+  usersRoot: () => ['admin-users'],
 
   // Subscriptions
   plans: () => ['admin-plans'],
@@ -47,7 +48,8 @@ export const queryKeys = {
   payments: () => ['admin-payments'],
   paymentDetails: (id) =>
     id === undefined ? ['admin-payment'] : ['admin-payment', id],
-  paymentRefunds: (id) => ['admin-payment-refunds', id],
+  paymentRefunds: (id) =>
+    id === undefined ? ['admin-payment-refunds'] : ['admin-payment-refunds', id],
   coupons: () => ['admin-coupons'],
   billingStats: () => ['admin-billing-stats'],
   refundRequests: () => ['admin-refund-requests'],

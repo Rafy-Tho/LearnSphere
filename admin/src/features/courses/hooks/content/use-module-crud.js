@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useModuleActions } from './use-module-actions';
 import { toast } from '@/hooks/use-toast';
 
@@ -16,13 +16,13 @@ export function useModuleCrud() {
   const { createModule, updateModule, deleteModule, isCreating, isUpdating } =
     useModuleActions();
 
-  const openCreate = () => {
+  const openCreate = useCallback(() => {
     setEditing(null);
     setForm(DEFAULT_FORM);
     setModal(true);
-  };
+  }, []);
 
-  const openEdit = (m) => {
+  const openEdit = useCallback((m) => {
     setEditing(m);
     setForm({
       name: m.name,
@@ -31,7 +31,7 @@ export function useModuleCrud() {
       position: m.position,
     });
     setModal(true);
-  };
+  }, []);
 
   const save = async () => {
     if (!form.name) return;

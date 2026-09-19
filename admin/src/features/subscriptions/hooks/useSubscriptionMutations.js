@@ -21,6 +21,7 @@ export function useRefund() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.payments() });
       queryClient.invalidateQueries({ queryKey: queryKeys.paymentDetails() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.paymentRefunds() });
       queryClient.invalidateQueries({ queryKey: queryKeys.refundRequests() });
       queryClient.invalidateQueries({ queryKey: queryKeys.refunds() });
       queryClient.invalidateQueries({ queryKey: queryKeys.billingStats() });
@@ -48,6 +49,9 @@ export function useSubscriptionOverride() {
     mutationFn: (data) => subscriptionsApi.overrideSubscription(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.subscriptions() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.subscriptionsDetail(),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.billingStats() });
       toast({
         title: 'Success!',

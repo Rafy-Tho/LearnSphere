@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -38,7 +39,33 @@ function TableSkeleton({ columns, rows = 5 }) {
   );
 }
 
-export function DataTable({ columns, data, onRowClick, isLoading }) {
+const DataTableRow = memo(function DataTableRow({
+  item,
+  columns,
+  onRowClick,
+}) {
+  return (
+    <TableRow
+      onClick={onRowClick ? () => onRowClick(item) : undefined}
+      className={
+        onRowClick ? "cursor-pointer hover:bg-accent/50 transition-colors" : ""
+      }
+    >
+      {columns.map((col) => (
+        <TableCell key={col.key}>
+          {col.render ? col.render(item) : item[col.key]}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+});
+
+export const DataTable = memo(function DataTable({
+  columns,
+  data,
+  onRowClick,
+  isLoading,
+}) {
   if (isLoading) {
     return <TableSkeleton columns={columns} />;
   }
@@ -67,25 +94,16 @@ export function DataTable({ columns, data, onRowClick, isLoading }) {
             </TableRow>
           ) : (
             data.map((item) => (
-              <TableRow
+              <DataTableRow
                 key={item.id}
-                onClick={() => onRowClick?.(item)}
-                className={
-                  onRowClick
-                    ? "cursor-pointer hover:bg-accent/50 transition-colors"
-                    : ""
-                }
-              >
-                {columns.map((col) => (
-                  <TableCell key={col.key}>
-                    {col.render ? col.render(item) : item[col.key]}
-                  </TableCell>
-                ))}
-              </TableRow>
+                item={item}
+                columns={columns}
+                onRowClick={onRowClick}
+              />
             ))
           )}
         </TableBody>
       </Table>
     </div>
   );
-}
+});

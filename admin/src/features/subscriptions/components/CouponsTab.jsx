@@ -1,12 +1,14 @@
+import { useMemo } from "react";
 import { Pencil, Plus, Power } from "lucide-react";
 import { DataTable } from "@/components/common/DataTable";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 
-export function CouponsTab({ coupons, onAdd, onEdit, onToggle }) {
-  const columns = [
-    {
-      key: "code",
+export function CouponsTab({ coupons, isLoading, onAdd, onEdit, onToggle }) {
+  const columns = useMemo(
+    () => [
+      {
+        key: "code",
       header: "Code",
       render: (c) => (
         <span className="font-mono font-medium text-foreground">
@@ -82,7 +84,9 @@ export function CouponsTab({ coupons, onAdd, onEdit, onToggle }) {
         </div>
       ),
     },
-  ];
+    ],
+    [onEdit, onToggle],
+  );
 
   return (
     <div className="space-y-4">
@@ -91,7 +95,7 @@ export function CouponsTab({ coupons, onAdd, onEdit, onToggle }) {
           <Plus className="h-4 w-4" /> Add Coupon
         </Button>
       </div>
-      <DataTable columns={columns} data={coupons} />
+      <DataTable columns={columns} data={coupons} isLoading={isLoading} />
     </div>
   );
 }

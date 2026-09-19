@@ -50,7 +50,7 @@ export const ModuleCard = memo(function ModuleCard({
 
   return (
     <div className="glass-card rounded-xl overflow-hidden">
-      <Collapsible open={isExpanded} onOpenChange={onToggle}>
+      <Collapsible open={isExpanded} onOpenChange={() => onToggle(module.id)}>
         <CollapsibleTrigger asChild>
           <div className="flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/30 transition-colors">
             <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -143,7 +143,7 @@ export const ModuleCard = memo(function ModuleCard({
                   chapter={ch}
                   isExpanded={expandedChapters.has(ch.id)}
                   expandedLessons={expandedLessons}
-                  onToggle={() => onToggleChapter(ch.id)}
+                  onToggle={onToggleChapter}
                   onAddLesson={onAddLesson}
                   onEdit={onEditChapter}
                   onDelete={onDeleteChapter}

@@ -1,6 +1,12 @@
 export { useCourseActions } from './course/use-course-actions';
-export { useCourseData } from './course/use-course-data';
 export { useCourseDetail } from './course/use-course-detail';
+export { useGetCourses } from './course/use-course-queries';
+export { useCourseSummary } from './course/use-course-summary';
+
+export { useModuleChapters } from './tree/use-module-chapters';
+export { useChapterLessons } from './tree/use-chapter-lessons';
+export { useLessonContents } from './tree/use-lesson-contents';
+export { useLessonQuestions } from './tree/use-lesson-questions';
 
 export { useChapterActions } from './content/use-chapter-actions';
 export { useChapterCrud } from './content/use-chapter-crud';

@@ -1,6 +1,6 @@
 import { Pencil, Plus, Power } from "lucide-react";
-import { DataTable } from "@/components/DataTable";
-import { StatusBadge } from "@/components/StatusBadge";
+import { DataTable } from "@/components/common/DataTable";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 
 export function CouponsTab({ coupons, onAdd, onEdit, onToggle }) {

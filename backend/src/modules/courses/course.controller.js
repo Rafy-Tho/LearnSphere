@@ -132,14 +132,62 @@ class CourseController {
     });
   });
 
-  getCourseDetailsDashboard = asyncHandler(async (req, res) => {
-    const courseDashboard = await this.courseService.getDashboardDetails(
+  getCourseSummary = asyncHandler(async (req, res) => {
+    const summary = await this.courseService.getCourseSummary(
       req.params.courseId,
       req.session.user,
     );
 
-    return sendSuccess(res, courseDashboard, {
-      message: "Course details retrieved successfully",
+    return sendSuccess(res, summary, {
+      message: "Course summary retrieved successfully",
+    });
+  });
+
+  getModuleChapters = asyncHandler(async (req, res) => {
+    const chapters = await this.courseService.getModuleChapters(
+      req.params.courseId,
+      req.params.moduleId,
+      req.session.user,
+    );
+
+    return sendSuccess(res, chapters, {
+      message: "Module chapters retrieved successfully",
+    });
+  });
+
+  getChapterLessons = asyncHandler(async (req, res) => {
+    const lessons = await this.courseService.getChapterLessons(
+      req.params.courseId,
+      req.params.chapterId,
+      req.session.user,
+    );
+
+    return sendSuccess(res, lessons, {
+      message: "Chapter lessons retrieved successfully",
+    });
+  });
+
+  getLessonContents = asyncHandler(async (req, res) => {
+    const contents = await this.courseService.getLessonContents(
+      req.params.courseId,
+      req.params.lessonId,
+      req.session.user,
+    );
+
+    return sendSuccess(res, contents, {
+      message: "Lesson contents retrieved successfully",
+    });
+  });
+
+  getLessonQuestions = asyncHandler(async (req, res) => {
+    const questions = await this.courseService.getLessonQuestions(
+      req.params.courseId,
+      req.params.lessonId,
+      req.session.user,
+    );
+
+    return sendSuccess(res, questions, {
+      message: "Lesson questions retrieved successfully",
     });
   });
 }

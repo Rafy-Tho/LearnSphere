@@ -19,6 +19,8 @@ class BillingStatsRepository {
            WHERE payment_status IN ('COMPLETED', 'PARTIALLY_REFUNDED', 'REFUNDED')) AS total_revenue,
          (SELECT COALESCE(SUM(amount), 0) FROM payment_refunds
            WHERE refund_status = 'SUCCEEDED') AS total_refunds,
+         (SELECT COUNT(*) FROM refund_requests
+           WHERE status = 'PENDING') AS pending_refund_requests,
          (SELECT COUNT(*) FROM coupons WHERE is_active = TRUE) AS active_coupons,
          (SELECT COUNT(*) FROM coupon_redemptions) AS coupon_redemptions`,
     );
@@ -41,6 +43,7 @@ class BillingStatsRepository {
       total_revenue: totalRevenue,
       total_refunds: totalRefunds,
       net_revenue: Math.round((totalRevenue - totalRefunds) * 100) / 100,
+      pending_refund_requests: Number(row.pending_refund_requests),
       active_coupons: Number(row.active_coupons),
       coupon_redemptions: Number(row.coupon_redemptions),
       currency: currencyResult.rows[0]?.currency || "usd",

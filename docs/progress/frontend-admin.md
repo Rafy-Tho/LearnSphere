@@ -28,6 +28,16 @@ The `admin/` app is a separate React SPA (React 19, Vite 7, TanStack Query 5, Ta
 - `npm run lint`: 15 pre-existing errors only (PaginationTable, ui/badge/button/calendar/chart/sidebar/skeleton/sonner/toggle, CategoriesPage setState-in-effect, use-course-data setState-in-effect, CoursesPage unused `isDeleting`, StatsCard unused `Icon`) — no new violations.
 - `npm run build`: passes (1889 modules; ~575 kB JS / ~169 kB gzip — unchanged chunk-size warning).
 
+### Billing UI - refund workflow
+- Six tabs: Plans, User Subscriptions, Payments, Refund Requests, Refunds, Coupons.
+- Refund Requests tab: server filters (search/status) + review modal with approve (note) / reject (reason); approval is separate from the actual Stripe refund.
+- Payment detail modal: full payment fields, refundable balance, refund history, and Create Refund (opens the refund modal showing amount / already refunded / remaining + confirmation).
+- Refunds tab: refund history from `GET /admin/refunds`.
+- Plans tab: activate/deactivate via `PATCH /admin/plans/:planId/status`; delete is reference-safe (soft-deactivates when history exists).
+- Subscriptions tab: paid-vs-override source badge and a detail modal.
+- Hooks/services/query keys consolidated in `features/subscriptions/` and `lib/queryKeys.js`; broken hook imports from the refactor repaired (users, courses, categories, `use-course-detail` relative paths) so `npm run build` passes.
+- Server-side filters + pagination (`PaginationTable`, 20/page) on Subscriptions, Payments, Refund Requests, and Refunds tabs; Refund Requests shows refund-window eligibility; Plans shows usage counts; Payment detail shows checkout snapshot/session + refund requests; Subscription detail shows refunds.
+
 ## Remaining (out of scope, not scheduled)
 - Pagination controls for admin lists (`plans`, `subscriptions`, `payments`, `coupons` currently request `limit=100`).
 - Tailwind 3 → learner `@theme` token migration (decision deferred; staying on Tailwind 3).

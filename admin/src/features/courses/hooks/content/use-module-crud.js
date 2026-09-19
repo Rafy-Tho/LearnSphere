@@ -9,21 +9,12 @@ const DEFAULT_FORM = {
   position: '',
 };
 
-export function useModuleCrud({
-  setModules,
-  setChapters,
-  setLessons,
-  setQuizzes,
-  setLessonContents,
-  setQuizOptions,
-  chapters,
-  lessons,
-  quizzes,
-}) {
+export function useModuleCrud() {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(DEFAULT_FORM);
-  const { createModule, updateModule, deleteModule, isCreating, isUpdating } = useModuleActions();
+  const { createModule, updateModule, deleteModule, isCreating, isUpdating } =
+    useModuleActions();
 
   const openCreate = () => {
     setEditing(null);
@@ -46,15 +37,7 @@ export function useModuleCrud({
     if (!form.name) return;
     if (editing) {
       try {
-        const response = await updateModule({
-          id: editing.id,
-          data: { ...form },
-        });
-        setModules((ms) =>
-          ms.map((m) =>
-            m.id === editing.id ? { ...m, ...response?.data } : m,
-          ),
-        );
+        await updateModule({ id: editing.id, data: { ...form } });
         toast({
           title: 'Success',
           description: 'Module updated successfully',
@@ -70,8 +53,7 @@ export function useModuleCrud({
       }
     } else {
       try {
-        const response = await createModule(form);
-        setModules((ms) => [...ms, response?.data]);
+        await createModule(form);
         toast({
           title: 'Success',
           description: 'Module created successfully',
@@ -94,23 +76,6 @@ export function useModuleCrud({
     try {
       await deleteModule(id);
       toast({ title: 'Success', description: 'Module deleted' });
-      const chapterIds = chapters
-        .filter((c) => c.module_id === id)
-        .map((c) => c.id);
-      const lessonIds = lessons
-        .filter((l) => chapterIds.includes(l.chapter_id))
-        .map((l) => l.id);
-      const quizIds = quizzes
-        .filter((q) => lessonIds.includes(q.lesson_id))
-        .map((q) => q.id);
-      setQuizOptions((os) => os.filter((o) => !quizIds.includes(o.quiz_id)));
-      setQuizzes((qs) => qs.filter((q) => !lessonIds.includes(q.lesson_id)));
-      setLessonContents((cs) =>
-        cs.filter((c) => !lessonIds.includes(c.lesson_id)),
-      );
-      setLessons((ls) => ls.filter((l) => !chapterIds.includes(l.chapter_id)));
-      setChapters((cs) => cs.filter((c) => c.module_id !== id));
-      setModules((ms) => ms.filter((m) => m.id !== id));
     } catch (err) {
       toast({
         title: 'Error',
@@ -119,6 +84,7 @@ export function useModuleCrud({
       });
     }
   };
+
   return {
     modal,
     setModal,

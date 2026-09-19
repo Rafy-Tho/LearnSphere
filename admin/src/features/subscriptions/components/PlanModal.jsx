@@ -1,4 +1,4 @@
-import { FormModal } from "@/components/FormModal";
+import { FormModal } from "@/components/common/FormModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 

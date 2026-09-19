@@ -6,10 +6,19 @@ const PAYMENT_SELECT = `
   COALESCE(r.refunded_total, 0) AS refunded_total,
   r.refund_status AS refund_status,
   GREATEST(sp.amount - COALESCE(r.refunded_total, 0), 0) AS refundable_amount,
-  rr.status AS refund_request_status
+  rr.status AS refund_request_status,
+  rr.id AS refund_request_id,
+  co.stripe_checkout_session_id AS checkout_session_id,
+  co.plan_name AS checkout_plan_name,
+  co.duration_days AS checkout_duration_days,
+  co.subtotal AS checkout_subtotal,
+  co.discount_amount AS checkout_discount,
+  co.total_amount AS checkout_total,
+  co.currency AS checkout_currency
 `;
 
 const PAYMENT_JOINS = `
+  LEFT JOIN checkout_orders co ON co.id = sp.checkout_order_id
   LEFT JOIN coupons c ON c.id = sp.coupon_id
   LEFT JOIN (
     SELECT payment_id,
@@ -19,7 +28,7 @@ const PAYMENT_JOINS = `
     GROUP BY payment_id
   ) r ON r.payment_id = sp.id
   LEFT JOIN LATERAL (
-    SELECT status
+    SELECT id, status
     FROM refund_requests
     WHERE payment_id = sp.id
     ORDER BY created_at DESC
@@ -74,6 +83,15 @@ class PaymentRepository {
     return result.rows[0];
   }
 
+  // Row-level lock used to serialize concurrent refund attempts on a payment.
+  async findPaymentByIdForUpdate(id, client = this.db) {
+    const result = await client.query(
+      `SELECT * FROM subscription_payments WHERE id = $1 FOR UPDATE`,
+      [id],
+    );
+    return result.rows[0];
+  }
+
   async findPaymentByIntentId(stripePaymentIntentId, client = this.db) {
     const result = await client.query(
       `SELECT * FROM subscription_payments WHERE stripe_payment_intent_id = $1`,
@@ -116,8 +134,16 @@ class PaymentRepository {
     search,
     status,
     planId,
+    dateFrom,
+    dateTo,
   } = {}) {
-    const { where, values } = this.#buildFilters({ search, status, planId });
+    const { where, values } = this.#buildFilters({
+      search,
+      status,
+      planId,
+      dateFrom,
+      dateTo,
+    });
     values.push(limit);
     const limitIdx = values.length;
     values.push(offset);
@@ -140,8 +166,14 @@ class PaymentRepository {
     return result.rows;
   }
 
-  async countPayments({ search, status, planId } = {}) {
-    const { where, values } = this.#buildFilters({ search, status, planId });
+  async countPayments({ search, status, planId, dateFrom, dateTo } = {}) {
+    const { where, values } = this.#buildFilters({
+      search,
+      status,
+      planId,
+      dateFrom,
+      dateTo,
+    });
 
     const result = await this.db.query(
       `SELECT COUNT(*) AS total
@@ -213,7 +245,7 @@ class PaymentRepository {
     return result.rows[0];
   }
 
-  #buildFilters({ search, status, planId } = {}) {
+  #buildFilters({ search, status, planId, dateFrom, dateTo } = {}) {
     const conditions = [];
     const values = [];
 
@@ -230,6 +262,14 @@ class PaymentRepository {
       conditions.push(
         `(u.name ILIKE $${values.length} OR u.email ILIKE $${values.length} OR pl.name ILIKE $${values.length})`,
       );
+    }
+    if (dateFrom) {
+      values.push(dateFrom);
+      conditions.push(`sp.created_at >= $${values.length}`);
+    }
+    if (dateTo) {
+      values.push(dateTo);
+      conditions.push(`sp.created_at <= $${values.length}`);
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";

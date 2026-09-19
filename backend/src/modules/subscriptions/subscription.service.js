@@ -10,6 +10,7 @@ import userRepository from "../users/repository.js";
 import checkoutService from "./checkout.service.js";
 import paymentRepository from "./payment.repository.js";
 import planRepository from "./plan.repository.js";
+import refundRepository from "./refund.repository.js";
 import subscriptionRepository from "./subscription.repository.js";
 
 function daysRemaining(endDate) {
@@ -25,12 +26,14 @@ class SubscriptionService {
     checkoutService,
     userRepository,
     paymentRepository,
+    refundRepository,
   }) {
     this.subscriptionRepository = subscriptionRepository;
     this.planRepository = planRepository;
     this.checkoutService = checkoutService;
     this.userRepository = userRepository;
     this.paymentRepository = paymentRepository;
+    this.refundRepository = refundRepository;
   }
 
   async getActiveSubscription(userId) {
@@ -88,7 +91,13 @@ class SubscriptionService {
     const { page, limit, offset } = parsePagination(query, {
       defaultLimit: 20,
     });
-    const filters = { status: query.status, search: query.search };
+    const filters = {
+      status: query.status,
+      search: query.search,
+      planId: query.plan_id,
+      dateFrom: query.date_from,
+      dateTo: query.date_to,
+    };
 
     const [subscriptions, total] = await Promise.all([
       this.subscriptionRepository.findAllUserSubscriptions({
@@ -114,10 +123,37 @@ class SubscriptionService {
       throw new ApiError(StatusCode.NOT_FOUND, "User subscription not found");
     }
 
-    const payments =
-      await this.paymentRepository.findPaymentsBySubscription(subscriptionId);
+    const [payments, refunds] = await Promise.all([
+      this.paymentRepository.findPaymentsBySubscription(subscriptionId),
+      this.refundRepository.listBySubscription(subscriptionId),
+    ]);
 
-    return { ...subscription, payments };
+    return { ...subscription, payments, refunds };
+  }
+
+  // Central refund -> access rule: a fully REFUNDED payment revokes the
+  // subscription, while a PARTIALLY_REFUNDED payment keeps access until the
+  // subscription end_date. Called after every refund status sync.
+  async applyRefundAccessRule({
+    subscriptionId,
+    paymentStatus,
+    paymentId,
+    client,
+  } = {}) {
+    if (paymentStatus !== "REFUNDED" || !subscriptionId) return null;
+
+    const cancelled = await this.subscriptionRepository.cancelSubscription(
+      subscriptionId,
+      client,
+    );
+    if (cancelled) {
+      logger.audit("subscription.refund.revoke", {
+        paymentId,
+        subscriptionId,
+        userId: cancelled.user_id,
+      });
+    }
+    return cancelled;
   }
 
   // Administrative override: provisions access without a payment. Kept separate
@@ -130,6 +166,12 @@ class SubscriptionService {
       throw new ApiError(
         StatusCode.BAD_REQUEST,
         "user_id and plan_id are required",
+      );
+    }
+    if (!reason || !String(reason).trim()) {
+      throw new ApiError(
+        StatusCode.BAD_REQUEST,
+        "A reason is required for a subscription override",
       );
     }
 
@@ -189,4 +231,5 @@ export default new SubscriptionService({
   checkoutService,
   userRepository,
   paymentRepository,
+  refundRepository,
 });

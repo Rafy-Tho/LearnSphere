@@ -17,6 +17,8 @@ class PaymentService {
       search: query.search,
       status: query.status,
       planId: query.plan_id,
+      dateFrom: query.date_from,
+      dateTo: query.date_to,
     };
 
     const [payments, total] = await Promise.all([

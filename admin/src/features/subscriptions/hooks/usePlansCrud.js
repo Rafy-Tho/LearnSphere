@@ -1,21 +1,25 @@
 import { useState } from "react";
-import { useGetPlans, useCreatePlan, useUpdatePlan, useDeletePlan } from "@/features/subscriptions/hooks";
-import { useToast } from "@/hooks/use-toast";
+import {
+  useGetPlans,
+  useCreatePlan,
+  useUpdatePlan,
+  useDeletePlan,
+  useSetPlanStatus,
+} from "@/features/subscriptions/hooks";
 
 const DEFAULT_FORM = { name: "", duration_days: 30, price: 0 };
 
 export function usePlansCrud() {
-  const { toast } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(DEFAULT_FORM);
 
-  const { data, isLoading, error } = useGetPlans();
-  const plans = data?.data || [];
+  const { plans, pagination, isLoading, error } = useGetPlans();
 
   const { createPlan, isCreating } = useCreatePlan();
   const { updatePlan, isUpdating } = useUpdatePlan();
   const { deletePlan, isDeleting } = useDeletePlan();
+  const { setPlanStatus, isUpdatingStatus } = useSetPlanStatus();
 
   const openCreate = () => {
     setEditing(null);
@@ -47,10 +51,15 @@ export function usePlansCrud() {
     await deletePlan(id);
   };
 
+  const toggleStatus = async (id, isActive) => {
+    await setPlanStatus({ id, isActive: !isActive });
+  };
+
   return {
     plans,
-    pagination: data?.pagination,
-    isLoading: isLoading || isCreating || isUpdating || isDeleting,
+    pagination,
+    isLoading:
+      isLoading || isCreating || isUpdating || isDeleting || isUpdatingStatus,
     error,
     modalOpen,
     setModalOpen,
@@ -61,5 +70,6 @@ export function usePlansCrud() {
     openEdit,
     save,
     remove,
+    toggleStatus,
   };
 }

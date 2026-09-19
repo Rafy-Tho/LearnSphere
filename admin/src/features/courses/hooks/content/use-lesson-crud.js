@@ -8,20 +8,13 @@ const DEFAULT_FORM = {
   position: '',
 };
 
-export function useLessonCrud({
-  setLessons,
-  setQuizzes,
-  setLessonContents,
-  setQuizOptions,
-  setChapters,
-  chapters,
-  quizzes,
-}) {
+export function useLessonCrud() {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [parentId, setParentId] = useState('');
   const [form, setForm] = useState(DEFAULT_FORM);
-  const { createLesson, updateLesson, deleteLesson, isCreating, isUpdating } = useLessonActions();
+  const { createLesson, updateLesson, deleteLesson, isCreating, isUpdating } =
+    useLessonActions();
 
   const openCreate = (chapterId) => {
     setParentId(chapterId);
@@ -45,15 +38,7 @@ export function useLessonCrud({
     if (!form.name) return;
     if (editing) {
       try {
-        await updateLesson({
-          id: editing.id,
-          data: { ...form },
-        });
-        setLessons((ls) =>
-          ls.map((l) =>
-            l.id === editing.id ? { ...l, ...form } : l,
-          ),
-        );
+        await updateLesson({ id: editing.id, data: { ...form } });
         toast({
           title: 'Lesson updated',
           description: 'Lesson has been updated successfully',
@@ -69,11 +54,7 @@ export function useLessonCrud({
       }
     } else {
       try {
-        const response = await createLesson({
-          id: parentId,
-          data: { ...form },
-        });
-        setLessons((ls) => [...ls, response]);
+        await createLesson({ id: parentId, data: { ...form } });
         toast({
           title: 'Lesson created',
           description: 'Lesson has been created successfully',
@@ -91,16 +72,10 @@ export function useLessonCrud({
   };
 
   const onChange = (field, value) => setForm((f) => ({ ...f, [field]: value }));
+
   const remove = async (id) => {
     try {
       await deleteLesson(id);
-      const quizIds = quizzes
-        .filter((q) => q.lesson_id === id)
-        .map((q) => q.id);
-      setQuizOptions((os) => os.filter((o) => !quizIds.includes(o.quiz_id)));
-      setQuizzes((qs) => qs.filter((q) => q.lesson_id !== id));
-      setLessonContents((cs) => cs.filter((c) => c.lesson_id !== id));
-      setLessons((ls) => ls.filter((l) => l.id !== id));
       toast({
         title: 'Lesson deleted',
         description: 'Lesson has been deleted successfully',
@@ -113,6 +88,7 @@ export function useLessonCrud({
       });
     }
   };
+
   return {
     modal,
     setModal,

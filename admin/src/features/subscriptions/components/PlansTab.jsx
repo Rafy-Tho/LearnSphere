@@ -1,8 +1,9 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
-import { DataTable } from "@/components/DataTable";
+import { Pencil, Plus, Power, Trash2 } from "lucide-react";
+import { DataTable } from "@/components/common/DataTable";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 
-export function PlansTab({ plans, onAdd, onEdit, onDelete }) {
+export function PlansTab({ plans, onAdd, onEdit, onToggle, onDelete }) {
   const columns = [
     {
       key: "name",
@@ -30,6 +31,23 @@ export function PlansTab({ plans, onAdd, onEdit, onDelete }) {
       ),
     },
     {
+      key: "usage",
+      header: "Subscriptions",
+      render: (p) => (
+        <span className="text-sm text-muted-foreground">
+          {p.active_subscription_count ?? 0} active / {p.subscription_count ?? 0}{" "}
+          total
+        </span>
+      ),
+    },
+    {
+      key: "is_active",
+      header: "Status",
+      render: (p) => (
+        <StatusBadge status={p.is_active ? "ACTIVE" : "INACTIVE"} />
+      ),
+    },
+    {
       key: "actions",
       header: "Actions",
       render: (p) => (
@@ -43,6 +61,22 @@ export function PlansTab({ plans, onAdd, onEdit, onDelete }) {
             }}
           >
             <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className={
+              p.is_active
+                ? "text-warning hover:text-warning"
+                : "text-success hover:text-success"
+            }
+            title={p.is_active ? "Deactivate plan" : "Activate plan"}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggle(p.id, p.is_active);
+            }}
+          >
+            <Power className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"

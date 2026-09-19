@@ -46,12 +46,26 @@ class ModuleRepository {
     );
     return result.rows[0];
   }
-  async getModulesByCourseId(courseId) {
+  async getModulesWithCountsByCourseId(courseId) {
     const result = await this.db.query(
-      `SELECT * 
-        FROM modules 
-        WHERE course_id = $1
-      `,
+      `SELECT
+         m.*,
+         COALESCE(ch.chapter_count, 0)::int AS chapter_count,
+         COALESCE(ls.lesson_count, 0)::int AS lesson_count
+       FROM modules m
+       LEFT JOIN (
+         SELECT module_id, COUNT(*) AS chapter_count
+         FROM chapters
+         GROUP BY module_id
+       ) ch ON ch.module_id = m.id
+       LEFT JOIN (
+         SELECT ch2.module_id, COUNT(l.id) AS lesson_count
+         FROM chapters ch2
+         LEFT JOIN lessons l ON l.chapter_id = ch2.id
+         GROUP BY ch2.module_id
+       ) ls ON ls.module_id = m.id
+       WHERE m.course_id = $1
+       ORDER BY m.position ASC`,
       [courseId],
     );
     return result.rows;

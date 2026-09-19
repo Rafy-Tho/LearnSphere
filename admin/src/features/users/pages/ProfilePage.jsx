@@ -12,8 +12,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/app/providers/context";
-import useUpdateUserProfile from "@/features/users/hooks/useUpdateUserProfile";
-import useUpdatePassword from "@/features/users/hooks/useUpdatePassword";
+import {
+  useUpdateUserProfile,
+  useUpdatePassword,
+} from "@/features/users/hooks";
 import { useToast } from "@/hooks/use-toast";
 import { Save, User, Mail, Shield, Calendar, Lock } from "lucide-react";
 

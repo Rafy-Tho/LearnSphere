@@ -1,5 +1,4 @@
 import { cn } from "../../lib/utils";
-import { Loader2 } from "lucide-react";
 
 function Skeleton({ className, ...props }) {
   return (
@@ -418,14 +417,6 @@ function CourseDetailPageSkeleton() {
   );
 }
 
-function PageLoader() {
-  return (
-    <div className="flex h-screen items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    </div>
-  );
-}
-
 export {
   CourseDetailPageSkeleton,
   DashboardSkeleton,
@@ -433,7 +424,6 @@ export {
   DataTableSkeleton,
   FullDashboardLayoutSkeleton,
   PageHeaderSkeleton,
-  PageLoader,
   TableSkeleton,
   CategoriesPageSkeleton,
   CoursesPageSkeleton,

@@ -1,28 +1,27 @@
+import { memo } from 'react';
 import {
   ChevronDown,
   ChevronRight,
   GripVertical,
+  Loader2,
   Pencil,
   Plus,
   Trash2,
 } from 'lucide-react';
-import { StatusBadge } from '@/components/StatusBadge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { useModuleChapters } from '@/features/courses/hooks';
 import { ChapterItem } from './ChapterItem';
 
-export function ModuleCard({
+export const ModuleCard = memo(function ModuleCard({
+  courseId,
   module,
   isExpanded,
-  chapters,
-  lessons,
-  lessonContents,
-  quizzes,
-  quizOptions,
   expandedChapters,
   expandedLessons,
   onToggle,
@@ -43,9 +42,11 @@ export function ModuleCard({
   onEditQuiz,
   onDeleteQuiz,
 }) {
-  const moduleChapters = chapters
-    .filter((ch) => ch.module_id === module.id)
-    .sort((a, b) => a.position - b.position);
+  const { chapters, isLoading, isError, refetch } = useModuleChapters(
+    courseId,
+    module.id,
+    isExpanded,
+  );
 
   return (
     <div className="glass-card rounded-xl overflow-hidden">
@@ -74,6 +75,9 @@ export function ModuleCard({
                 </p>
               )}
             </div>
+            <span className="text-xs text-muted-foreground whitespace-nowrap">
+              {module.chapter_count} chapters · {module.lesson_count} lessons
+            </span>
             <div className="flex gap-1">
               <Button
                 variant="ghost"
@@ -115,32 +119,47 @@ export function ModuleCard({
 
         <CollapsibleContent>
           <div className="border-t border-border ml-11 mr-4 mb-4">
-            {moduleChapters.map((ch) => (
-              <ChapterItem
-                key={ch.id}
-                chapter={ch}
-                isExpanded={expandedChapters.has(ch.id)}
-                lessons={lessons}
-                lessonContents={lessonContents}
-                quizzes={quizzes}
-                quizOptions={quizOptions}
-                expandedLessons={expandedLessons}
-                onToggle={() => onToggleChapter(ch.id)}
-                onAddLesson={onAddLesson}
-                onEdit={onEditChapter}
-                onDelete={onDeleteChapter}
-                onToggleLesson={onToggleLesson}
-                onAddContent={onAddContent}
-                onAddQuiz={onAddQuiz}
-                onEditLesson={onEditLesson}
-                onDeleteLesson={onDeleteLesson}
-                onEditContent={onEditContent}
-                onDeleteContent={onDeleteContent}
-                onEditQuiz={onEditQuiz}
-                onDeleteQuiz={onDeleteQuiz}
-              />
-            ))}
-            {moduleChapters.length === 0 && (
+            {isLoading && (
+              <div className="flex items-center gap-2 py-4 px-3 text-sm text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading chapters…
+              </div>
+            )}
+
+            {isError && (
+              <div className="flex items-center gap-3 py-4 px-3 text-sm text-muted-foreground">
+                Failed to load chapters.
+                <Button variant="outline" size="sm" onClick={() => refetch()}>
+                  Retry
+                </Button>
+              </div>
+            )}
+
+            {!isLoading &&
+              !isError &&
+              chapters.map((ch) => (
+                <ChapterItem
+                  key={ch.id}
+                  courseId={courseId}
+                  chapter={ch}
+                  isExpanded={expandedChapters.has(ch.id)}
+                  expandedLessons={expandedLessons}
+                  onToggle={() => onToggleChapter(ch.id)}
+                  onAddLesson={onAddLesson}
+                  onEdit={onEditChapter}
+                  onDelete={onDeleteChapter}
+                  onToggleLesson={onToggleLesson}
+                  onAddContent={onAddContent}
+                  onAddQuiz={onAddQuiz}
+                  onEditLesson={onEditLesson}
+                  onDeleteLesson={onDeleteLesson}
+                  onEditContent={onEditContent}
+                  onDeleteContent={onDeleteContent}
+                  onEditQuiz={onEditQuiz}
+                  onDeleteQuiz={onDeleteQuiz}
+                />
+              ))}
+
+            {!isLoading && !isError && chapters.length === 0 && (
               <p className="text-sm text-muted-foreground py-4 px-3">
                 No chapters yet. Click + to add one.
               </p>
@@ -150,4 +169,4 @@ export function ModuleCard({
       </Collapsible>
     </div>
   );
-}
+});

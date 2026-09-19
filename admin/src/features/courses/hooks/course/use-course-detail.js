@@ -1,72 +1,22 @@
-import { useChapterCrud } from './use-chapter-crud';
-import { useContentCrud } from './use-content-crud';
-import { useCourseData } from './use-course-data';
-import { useDeleteDialog } from './use-delete-dialog';
-import { useExpandCollapse } from './use-expand-collapse';
-import { useLessonCrud } from './use-lesson-crud';
-import { useModuleCrud } from './use-module-crud';
-import { useObjectiveActions } from './use-objective-actions';
-import { useQuizCrud } from './use-quiz-crud';
+import { useChapterCrud } from '../content/use-chapter-crud';
+import { useContentCrud } from '../content/use-content-crud';
+import { useDeleteDialog } from '../common/use-delete-dialog';
+import { useExpandCollapse } from '../common/use-expand-collapse';
+import { useLessonCrud } from '../content/use-lesson-crud';
+import { useModuleCrud } from '../content/use-module-crud';
+import { useObjectiveActions } from '../objective/use-objective-actions';
+import { useQuizCrud } from '../quiz/use-quiz-crud';
 
-export function useCourseDetail(data) {
-  const courseData = useCourseData(data);
-  const {
-    course,
-    objectives,
-    setObjectives,
-    modules,
-    setModules,
-    chapters,
-    setChapters,
-    lessons,
-    setLessons,
-    lessonContents,
-    setLessonContents,
-    quizzes,
-    setQuizzes,
-    quizOptions,
-    setQuizOptions,
-  } = courseData;
-
+export function useCourseDetail({ objectives }) {
   const expand = useExpandCollapse();
 
-  const objective = useObjectiveActions({ objectives, setObjectives });
+  const objective = useObjectiveActions({ objectives });
 
-  const moduleCrud = useModuleCrud({
-    setModules,
-    modules,
-    setChapters,
-    setLessons,
-    setQuizzes,
-    setLessonContents,
-    setQuizOptions,
-    chapters,
-    lessons,
-    quizzes,
-  });
-  const chapterCrud = useChapterCrud({
-    setChapters,
-    lessons,
-    quizzes,
-    setQuizOptions,
-    setQuizzes,
-    setLessonContents,
-    setLessons,
-  });
-  const lessonCrud = useLessonCrud({
-    setLessons,
-    quizzes,
-    setQuizzes,
-    setLessonContents,
-    setQuizOptions,
-  });
-  const contentCrud = useContentCrud({ lessonContents, setLessonContents });
-  const quizCrud = useQuizCrud({
-    quizzes,
-    setQuizzes,
-    quizOptions,
-    setQuizOptions,
-  });
+  const moduleCrud = useModuleCrud();
+  const chapterCrud = useChapterCrud();
+  const lessonCrud = useLessonCrud();
+  const contentCrud = useContentCrud();
+  const quizCrud = useQuizCrud();
 
   const deleteDialog = useDeleteDialog({
     onDeleteObjective: objective.remove,
@@ -78,18 +28,9 @@ export function useCourseDetail(data) {
   });
 
   return {
-    // Data
-    course,
-    modules,
-    chapters,
-    lessons,
-    lessonContents,
-    quizzes,
-    quizOptions,
     // Expand / collapse
     ...expand,
     // Objectives
-    objectives,
     objective,
     // CRUD modals (modal state + handlers)
     moduleCrud,

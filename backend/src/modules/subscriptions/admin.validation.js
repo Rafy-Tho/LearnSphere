@@ -86,7 +86,7 @@ export const createUserSubscriptionOverrideValidator = checkSchema({
   plan_id: uuidValidator("Plan ID"),
   start_date: dateValidator("Start date", true),
   end_date: dateValidator("End date", true),
-  reason: textValidator("Reason", true, 500),
+  reason: textValidator("Reason", false, 500),
 });
 
 export const createCouponValidator = checkSchema({
@@ -141,4 +141,43 @@ export const couponActiveValidator = checkSchema({
 export const createRefundValidator = checkSchema({
   amount: floatValidator("Amount", true),
   reason: textValidator("Reason", true, 500),
+  refund_request_id: uuidValidator("Refund request ID", true),
+  idempotency_key: textValidator("Idempotency key", true, 100),
+});
+
+export const planStatusValidator = checkSchema({
+  is_active: {
+    in: ["body"],
+    notEmpty: { errorMessage: "Active is required", bail: true },
+    customSanitizer: {
+      options: (value) => {
+        if (
+          value === true ||
+          value === "true" ||
+          value === "1" ||
+          value === 1
+        ) {
+          return true;
+        }
+        if (
+          value === false ||
+          value === "false" ||
+          value === "0" ||
+          value === 0
+        ) {
+          return false;
+        }
+        return value;
+      },
+    },
+    isBoolean: { errorMessage: "Active must be a boolean" },
+  },
+});
+
+export const approveRefundRequestValidator = checkSchema({
+  note: textValidator("Note", true, 1000),
+});
+
+export const rejectRefundRequestValidator = checkSchema({
+  reason: textValidator("Reason", false, 500),
 });

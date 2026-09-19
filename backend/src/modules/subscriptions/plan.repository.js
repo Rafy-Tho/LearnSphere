@@ -15,9 +15,16 @@ class PlanRepository {
 
   async findAll({ limit = 20, offset = 0, activeOnly = false } = {}) {
     const result = await this.db.query(
-      `SELECT * FROM subscription_plans
-       ${activeOnly ? "WHERE is_active = TRUE" : ""}
-       ORDER BY price ASC, created_at DESC
+      `SELECT sp.*,
+              (SELECT COUNT(*) FROM user_subscriptions us
+                WHERE us.plan_id = sp.id)::int AS subscription_count,
+              (SELECT COUNT(*) FROM user_subscriptions us
+                WHERE us.plan_id = sp.id
+                  AND us.status = 'ACTIVE' AND us.end_date > NOW())::int
+                AS active_subscription_count
+       FROM subscription_plans sp
+       ${activeOnly ? "WHERE sp.is_active = TRUE" : ""}
+       ORDER BY sp.price ASC, sp.created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset],
     );
@@ -32,11 +39,19 @@ class PlanRepository {
     return Number(result.rows[0].total);
   }
 
-  async create({ name, description, durationDays, price, currency, features }) {
+  async create({
+    name,
+    description,
+    durationDays,
+    price,
+    currency,
+    features,
+    isActive = true,
+  }) {
     const result = await this.db.query(
       `INSERT INTO subscription_plans
-         (name, description, duration_days, price, currency, features)
-       VALUES ($1, $2, $3, $4, $5, $6)
+         (name, description, duration_days, price, currency, features, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
       [
         name,
@@ -45,6 +60,7 @@ class PlanRepository {
         price,
         currency || "usd",
         JSON.stringify(features || []),
+        isActive !== undefined ? isActive : true,
       ],
     );
     return result.rows[0];
@@ -90,11 +106,13 @@ class PlanRepository {
     return result.rows[0];
   }
 
+  // A plan with any subscription or checkout-order history must never be
+  // hard-deleted: historical financial snapshots depend on it.
   async countReferences(id) {
     const result = await this.db.query(
-      `SELECT COUNT(*) AS total
-       FROM user_subscriptions
-       WHERE plan_id = $1`,
+      `SELECT
+         (SELECT COUNT(*) FROM user_subscriptions WHERE plan_id = $1)
+         + (SELECT COUNT(*) FROM checkout_orders WHERE plan_id = $1) AS total`,
       [id],
     );
     return Number(result.rows[0].total);

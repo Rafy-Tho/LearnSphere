@@ -1,7 +1,7 @@
 import { StatsCard } from "@/features/dashboard/components/StatsCard";
 import useGetDashboardData from "@/features/dashboard/hooks/use-get-dashboard-data";
-import { StatusBadge } from "@/components/StatusBadge";
-import { ErrorAlert } from "@/components/ui/alert";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { ErrorState } from "@/components/common/ErrorState";
 import { DashboardPageSkeleton } from "@/components/ui/skeleton";
 import { ArrowUpRight, BookOpen, TrendingUp, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,7 @@ export default function DashboardPage() {
   const totalInstructors = data?.totalInstructors || 0;
   const totalEnrollments = data?.totalEnrollments || 0;
   if (isPending) return <DashboardPageSkeleton />;
-  if (error) return <ErrorAlert message={error.message} />;
+  if (error) return <ErrorState message={error.message} />;
   return (
     <div className="space-y-8">
       <div>

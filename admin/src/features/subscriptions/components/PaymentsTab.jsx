@@ -1,9 +1,28 @@
-import { Undo2 } from "lucide-react";
-import { DataTable } from "@/components/DataTable";
-import { StatusBadge } from "@/components/StatusBadge";
+import { Eye, Undo2 } from "lucide-react";
+import { DataTable } from "@/components/common/DataTable";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import PaginatedTable from "@/components/common/PaginationTable";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-export function PaymentsTab({ payments, onRefund }) {
+export function PaymentsTab({
+  payments,
+  filters,
+  onFilterChange,
+  plans,
+  page,
+  totalPages,
+  onPageChange,
+  onRefund,
+  onView,
+}) {
   const columns = [
     {
       key: "user_name",
@@ -25,6 +44,15 @@ export function PaymentsTab({ payments, onRefund }) {
       render: (p) => (
         <span className="text-sm font-semibold text-foreground">
           ${Number(p.amount).toFixed(2)}
+        </span>
+      ),
+    },
+    {
+      key: "refundable_amount",
+      header: "Refundable",
+      render: (p) => (
+        <span className="text-sm text-muted-foreground">
+          ${Number(p.refundable_amount ?? p.amount).toFixed(2)}
         </span>
       ),
     },
@@ -51,6 +79,17 @@ export function PaymentsTab({ payments, onRefund }) {
             variant="ghost"
             size="sm"
             className="gap-1"
+            onClick={(e) => {
+              e.stopPropagation();
+              onView(p.id);
+            }}
+          >
+            <Eye className="h-4 w-4" /> View
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1"
             disabled={!["COMPLETED", "PARTIALLY_REFUNDED"].includes(
               p.payment_status,
             )}
@@ -68,7 +107,62 @@ export function PaymentsTab({ payments, onRefund }) {
 
   return (
     <div className="space-y-4">
-      <DataTable columns={columns} data={payments} />
+      <div className="flex flex-wrap items-center gap-3">
+        <Input
+          placeholder="Search user, email, or plan"
+          value={filters.search}
+          onChange={(e) => onFilterChange({ search: e.target.value })}
+          className="max-w-xs"
+        />
+        <Select
+          value={filters.status || "ALL"}
+          onValueChange={(v) =>
+            onFilterChange({ status: v === "ALL" ? "" : v })
+          }
+        >
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All statuses</SelectItem>
+            <SelectItem value="COMPLETED">Completed</SelectItem>
+            <SelectItem value="PARTIALLY_REFUNDED">Partially refunded</SelectItem>
+            <SelectItem value="REFUNDED">Refunded</SelectItem>
+            <SelectItem value="PENDING">Pending</SelectItem>
+            <SelectItem value="FAILED">Failed</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={filters.plan_id || "ALL"}
+          onValueChange={(v) =>
+            onFilterChange({ plan_id: v === "ALL" ? "" : v })
+          }
+        >
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Plan" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All plans</SelectItem>
+            {plans.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <DataTable
+        columns={columns}
+        data={payments}
+        onRowClick={(p) => onView(p.id)}
+      />
+      {totalPages > 1 && (
+        <PaginatedTable
+          totalPage={totalPages}
+          currentPage={page}
+          onPageChange={onPageChange}
+        />
+      )}
     </div>
   );
 }

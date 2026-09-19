@@ -443,6 +443,7 @@ CREATE TABLE user_subscriptions (
   start_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   end_date TIMESTAMP WITH TIME ZONE NOT NULL,
   status subscription_status DEFAULT 'ACTIVE',
+  source TEXT NOT NULL DEFAULT 'PAID' CHECK (source IN ('PAID', 'ADMIN_OVERRIDE')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -604,6 +605,7 @@ CREATE TABLE payment_refunds (
   currency VARCHAR(3) NOT NULL DEFAULT 'usd',
   refund_status refund_status NOT NULL DEFAULT 'PENDING',
   stripe_refund_id TEXT UNIQUE,
+  idempotency_key TEXT,
   reason TEXT,
   refunded_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -612,6 +614,11 @@ CREATE TABLE payment_refunds (
 
 CREATE INDEX idx_payment_refunds_payment ON payment_refunds(payment_id);
 CREATE INDEX idx_payment_refunds_status ON payment_refunds(refund_status);
+
+-- Stable idempotency key for admin-initiated refunds.
+CREATE UNIQUE INDEX unique_payment_refund_idempotency_key
+ON payment_refunds(idempotency_key)
+WHERE idempotency_key IS NOT NULL;
 
 CREATE TRIGGER trg_payment_refunds_updated_at
 BEFORE UPDATE ON payment_refunds
@@ -633,6 +640,7 @@ CREATE TABLE refund_requests (
   status refund_request_status NOT NULL DEFAULT 'PENDING',
   reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
   admin_note TEXT,
+  payment_refund_id UUID REFERENCES payment_refunds(id) ON DELETE SET NULL,
   requested_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   reviewed_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -646,6 +654,7 @@ WHERE status = 'PENDING';
 CREATE INDEX idx_refund_requests_payment ON refund_requests(payment_id);
 CREATE INDEX idx_refund_requests_user ON refund_requests(user_id);
 CREATE INDEX idx_refund_requests_status ON refund_requests(status);
+CREATE INDEX idx_refund_requests_payment_refund ON refund_requests(payment_refund_id);
 
 CREATE TRIGGER trg_refund_requests_updated_at
 BEFORE UPDATE ON refund_requests

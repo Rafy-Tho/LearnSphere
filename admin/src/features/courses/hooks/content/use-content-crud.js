@@ -4,13 +4,13 @@ import { toast } from '@/hooks/use-toast';
 
 const DEFAULT_FORM = { name: '', content: '', position: '' };
 
-export function useContentCrud({ setLessonContents }) {
+export function useContentCrud() {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [parentId, setParentId] = useState('');
   const [form, setForm] = useState(DEFAULT_FORM);
-
-  const { createContent, updateContent, deleteContent, isCreating, isUpdating } = useContentActions();
+  const { createContent, updateContent, deleteContent, isCreating, isUpdating } =
+    useContentActions();
 
   const openCreate = (lessonId) => {
     setParentId(lessonId);
@@ -38,9 +38,6 @@ export function useContentCrud({ setLessonContents }) {
             position: form.position,
           },
         });
-        setLessonContents((cs) =>
-          cs.map((c) => (c.id === editing.id ? { ...c, ...form } : c)),
-        );
         toast({
           title: 'Success',
           description: 'The content has been updated successfully.',
@@ -56,7 +53,7 @@ export function useContentCrud({ setLessonContents }) {
       }
     } else {
       try {
-        const response = await createContent({
+        await createContent({
           id: parentId,
           data: {
             name: form.name,
@@ -64,7 +61,6 @@ export function useContentCrud({ setLessonContents }) {
             position: form.position,
           },
         });
-        setLessonContents((ls) => [...ls, response]);
         toast({
           title: 'Success',
           description: 'The content has been created successfully.',
@@ -82,10 +78,10 @@ export function useContentCrud({ setLessonContents }) {
   };
 
   const onChange = (field, value) => setForm((f) => ({ ...f, [field]: value }));
+
   const remove = async (id) => {
     try {
       await deleteContent(id);
-      setLessonContents((cs) => cs.filter((c) => c.id !== id));
       toast({
         title: 'Success',
         description: 'The content has been deleted successfully.',

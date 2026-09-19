@@ -61,20 +61,6 @@ class OptionRepository {
     );
     return result.rows[0];
   }
-
-  async getOptionsByCourseId(courseId) {
-    const query = `
-    SELECT qo.*
-    FROM quiz_options qo
-    JOIN quizzes qz ON qo.quiz_id = qz.id
-    JOIN lessons ls ON qz.lesson_id = ls.id
-    JOIN chapters ch ON ls.chapter_id = ch.id
-    JOIN modules m ON ch.module_id = m.id
-    WHERE m.course_id = $1
-    `;
-    const result = await this.db.query(query, [courseId]);
-    return result.rows;
-  }
 }
 
 export { OptionRepository };

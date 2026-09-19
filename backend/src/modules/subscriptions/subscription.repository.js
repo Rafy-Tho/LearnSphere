@@ -26,6 +26,9 @@ class SubscriptionRepository {
     return result.rows[0];
   }
 
+  // Central access predicate. An ACTIVE, unexpired subscription grants access
+  // when it is an administrative override OR its payment is not fully refunded.
+  // A fully REFUNDED payment revokes access; PARTIALLY_REFUNDED keeps it.
   async getActivePaidSubscription(userId, client = this.db) {
     const result = await client.query(
       `SELECT
@@ -35,6 +38,7 @@ class SubscriptionRepository {
         us.start_date,
         us.end_date,
         us.status AS subscription_status,
+        us.source,
         us.created_at AS subscription_created_at,
         us.updated_at AS subscription_updated_at,
         sp.id AS payment_id,
@@ -53,12 +57,15 @@ class SubscriptionRepository {
         p.currency AS plan_currency
      FROM user_subscriptions us
      JOIN subscription_plans p ON us.plan_id = p.id
-     JOIN subscription_payments sp ON sp.user_subscription_id = us.id
+     LEFT JOIN subscription_payments sp ON sp.user_subscription_id = us.id
      WHERE us.user_id = $1
        AND us.status = 'ACTIVE'
        AND us.end_date > NOW()
-       AND sp.payment_status = 'COMPLETED'
-     ORDER BY sp.created_at DESC
+       AND (
+         us.source = 'ADMIN_OVERRIDE'
+         OR sp.payment_status IN ('COMPLETED', 'PARTIALLY_REFUNDED')
+       )
+     ORDER BY sp.created_at DESC NULLS LAST
      LIMIT 1`,
       [userId],
     );
@@ -127,26 +134,22 @@ class SubscriptionRepository {
     offset = 0,
     status,
     search,
+    planId,
+    dateFrom,
+    dateTo,
   } = {}) {
-    const conditions = [];
-    const values = [];
-
-    if (status) {
-      values.push(status);
-      conditions.push(`us.status = $${values.length}`);
-    }
-    if (search) {
-      values.push(`%${search}%`);
-      conditions.push(
-        `(u.name ILIKE $${values.length} OR u.email ILIKE $${values.length} OR sp.name ILIKE $${values.length})`,
-      );
-    }
+    const { where, values } = this.#buildSubscriptionFilters({
+      status,
+      search,
+      planId,
+      dateFrom,
+      dateTo,
+    });
 
     values.push(limit);
     const limitIdx = values.length;
     values.push(offset);
     const offsetIdx = values.length;
-    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const result = await this.db.query(
       `SELECT us.*, u.name AS user_name, u.email AS user_email, sp.name AS plan_name
@@ -161,22 +164,20 @@ class SubscriptionRepository {
     return result.rows;
   }
 
-  async countUserSubscriptions({ status, search } = {}) {
-    const conditions = [];
-    const values = [];
-
-    if (status) {
-      values.push(status);
-      conditions.push(`us.status = $${values.length}`);
-    }
-    if (search) {
-      values.push(`%${search}%`);
-      conditions.push(
-        `(u.name ILIKE $${values.length} OR u.email ILIKE $${values.length} OR sp.name ILIKE $${values.length})`,
-      );
-    }
-
-    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+  async countUserSubscriptions({
+    status,
+    search,
+    planId,
+    dateFrom,
+    dateTo,
+  } = {}) {
+    const { where, values } = this.#buildSubscriptionFilters({
+      status,
+      search,
+      planId,
+      dateFrom,
+      dateTo,
+    });
 
     const result = await this.db.query(
       `SELECT COUNT(*) AS total
@@ -187,6 +188,37 @@ class SubscriptionRepository {
       values,
     );
     return Number(result.rows[0].total);
+  }
+
+  #buildSubscriptionFilters({ status, search, planId, dateFrom, dateTo } = {}) {
+    const conditions = [];
+    const values = [];
+
+    if (status) {
+      values.push(status);
+      conditions.push(`us.status = $${values.length}`);
+    }
+    if (planId) {
+      values.push(planId);
+      conditions.push(`us.plan_id = $${values.length}`);
+    }
+    if (search) {
+      values.push(`%${search}%`);
+      conditions.push(
+        `(u.name ILIKE $${values.length} OR u.email ILIKE $${values.length} OR sp.name ILIKE $${values.length})`,
+      );
+    }
+    if (dateFrom) {
+      values.push(dateFrom);
+      conditions.push(`us.created_at >= $${values.length}`);
+    }
+    if (dateTo) {
+      values.push(dateTo);
+      conditions.push(`us.created_at <= $${values.length}`);
+    }
+
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+    return { where, values };
   }
 
   async findUserSubscriptionById(id) {
@@ -208,10 +240,21 @@ class SubscriptionRepository {
     client = this.db,
   ) {
     const result = await client.query(
-      `INSERT INTO user_subscriptions (user_id, plan_id, start_date, end_date, status)
-       VALUES ($1, $2, $3, $4, 'ACTIVE')
+      `INSERT INTO user_subscriptions (user_id, plan_id, start_date, end_date, status, source)
+       VALUES ($1, $2, $3, $4, 'ACTIVE', 'ADMIN_OVERRIDE')
        RETURNING *`,
       [userId, planId, startDate, endDate],
+    );
+    return result.rows[0];
+  }
+
+  async cancelSubscription(subscriptionId, client = this.db) {
+    const result = await client.query(
+      `UPDATE user_subscriptions
+       SET status = 'CANCELLED'
+       WHERE id = $1 AND status = 'ACTIVE'
+       RETURNING *`,
+      [subscriptionId],
     );
     return result.rows[0];
   }

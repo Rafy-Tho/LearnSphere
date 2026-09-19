@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Pencil, Plus } from 'lucide-react';
-import { DataTable } from '@/components/DataTable';
-import { FormModal } from '@/components/FormModal';
+import { DataTable } from '@/components/common/DataTable';
+import { FormModal } from '@/components/common/FormModal';
 import { DeleteButton } from '@/components/ui/alert-dialog';
-import { ErrorAlert } from '@/components/ui/alert';
+import { ErrorState } from '@/components/common/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CategoriesPageSkeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import { useCreateCategory } from '@/features/categories/hooks/use-create-category';
-import useDeleteCategory from '@/features/categories/hooks/use-delete-category';
-import useGetCategories from '@/features/categories/hooks/use-get-categories';
-import { useUpdateCategory } from '@/features/categories/hooks/use-update-category';
+import {
+  useCreateCategory,
+  useDeleteCategory,
+  useGetCategories,
+  useUpdateCategory,
+} from '@/features/categories/hooks';
 import { useToast } from '@/hooks/use-toast';
 
 export default function CategoriesPage() {
@@ -145,7 +147,7 @@ export default function CategoriesPage() {
     }
   }, [data]);
   if (isLoading) return <CategoriesPageSkeleton />;
-  if (error) return <ErrorAlert message={error.message} />;
+  if (error) return <ErrorState message={error.message} />;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

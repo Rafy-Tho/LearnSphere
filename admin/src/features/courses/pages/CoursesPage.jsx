@@ -1,11 +1,11 @@
 import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { DataTable } from '@/components/DataTable';
-import { FormModal } from '@/components/FormModal';
-import PaginatedTable from '@/components/PaginationTable';
-import { StatusBadge } from '@/components/StatusBadge';
-import { ErrorAlert } from '@/components/ui/alert';
+import { DataTable } from '@/components/common/DataTable';
+import { FormModal } from '@/components/common/FormModal';
+import PaginatedTable from '@/components/common/PaginationTable';
+import { StatusBadge } from '@/components/common/StatusBadge';
+import { ErrorState } from '@/components/common/ErrorState';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,20 +27,16 @@ import {
 } from '@/components/ui/select';
 import { CoursesPageSkeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
-import useGetCategories from '@/features/categories/hooks/use-get-categories';
-import { useCreateCourse } from '@/features/courses/hooks/use-create-course';
-import { useDeleteCourse } from '@/features/courses/hooks/use-delete-course';
-import { useGetCourses } from '@/features/courses/hooks/use-get-courses';
-import { useUpdateCourse } from '@/features/courses/hooks/use-update-course';
+import { useGetCategories } from '@/features/categories/hooks';
+import { useGetCourses, useCourseActions } from '@/features/courses/hooks';
 import { toast } from '@/hooks/use-toast';
 
 export default function CoursesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { updateCourse, isPending: isUpdating } = useUpdateCourse();
-  const { createCourse, isCreating } = useCreateCourse();
+  const { createCourse, updateCourse, deleteCourse, isCreating, isUpdating } =
+    useCourseActions();
   const { data, isLoading, error } = useGetCourses(searchParams);
   const { data: categoriesData } = useGetCategories();
-  const { deleteCourse, isDeleting } = useDeleteCourse();
   const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -266,7 +262,7 @@ export default function CoursesPage() {
     }
   }, [categoriesData]);
   if (isLoading) return <CoursesPageSkeleton />;
-  if (error) return <ErrorAlert message={error.message} />;
+  if (error) return <ErrorState message={error.message} />;
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

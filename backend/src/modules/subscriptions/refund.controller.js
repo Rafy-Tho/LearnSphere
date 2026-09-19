@@ -8,6 +8,17 @@ class RefundController {
     this.refundService = refundService;
   }
 
+  getAllRefunds = asyncHandler(async (req, res) => {
+    const { refunds, pagination } = await this.refundService.getAllRefunds(
+      req.query,
+    );
+
+    return sendSuccess(res, refunds, {
+      message: "Refunds retrieved successfully",
+      pagination,
+    });
+  });
+
   getPaymentRefunds = asyncHandler(async (req, res) => {
     const result = await this.refundService.getRefunds(req.params.paymentId);
 
@@ -22,6 +33,8 @@ class RefundController {
       amount: req.body?.amount,
       reason: req.body?.reason,
       adminId: req.session.user.id,
+      refundRequestId: req.body?.refund_request_id || null,
+      idempotencyKey: req.body?.idempotency_key || null,
     });
 
     return sendSuccess(res, result, {

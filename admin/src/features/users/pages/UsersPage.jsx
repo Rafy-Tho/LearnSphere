@@ -1,11 +1,21 @@
 import { useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { DataTable } from "@/components/DataTable";
-import { FormModal } from "@/components/FormModal";
-import PaginatedTable from "@/components/PaginationTable";
-import { StatusBadge } from "@/components/StatusBadge";
+import { DataTable } from "@/components/common/DataTable";
+import { FormModal } from "@/components/common/FormModal";
+import PaginatedTable from "@/components/common/PaginationTable";
+import { StatusBadge } from "@/components/common/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Select,
   SelectContent,
@@ -13,10 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import useGetUsers from "@/features/users/hooks/useGetUsers";
-import useCreateUser from "@/features/users/hooks/useCreateUser";
-import useUpdateUser from "@/features/users/hooks/useUpdateUser";
-import useDeleteUser from "@/features/users/hooks/useDeleteUser";
+import {
+  useGetUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+} from "@/features/users/hooks";
 import { useToast } from "@/hooks/use-toast";
 
 const PAGE_SIZE = 10;
@@ -32,6 +44,7 @@ export default function UsersPage({ filterRole, title, subtitle }) {
   const totalPages = data?.pagination?.totalPages || 1;
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -87,6 +100,7 @@ export default function UsersPage({ filterRole, title, subtitle }) {
       await deleteUser(id);
       toast({ title: "Success!", description: "User deleted successfully." });
       if (users.length === 1 && page > 1) setPage((p) => p - 1);
+      setPendingDelete(null);
     } catch (error) {
       toast({
         title: "Error!",
@@ -94,6 +108,14 @@ export default function UsersPage({ filterRole, title, subtitle }) {
         variant: "destructive",
       });
     }
+  };
+
+  const openDeleteDialog = (user) => {
+    setPendingDelete(user);
+  };
+
+  const cancelDelete = () => {
+    setPendingDelete(null);
   };
 
   const columns = [
@@ -150,12 +172,12 @@ export default function UsersPage({ filterRole, title, subtitle }) {
           >
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button
+           <Button
             variant="ghost"
             size="icon"
             onClick={(e) => {
               e.stopPropagation();
-              handleDelete(u.id);
+              openDeleteDialog(u);
             }}
             className="text-destructive hover:text-destructive"
             disabled={isDeleting}
@@ -261,6 +283,26 @@ export default function UsersPage({ filterRole, title, subtitle }) {
           </div>
         </div>
       </FormModal>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={cancelDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {pendingDelete?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this user? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleDelete(pendingDelete?.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

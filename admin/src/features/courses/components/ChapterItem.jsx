@@ -1,20 +1,26 @@
-import { ChevronDown, ChevronRight, Pencil, Plus, Trash2 } from 'lucide-react';
-import { StatusBadge } from '@/components/StatusBadge';
+import { memo } from 'react';
+import {
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-react';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { useChapterLessons } from '@/features/courses/hooks';
 import { LessonItem } from './LessonItem';
 
-export function ChapterItem({
+export const ChapterItem = memo(function ChapterItem({
+  courseId,
   chapter,
   isExpanded,
-  lessons,
-  lessonContents,
-  quizzes,
-  quizOptions,
   expandedLessons,
   onToggle,
   onAddLesson,
@@ -30,9 +36,11 @@ export function ChapterItem({
   onEditQuiz,
   onDeleteQuiz,
 }) {
-  const chapterLessons = lessons
-    .filter((l) => l.chapter_id === chapter.id)
-    .sort((a, b) => a.position - b.position);
+  const { lessons, isLoading, isError, refetch } = useChapterLessons(
+    courseId,
+    chapter.id,
+    isExpanded,
+  );
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -52,6 +60,9 @@ export function ChapterItem({
             </span>
             <StatusBadge status={chapter.status} />
           </div>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {chapter.lesson_count} lessons
+          </span>
           <div className="flex gap-1">
             <Button
               variant="ghost"
@@ -95,30 +106,42 @@ export function ChapterItem({
 
       <CollapsibleContent>
         <div className="ml-8 space-y-1 pb-2">
-          {chapterLessons.map((lesson) => (
-            <LessonItem
-              key={lesson.id}
-              lesson={lesson}
-              isExpanded={expandedLessons.has(lesson.id)}
-              lessonContents={lessonContents
-                .filter((lc) => lc.lesson_id === lesson.id)
-                .sort((a, b) => a.position - b.position)}
-              lessonQuizzes={quizzes
-                .filter((q) => q.lesson_id === lesson.id)
-                .sort((a, b) => a.position - b.position)}
-              quizOptions={quizOptions}
-              onToggle={() => onToggleLesson(lesson.id)}
-              onAddContent={onAddContent}
-              onAddQuiz={onAddQuiz}
-              onEdit={onEditLesson}
-              onDelete={onDeleteLesson}
-              onEditContent={onEditContent}
-              onDeleteContent={onDeleteContent}
-              onEditQuiz={onEditQuiz}
-              onDeleteQuiz={onDeleteQuiz}
-            />
-          ))}
-          {chapterLessons.length === 0 && (
+          {isLoading && (
+            <div className="flex items-center gap-2 py-2 px-3 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Loading lessons…
+            </div>
+          )}
+
+          {isError && (
+            <div className="flex items-center gap-3 py-2 px-3 text-xs text-muted-foreground">
+              Failed to load lessons.
+              <Button variant="outline" size="sm" onClick={() => refetch()}>
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {!isLoading &&
+            !isError &&
+            lessons.map((lesson) => (
+              <LessonItem
+                key={lesson.id}
+                courseId={courseId}
+                lesson={lesson}
+                isExpanded={expandedLessons.has(lesson.id)}
+                onToggle={() => onToggleLesson(lesson.id)}
+                onAddContent={onAddContent}
+                onAddQuiz={onAddQuiz}
+                onEdit={onEditLesson}
+                onDelete={onDeleteLesson}
+                onEditContent={onEditContent}
+                onDeleteContent={onDeleteContent}
+                onEditQuiz={onEditQuiz}
+                onDeleteQuiz={onDeleteQuiz}
+              />
+            ))}
+
+          {!isLoading && !isError && lessons.length === 0 && (
             <p className="text-xs text-muted-foreground py-2 px-3">
               No lessons yet
             </p>
@@ -127,4 +150,4 @@ export function ChapterItem({
       </CollapsibleContent>
     </Collapsible>
   );
-}
+});

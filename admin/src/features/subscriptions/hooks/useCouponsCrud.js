@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useGetCoupons, useCreateCoupon, useUpdateCoupon, useToggleCouponActive, useDeleteCoupon } from "@/features/subscriptions/hooks";
-import { useToast } from "@/hooks/use-toast";
+import { useGetCoupons, useCreateCoupon, useUpdateCoupon, useToggleCouponActive } from "@/features/subscriptions/hooks";
 
 const DEFAULT_FORM = {
   code: "",
@@ -13,18 +12,15 @@ const DEFAULT_FORM = {
 };
 
 export function useCouponsCrud() {
-  const { toast } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(DEFAULT_FORM);
 
-  const { data, isLoading, error } = useGetCoupons();
-  const coupons = data?.data || [];
+  const { coupons, pagination, isLoading, error } = useGetCoupons();
 
   const { createCoupon, isCreating } = useCreateCoupon();
   const { updateCoupon, isUpdating } = useUpdateCoupon();
   const { toggleCouponActive, isToggling } = useToggleCouponActive();
-  const { deleteCoupon, isDeleting } = useDeleteCoupon();
 
   const openCreate = () => {
     setEditing(null);
@@ -60,14 +56,10 @@ export function useCouponsCrud() {
     await toggleCouponActive({ id, isActive: !isActive });
   };
 
-  const remove = async (id) => {
-    await deleteCoupon(id);
-  };
-
   return {
     coupons,
-    pagination: data?.pagination,
-    isLoading: isLoading || isCreating || isUpdating || isToggling || isDeleting,
+    pagination,
+    isLoading: isLoading || isCreating || isUpdating || isToggling,
     error,
     modalOpen,
     setModalOpen,
@@ -78,6 +70,5 @@ export function useCouponsCrud() {
     openEdit,
     save,
     toggleActive,
-    remove,
   };
 }

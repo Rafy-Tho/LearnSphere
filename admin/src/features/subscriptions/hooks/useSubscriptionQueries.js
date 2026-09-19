@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { subscriptionsApi } from '@/features/subscriptions/services/subscriptions';
 import { queryKeys } from '@/lib/queryKeys';
 
-export function useSubscriptions() {
+export function useSubscriptions(params = {}) {
   const { data, isLoading, error } = useQuery({
-    queryKey: queryKeys.subscriptions(),
-    queryFn: () => subscriptionsApi.getSubscriptions(),
+    queryKey: [...queryKeys.subscriptions(), params],
+    queryFn: () => subscriptionsApi.getSubscriptions(params),
   });
   const subscriptions = data?.data || [];
   return {
@@ -16,6 +16,15 @@ export function useSubscriptions() {
   };
 }
 
+export function useSubscription(id) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: queryKeys.subscriptionsDetail(id),
+    queryFn: () => subscriptionsApi.getSubscription(id),
+    enabled: !!id,
+  });
+  return { subscription: data, isLoading, error };
+}
+
 export function useBillingStats() {
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.billingStats(),
@@ -24,10 +33,10 @@ export function useBillingStats() {
   return { data, isLoading, error };
 }
 
-export function usePayments() {
+export function usePayments(params = {}) {
   const { data, isLoading, error } = useQuery({
-    queryKey: queryKeys.payments(),
-    queryFn: () => subscriptionsApi.getPayments(),
+    queryKey: [...queryKeys.payments(), params],
+    queryFn: () => subscriptionsApi.getPayments(params),
   });
   const payments = data?.data || [];
   return {
@@ -38,10 +47,66 @@ export function usePayments() {
   };
 }
 
-export function useGetPlans() {
+export function usePayment(id) {
   const { data, isLoading, error } = useQuery({
-    queryKey: queryKeys.plans(),
-    queryFn: () => subscriptionsApi.getPlans(),
+    queryKey: queryKeys.paymentDetails(id),
+    queryFn: () => subscriptionsApi.getPayment(id),
+    enabled: !!id,
+  });
+  return { payment: data, isLoading, error };
+}
+
+export function usePaymentRefunds(id) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: queryKeys.paymentRefunds(id),
+    queryFn: () => subscriptionsApi.getPaymentRefunds(id),
+    enabled: !!id,
+  });
+  return { refunds: data?.refunds || [], meta: data, isLoading, error };
+}
+
+export function useRefunds(params = {}) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: [...queryKeys.refunds(), params],
+    queryFn: () => subscriptionsApi.getRefunds(params),
+  });
+  const refunds = data?.data || [];
+  return {
+    refunds,
+    pagination: data?.pagination,
+    isLoading,
+    error,
+  };
+}
+
+export function useRefundRequests(params = {}, { enabled = true } = {}) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: [...queryKeys.refundRequests(), params],
+    queryFn: () => subscriptionsApi.getRefundRequests(params),
+    enabled,
+  });
+  const requests = data?.data || [];
+  return {
+    requests,
+    pagination: data?.pagination,
+    isLoading,
+    error,
+  };
+}
+
+export function useRefundRequest(id) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: queryKeys.refundRequestDetails(id),
+    queryFn: () => subscriptionsApi.getRefundRequest(id),
+    enabled: !!id,
+  });
+  return { request: data, isLoading, error };
+}
+
+export function useGetPlans(params = {}) {
+  const { data, isLoading, error } = useQuery({
+    queryKey: [...queryKeys.plans(), params],
+    queryFn: () => subscriptionsApi.getPlans(params),
   });
   const plans = data?.data || [];
   return {
@@ -52,10 +117,10 @@ export function useGetPlans() {
   };
 }
 
-export function useGetCoupons() {
+export function useGetCoupons(params = {}) {
   const { data, isLoading, error } = useQuery({
-    queryKey: queryKeys.coupons(),
-    queryFn: () => subscriptionsApi.getCoupons(),
+    queryKey: [...queryKeys.coupons(), params],
+    queryFn: () => subscriptionsApi.getCoupons(params),
   });
   const coupons = data?.data || [];
   return {

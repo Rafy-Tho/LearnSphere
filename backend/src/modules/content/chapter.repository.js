@@ -20,8 +20,27 @@ class ChapterRepository {
   }
   async findByModuleId(moduleId) {
     const result = await this.db.query(
-      "SELECT * FROM chapters WHERE module_id = $1",
+      "SELECT * FROM chapters WHERE module_id = $1 ORDER BY position ASC",
       [moduleId],
+    );
+    return result.rows;
+  }
+
+  async findByModuleIdWithCounts(moduleId, courseId) {
+    const result = await this.db.query(
+      `SELECT
+         ch.*,
+         COALESCE(l.lesson_count, 0)::int AS lesson_count
+       FROM chapters ch
+       JOIN modules m ON ch.module_id = m.id
+       LEFT JOIN (
+         SELECT chapter_id, COUNT(*) AS lesson_count
+         FROM lessons
+         GROUP BY chapter_id
+       ) l ON l.chapter_id = ch.id
+       WHERE ch.module_id = $1 AND m.course_id = $2
+       ORDER BY ch.position ASC`,
+      [moduleId, courseId],
     );
     return result.rows;
   }
@@ -40,16 +59,6 @@ class ChapterRepository {
     return result.rows[0];
   }
 
-  async getChaptersByCourseId(id) {
-    const result = await this.db.query(
-      `SELECT ch.*
-       FROM chapters ch
-       JOIN modules m ON ch.module_id = m.id
-       WHERE m.course_id = $1`,
-      [id],
-    );
-    return result.rows;
-  }
   async getInstructor(id) {
     const query = `
     SELECT c.instructor_id FROM courses c

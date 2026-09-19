@@ -7,7 +7,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from './ui/pagination';
+} from '@/components/ui/pagination';
 
 function PaginatedTable({ totalPage = 3, currentPage: controlledPage, onPageChange }) {
   const [internalPage, setInternalPage] = useState(1);

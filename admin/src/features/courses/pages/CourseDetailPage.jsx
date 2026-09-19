@@ -3,38 +3,33 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ChapterModal } from '@/features/courses/components/ChapterModal';
 import { ContentModal } from '@/features/courses/components/ContentModal';
 import { CourseHeader } from '@/features/courses/components/CourseHeader';
-import { DeleteConfirmDialog } from '@/features/courses/components/DeleteConfirmDialog';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { LessonModal } from '@/features/courses/components/LessonModal';
 import { ModuleCard } from '@/features/courses/components/ModuleCard';
 import { ModuleModal } from '@/features/courses/components/ModuleModal';
 import { ObjectivesCard } from '@/features/courses/components/ObjectivesCard';
 import { QuizModal } from '@/features/courses/components/QuizModal';
-import { ErrorAlert } from '@/components/ui/alert';
+import { ErrorState } from '@/components/common/ErrorState';
 import { Button } from '@/components/ui/button';
 import { CourseDetailPageSkeleton } from '@/components/ui/skeleton';
-import { useCourseDetail } from '@/features/courses/hooks/use-course-detail';
-import { useGetCourseDetails } from '@/features/courses/hooks/use-get-course-details';
+import { useCourseDetail, useCourseSummary } from '@/features/courses/hooks';
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  const { data, isLoading, error } = useGetCourseDetails(courseId);
+  const { data, isLoading, isError, error } = useCourseSummary(courseId);
+
+  const course = data?.course ?? {};
+  const objectives = data?.objectives ?? [];
+  const modules = data?.modules ?? [];
 
   const {
-    course,
-    modules,
-    chapters,
-    lessons,
-    lessonContents,
-    quizzes,
-    quizOptions,
     expandedModules,
     expandedChapters,
     expandedLessons,
     toggleModule,
     toggleChapter,
     toggleLesson,
-    objectives,
     objective,
     moduleCrud,
     chapterCrud,
@@ -42,10 +37,10 @@ export default function CourseDetailPage() {
     contentCrud,
     quizCrud,
     deleteDialog,
-  } = useCourseDetail(data);
+  } = useCourseDetail({ objectives });
 
   if (isLoading) return <CourseDetailPageSkeleton />;
-  if (error) return <ErrorAlert message={error.message} />;
+  if (isError) return <ErrorState message={error?.message} />;
   if (Object.keys(course).length === 0) {
     return (
       <div className="text-center py-12">
@@ -93,47 +88,41 @@ export default function CourseDetailPage() {
       />
 
       <div className="space-y-3">
-        {modules
-          .sort((a, b) => a.position - b.position)
-          .map((mod) => (
-            <ModuleCard
-              key={mod.id}
-              module={mod}
-              isExpanded={expandedModules.has(mod.id)}
-              chapters={chapters}
-              lessons={lessons}
-              lessonContents={lessonContents}
-              quizzes={quizzes}
-              quizOptions={quizOptions}
-              expandedChapters={expandedChapters}
-              expandedLessons={expandedLessons}
-              onToggle={() => toggleModule(mod.id)}
-              onAddChapter={chapterCrud.openCreate}
-              onEdit={moduleCrud.openEdit}
-              onDelete={(m) => deleteDialog.confirm('module', m.id, m.name)}
-              onToggleChapter={toggleChapter}
-              onAddLesson={lessonCrud.openCreate}
-              onToggleLesson={toggleLesson}
-              onAddContent={contentCrud.openCreate}
-              onAddQuiz={quizCrud.openCreate}
-              onEditChapter={chapterCrud.openEdit}
-              onDeleteChapter={(ch) =>
-                deleteDialog.confirm('chapter', ch.id, ch.name)
-              }
-              onEditLesson={lessonCrud.openEdit}
-              onDeleteLesson={(l) =>
-                deleteDialog.confirm('lesson', l.id, l.name)
-              }
-              onEditContent={contentCrud.openEdit}
-              onDeleteContent={(lc) =>
-                deleteDialog.confirm('content', lc.id, lc.name)
-              }
-              onEditQuiz={quizCrud.openEdit}
-              onDeleteQuiz={(q) =>
-                deleteDialog.confirm('quiz', q.id, q.question.slice(0, 30))
-              }
-            />
-          ))}
+        {modules.map((mod) => (
+          <ModuleCard
+            key={mod.id}
+            courseId={courseId}
+            module={mod}
+            isExpanded={expandedModules.has(mod.id)}
+            expandedChapters={expandedChapters}
+            expandedLessons={expandedLessons}
+            onToggle={() => toggleModule(mod.id)}
+            onAddChapter={chapterCrud.openCreate}
+            onEdit={moduleCrud.openEdit}
+            onDelete={(m) => deleteDialog.confirm('module', m.id, m.name)}
+            onToggleChapter={toggleChapter}
+            onAddLesson={lessonCrud.openCreate}
+            onToggleLesson={toggleLesson}
+            onAddContent={contentCrud.openCreate}
+            onAddQuiz={quizCrud.openCreate}
+            onEditChapter={chapterCrud.openEdit}
+            onDeleteChapter={(ch) =>
+              deleteDialog.confirm('chapter', ch.id, ch.name)
+            }
+            onEditLesson={lessonCrud.openEdit}
+            onDeleteLesson={(l) =>
+              deleteDialog.confirm('lesson', l.id, l.name)
+            }
+            onEditContent={contentCrud.openEdit}
+            onDeleteContent={(lc) =>
+              deleteDialog.confirm('content', lc.id, lc.name)
+            }
+            onEditQuiz={quizCrud.openEdit}
+            onDeleteQuiz={(q) =>
+              deleteDialog.confirm('quiz', q.id, q.question.slice(0, 30))
+            }
+          />
+        ))}
 
         {modules.length === 0 && (
           <div className="glass-card rounded-xl p-12 text-center">
@@ -202,8 +191,10 @@ export default function CourseDetailPage() {
         isLoading={quizCrud.isLoading}
       />
 
-      <DeleteConfirmDialog
-        deleteDialog={deleteDialog.deleteDialog}
+      <ConfirmDialog
+        open={!!deleteDialog.deleteDialog}
+        title={`Delete ${deleteDialog.deleteDialog?.type}?`}
+        description={`Are you sure you want to delete "${deleteDialog.deleteDialog?.name}"? This will also delete all nested items. This action cannot be undone.`}
         onConfirm={deleteDialog.execute}
         onCancel={deleteDialog.cancel}
       />

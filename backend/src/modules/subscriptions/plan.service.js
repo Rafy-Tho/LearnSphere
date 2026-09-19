@@ -1,5 +1,6 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
+import logger from "../../common/logger.js";
 import {
   buildPagination,
   parsePagination,
@@ -34,14 +35,18 @@ class PlanService {
     return { plans, pagination: buildPagination({ total, page, limit }) };
   }
 
-  async createPlan({
-    name,
-    description,
-    duration_days,
-    price,
-    currency,
-    features,
-  }) {
+  async createPlan(
+    {
+      name,
+      description,
+      duration_days,
+      price,
+      currency,
+      features,
+      is_active,
+    },
+    adminId = null,
+  ) {
     if (!name || !duration_days || price === undefined) {
       throw new ApiError(
         StatusCode.BAD_REQUEST,
@@ -57,19 +62,31 @@ class PlanService {
     if (Number(price) < 0) {
       throw new ApiError(StatusCode.BAD_REQUEST, "price must be at least 0");
     }
-    return this.planRepository.create({
+    const plan = await this.planRepository.create({
       name,
       description,
       durationDays: duration_days,
       price,
       currency,
       features,
+      isActive: is_active,
     });
+
+    logger.audit("plan.create", {
+      adminId,
+      planId: plan.id,
+      name: plan.name,
+      price: Number(plan.price),
+      durationDays: plan.duration_days,
+    });
+
+    return plan;
   }
 
   async updatePlan(
     planId,
     { name, description, duration_days, price, currency, is_active, features },
+    adminId = null,
   ) {
     const existingPlan = await this.planRepository.findById(planId);
     if (!existingPlan) throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
@@ -84,7 +101,7 @@ class PlanService {
       throw new ApiError(StatusCode.BAD_REQUEST, "price must be at least 0");
     }
 
-    return this.planRepository.update(planId, {
+    const plan = await this.planRepository.update(planId, {
       name: name || existingPlan.name,
       description:
         description !== undefined ? description : existingPlan.description,
@@ -96,19 +113,51 @@ class PlanService {
       features:
         features !== undefined ? features : existingPlan.features || [],
     });
+
+    logger.audit("plan.update", {
+      adminId,
+      planId,
+      name: plan.name,
+      price: Number(plan.price),
+      durationDays: plan.duration_days,
+    });
+
+    return plan;
   }
 
-  async deletePlan(planId) {
+  async setPlanStatus(planId, isActive, adminId = null) {
     const existingPlan = await this.planRepository.findById(planId);
     if (!existingPlan) throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
 
-    // Preserve billing history: deactivate a plan that has subscriptions.
+    const plan = await this.planRepository.setActive(planId, isActive);
+
+    logger.audit(isActive ? "plan.activate" : "plan.deactivate", {
+      adminId,
+      planId,
+    });
+
+    return plan;
+  }
+
+  async deletePlan(planId, adminId = null) {
+    const existingPlan = await this.planRepository.findById(planId);
+    if (!existingPlan) throw new ApiError(StatusCode.NOT_FOUND, "Plan not found");
+
+    // Preserve billing history: a plan referenced by any subscription or
+    // checkout order is deactivated, never hard-deleted.
     const references = await this.planRepository.countReferences(planId);
     if (references > 0) {
-      return this.planRepository.setActive(planId, false);
+      const plan = await this.planRepository.setActive(planId, false);
+      logger.audit("plan.deactivate", {
+        adminId,
+        planId,
+        reason: "referenced-by-history",
+      });
+      return plan;
     }
 
     await this.planRepository.delete(planId);
+    logger.audit("plan.delete", { adminId, planId });
     return null;
   }
 }

@@ -9,20 +9,13 @@ const DEFAULT_FORM = {
   position: '',
 };
 
-export function useChapterCrud({
-  setChapters,
-  lessons,
-  quizzes,
-  setQuizOptions,
-  setQuizzes,
-  setLessonContents,
-  setLessons,
-}) {
+export function useChapterCrud() {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [parentId, setParentId] = useState('');
   const [form, setForm] = useState(DEFAULT_FORM);
-  const { createChapter, updateChapter, deleteChapter, isCreating, isUpdating } = useChapterActions();
+  const { createChapter, updateChapter, deleteChapter, isCreating, isUpdating } =
+    useChapterActions();
 
   const openCreate = (moduleId) => {
     setParentId(moduleId);
@@ -56,9 +49,6 @@ export function useChapterCrud({
             position: form.position,
           },
         });
-        setChapters((cs) =>
-          cs.map((c) => (c.id === editing.id ? { ...c, ...form } : c)),
-        );
         toast({
           title: 'Chapter updated',
           description: 'Chapter has been updated successfully',
@@ -74,7 +64,7 @@ export function useChapterCrud({
       }
     } else {
       try {
-        const response = await createChapter({
+        await createChapter({
           id: parentId,
           data: {
             name: form.name,
@@ -83,7 +73,6 @@ export function useChapterCrud({
             position: form.position,
           },
         });
-        setChapters((cs) => [...cs, response]);
         toast({
           title: 'Chapter created',
           description: 'Chapter has been created successfully',
@@ -101,22 +90,10 @@ export function useChapterCrud({
   };
 
   const onChange = (field, value) => setForm((f) => ({ ...f, [field]: value }));
+
   const remove = async (id) => {
     try {
       await deleteChapter(id);
-      const lessonIds = lessons
-        .filter((l) => l.chapter_id === id)
-        .map((l) => l.id);
-      const quizIds = quizzes
-        .filter((q) => lessonIds.includes(q.lesson_id))
-        .map((q) => q.id);
-      setQuizOptions((os) => os.filter((o) => !quizIds.includes(o.quiz_id)));
-      setQuizzes((qs) => qs.filter((q) => !lessonIds.includes(q.lesson_id)));
-      setLessonContents((cs) =>
-        cs.filter((c) => !lessonIds.includes(c.lesson_id)),
-      );
-      setLessons((ls) => ls.filter((l) => l.chapter_id !== id));
-      setChapters((cs) => cs.filter((c) => c.id !== id));
       toast({
         title: 'Chapter deleted',
         description: 'Chapter has been deleted successfully',
@@ -129,6 +106,7 @@ export function useChapterCrud({
       });
     }
   };
+
   return {
     modal,
     setModal,

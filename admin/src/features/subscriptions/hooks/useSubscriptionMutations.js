@@ -11,10 +11,18 @@ export function useRefund() {
     mutateAsync: refundPayment,
     isPending: isRefunding,
   } = useMutation({
-    mutationFn: ({ id, amount, reason }) =>
-      subscriptionsApi.refundPayment(id, { amount, reason }),
+    mutationFn: ({ id, amount, reason, refundRequestId, idempotencyKey }) =>
+      subscriptionsApi.refundPayment(id, {
+        amount,
+        reason,
+        refund_request_id: refundRequestId,
+        idempotency_key: idempotencyKey,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.payments() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.paymentDetails() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.refundRequests() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.refunds() });
       queryClient.invalidateQueries({ queryKey: queryKeys.billingStats() });
       toast({
         title: 'Success!',
@@ -184,23 +192,77 @@ export function useToggleCouponActive() {
   return { toggleCouponActive, isToggling };
 }
 
-export function useDeleteCoupon() {
+export function useSetPlanStatus() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const {
-    mutateAsync: deleteCoupon,
-    isPending: isDeleting,
+    mutateAsync: setPlanStatus,
+    isPending: isUpdatingStatus,
   } = useMutation({
-    mutationFn: (id) => subscriptionsApi.deleteCoupon(id),
+    mutationFn: ({ id, isActive }) =>
+      subscriptionsApi.setPlanStatus(id, isActive),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.coupons() });
-      toast({ title: 'Success!', description: 'Coupon deleted successfully.' });
+      queryClient.invalidateQueries({ queryKey: queryKeys.plans() });
+      toast({ title: 'Success!', description: 'Plan status updated.' });
     },
     onError: (err) => {
       toast({ title: 'Error!', description: err.message, variant: 'destructive' });
     },
   });
 
-  return { deleteCoupon, isDeleting };
+  return { setPlanStatus, isUpdatingStatus };
+}
+
+export function useApproveRefundRequest() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const {
+    mutateAsync: approveRefundRequest,
+    isPending: isApproving,
+  } = useMutation({
+    mutationFn: ({ id, note }) =>
+      subscriptionsApi.approveRefundRequest(id, { note }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.refundRequests() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.refundRequestDetails(),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.billingStats() });
+      toast({ title: 'Success!', description: 'Refund request approved.' });
+    },
+    onError: (err) => {
+      toast({ title: 'Error!', description: err.message, variant: 'destructive' });
+    },
+  });
+
+  return { approveRefundRequest, isApproving };
+}
+
+export function useRejectRefundRequest() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const {
+    mutateAsync: rejectRefundRequest,
+    isPending: isRejecting,
+  } = useMutation({
+    mutationFn: ({ id, reason }) =>
+      subscriptionsApi.rejectRefundRequest(id, { reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.refundRequests() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.refundRequestDetails(),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.billingStats() });
+      toast({ title: 'Success!', description: 'Refund request rejected.' });
+    },
+    onError: (err) => {
+      toast({ title: 'Error!', description: err.message, variant: 'destructive' });
+    },
+  });
+
+  return { rejectRefundRequest, isRejecting };
 }

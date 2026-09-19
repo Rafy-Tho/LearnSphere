@@ -1,4 +1,5 @@
-import { Skeleton } from "./ui/skeleton";
+import { EmptyState } from "@/components/common/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -6,7 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./ui/table";
+} from "@/components/ui/table";
 
 function TableSkeleton({ columns, rows = 5 }) {
   return (
@@ -60,11 +61,8 @@ export function DataTable({ columns, data, onRowClick, isLoading }) {
         <TableBody>
           {data.length === 0 ? (
             <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="text-center py-8 text-muted-foreground"
-              >
-                No data found
+              <TableCell colSpan={columns.length}>
+                <EmptyState title="No data found" />
               </TableCell>
             </TableRow>
           ) : (

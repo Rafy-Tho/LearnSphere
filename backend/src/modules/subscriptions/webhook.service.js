@@ -10,6 +10,7 @@ import paymentRepository from "./payment.repository.js";
 import planRepository from "./plan.repository.js";
 import refundRepository from "./refund.repository.js";
 import subscriptionRepository from "./subscription.repository.js";
+import subscriptionService from "./subscription.service.js";
 import webhookEventRepository from "./webhook-event.repository.js";
 import {
   mapRefundStatus,
@@ -32,6 +33,7 @@ class StripeWebhookService {
     webhookEventRepository,
     userRepository,
     emailService,
+    subscriptionService,
   }) {
     this.checkoutOrderRepository = checkoutOrderRepository;
     this.couponReservationRepository = couponReservationRepository;
@@ -43,6 +45,7 @@ class StripeWebhookService {
     this.webhookEventRepository = webhookEventRepository;
     this.userRepository = userRepository;
     this.emailService = emailService;
+    this.subscriptionService = subscriptionService;
   }
 
   // Idempotent entry point. Returns { duplicate } and never processes the same
@@ -473,6 +476,7 @@ class StripeWebhookService {
           currency: refund.currency || payment.currency || "usd",
           status,
           stripeRefundId: refund.id,
+          idempotencyKey: refund.metadata?.idempotencyKey || null,
           reason: refund.reason || null,
           refundedAt:
             status === "SUCCEEDED" && refund.created
@@ -511,6 +515,7 @@ class StripeWebhookService {
         currency: refund.currency || payment.currency || "usd",
         status,
         stripeRefundId: refund.id,
+        idempotencyKey: refund.metadata?.idempotencyKey || null,
         reason: refund.reason || null,
         refundedAt,
       },
@@ -520,13 +525,23 @@ class StripeWebhookService {
     return this.#syncRefundStatus(payment, client);
   }
 
-  #syncRefundStatus(payment, client) {
-    return syncPaymentRefundStatus({
+  async #syncRefundStatus(payment, client) {
+    const sync = await syncPaymentRefundStatus({
       paymentRepository: this.paymentRepository,
       refundRepository: this.refundRepository,
       payment,
       client,
     });
+
+    // Centralized refund -> access rule: full refund revokes the subscription.
+    await this.subscriptionService.applyRefundAccessRule({
+      subscriptionId: payment.user_subscription_id,
+      paymentStatus: sync.status,
+      paymentId: payment.id,
+      client,
+    });
+
+    return sync;
   }
 }
 
@@ -542,4 +557,5 @@ export default new StripeWebhookService({
   webhookEventRepository,
   userRepository,
   emailService,
+  subscriptionService,
 });

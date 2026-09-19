@@ -32,7 +32,10 @@ class PlanController {
   });
 
   createPlan = asyncHandler(async (req, res) => {
-    const plan = await this.planService.createPlan(req.body);
+    const plan = await this.planService.createPlan(
+      req.body,
+      req.session.user.id,
+    );
 
     return sendSuccess(res, plan, {
       statusCode: StatusCode.CREATED,
@@ -41,13 +44,27 @@ class PlanController {
   });
 
   updatePlan = asyncHandler(async (req, res) => {
-    const plan = await this.planService.updatePlan(req.params.planId, req.body);
+    const plan = await this.planService.updatePlan(
+      req.params.planId,
+      req.body,
+      req.session.user.id,
+    );
 
     return sendSuccess(res, plan, { message: "Plan updated successfully" });
   });
 
+  setPlanStatus = asyncHandler(async (req, res) => {
+    const plan = await this.planService.setPlanStatus(
+      req.params.planId,
+      req.body?.is_active,
+      req.session.user.id,
+    );
+
+    return sendSuccess(res, plan, { message: "Plan status updated successfully" });
+  });
+
   deletePlan = asyncHandler(async (req, res) => {
-    await this.planService.deletePlan(req.params.planId);
+    await this.planService.deletePlan(req.params.planId, req.session.user.id);
 
     return sendSuccess(res, null, { message: "Plan deleted successfully" });
   });

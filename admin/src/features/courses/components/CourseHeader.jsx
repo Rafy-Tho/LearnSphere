@@ -1,5 +1,5 @@
 import { ArrowLeft, Plus } from 'lucide-react';
-import { StatusBadge } from '@/components/StatusBadge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
 
 export function CourseHeader({ course, onBack, onAddModule }) {

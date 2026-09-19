@@ -8,13 +8,17 @@ import subscriptionController from "./subscription.controller.js";
 import paymentController from "./payment.controller.js";
 import couponController from "./coupon.controller.js";
 import refundController from "./refund.controller.js";
+import refundRequestController from "./refund-request.controller.js";
 import billingStatsController from "./billing-stats.controller.js";
 import {
+  approveRefundRequestValidator,
   couponActiveValidator,
   createCouponValidator,
   createPlanValidator,
   createRefundValidator,
   createUserSubscriptionOverrideValidator,
+  planStatusValidator,
+  rejectRefundRequestValidator,
   updateCouponValidator,
   updatePlanValidator,
 } from "./admin.validation.js";
@@ -22,6 +26,7 @@ import {
   couponIdParamValidator,
   paymentIdParamValidator,
   planIdParamValidator,
+  refundRequestIdParamValidator,
   userSubscriptionIdParamValidator,
 } from "./validation.js";
 
@@ -43,6 +48,15 @@ adminPlansRoute
     planController.updatePlan,
   )
   .delete(...guard, planIdParamValidator, validateResult, planController.deletePlan);
+adminPlansRoute
+  .route("/:planId/status")
+  .patch(
+    ...guard,
+    planIdParamValidator,
+    planStatusValidator,
+    validateResult,
+    planController.setPlanStatus,
+  );
 
 // Mounted at /api/v1/admin/subscriptions
 export const adminSubscriptionsRoute = express.Router();
@@ -90,6 +104,42 @@ adminPaymentsRoute
     validateResult,
     refundController.createPaymentRefund,
   );
+
+// Mounted at /api/v1/admin/refund-requests
+export const adminRefundRequestsRoute = express.Router();
+adminRefundRequestsRoute
+  .route("/")
+  .get(...guard, refundRequestController.getRefundRequests);
+adminRefundRequestsRoute
+  .route("/:requestId")
+  .get(
+    ...guard,
+    refundRequestIdParamValidator,
+    validateResult,
+    refundRequestController.getRefundRequest,
+  );
+adminRefundRequestsRoute
+  .route("/:requestId/approve")
+  .post(
+    ...guard,
+    refundRequestIdParamValidator,
+    approveRefundRequestValidator,
+    validateResult,
+    refundRequestController.approveRefundRequest,
+  );
+adminRefundRequestsRoute
+  .route("/:requestId/reject")
+  .post(
+    ...guard,
+    refundRequestIdParamValidator,
+    rejectRefundRequestValidator,
+    validateResult,
+    refundRequestController.rejectRefundRequest,
+  );
+
+// Mounted at /api/v1/admin/refunds
+export const adminRefundsRoute = express.Router();
+adminRefundsRoute.route("/").get(...guard, refundController.getAllRefunds);
 
 // Mounted at /api/v1/admin/coupons
 export const adminCouponsRoute = express.Router();

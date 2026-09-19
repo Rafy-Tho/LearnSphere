@@ -42,6 +42,8 @@ import {
   adminCouponsRoute,
   adminPaymentsRoute,
   adminPlansRoute,
+  adminRefundRequestsRoute,
+  adminRefundsRoute,
   adminSubscriptionsRoute,
 } from "../modules/subscriptions/admin.routes.js";
 
@@ -98,6 +100,8 @@ export function registerRoutes(app) {
   app.use("/api/v1/admin/plans", adminPlansRoute);
   app.use("/api/v1/admin/subscriptions", adminSubscriptionsRoute);
   app.use("/api/v1/admin/payments", adminPaymentsRoute);
+  app.use("/api/v1/admin/refund-requests", adminRefundRequestsRoute);
+  app.use("/api/v1/admin/refunds", adminRefundsRoute);
   app.use("/api/v1/admin/coupons", adminCouponsRoute);
   app.use("/api/v1/admin/billing", adminBillingRoute);
   app.use("/api/v1/admin", adminRoute);

@@ -52,17 +52,34 @@ class QuestionRepository {
     );
     return result.rows[0];
   }
-  async getQuestionsByCourseId(id) {
+  // Admin-safe: includes the answer key (`is_correct`) and explanation.
+  async getQuestionsWithOptionsByLessonId(lessonId, courseId) {
     const query = `
-    SELECT qz.*
-    FROM quizzes qz 
-    JOIN lessons ls ON qz.lesson_id = ls.id
-    JOIN chapters ch ON ls.chapter_id = ch.id
-    JOIN modules m ON ch.module_id = m.id
-    WHERE m.course_id = $1
-    `;
-    const value = [id];
-    const result = await this.db.query(query, value);
+      SELECT
+        q.id,
+        q.question,
+        q.explanation,
+        q.position,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', qo.id,
+              'text', qo.text,
+              'is_correct', qo.is_correct,
+              'position', qo.position
+            ) ORDER BY qo.position
+          ) FILTER (WHERE qo.id IS NOT NULL),
+          '[]'::json
+        ) AS options
+      FROM quizzes q
+      JOIN lessons ls ON q.lesson_id = ls.id
+      JOIN chapters ch ON ls.chapter_id = ch.id
+      JOIN modules m ON ch.module_id = m.id
+      LEFT JOIN quiz_options qo ON qo.quiz_id = q.id
+      WHERE q.lesson_id = $1 AND m.course_id = $2
+      GROUP BY q.id
+      ORDER BY q.position ASC`;
+    const result = await this.db.query(query, [lessonId, courseId]);
     return result.rows;
   }
   async getInstructor(id) {

@@ -2,14 +2,14 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '@/app/providers/context';
-import { ErrorAlert } from '@/components/ui/alert';
-import { PageLoader } from '@/components/ui/skeleton';
+import { ErrorState } from '@/components/common/ErrorState';
+import { Loading } from '@/components/common/Loading';
 import { AdminSidebar } from '@/layouts/AdminSidebar';
 
 export function AdminLayout() {
   const { isLoading, error } = useAuth();
-  if (isLoading) return <PageLoader />;
-  if (error) return <ErrorAlert message={error.message || 'Server error'} />;
+  if (isLoading) return <Loading />;
+  if (error) return <ErrorState message={error.message || 'Server error'} />;
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">

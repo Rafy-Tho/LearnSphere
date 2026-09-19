@@ -3,6 +3,11 @@ import requireAuth from "../../common/middleware/require-auth.js";
 import authorize from "../../common/middleware/authorize.js";
 import { validateResult } from "../../common/middleware/validate-result.js";
 import { ADMIN, INSTRUCTOR } from "../../common/constants/constants.js";
+import {
+  chapterIdParamValidator,
+  lessonIdParamValidator,
+  moduleIdParamValidator,
+} from "../content/validation.js";
 import courseController from "./course.controller.js";
 import {
   adminCourseListQueryValidator,
@@ -19,13 +24,53 @@ adminCoursesRoute.get(
   adminCourseListQueryValidator,
   courseController.getCoursesDashboard,
 );
+
+// Lightweight summary: course + objectives + modules with counts.
 adminCoursesRoute.get(
-  "/:courseId",
+  "/:courseId/summary",
   requireAuth,
   authorize(ADMIN, INSTRUCTOR),
   courseIdParamValidator,
   validateResult,
-  courseController.getCourseDetailsDashboard,
+  courseController.getCourseSummary,
+);
+
+// Lazy branch reads, loaded on demand as the admin expands the tree.
+adminCoursesRoute.get(
+  "/:courseId/modules/:moduleId/chapters",
+  requireAuth,
+  authorize(ADMIN, INSTRUCTOR),
+  courseIdParamValidator,
+  moduleIdParamValidator,
+  validateResult,
+  courseController.getModuleChapters,
+);
+adminCoursesRoute.get(
+  "/:courseId/chapters/:chapterId/lessons",
+  requireAuth,
+  authorize(ADMIN, INSTRUCTOR),
+  courseIdParamValidator,
+  chapterIdParamValidator,
+  validateResult,
+  courseController.getChapterLessons,
+);
+adminCoursesRoute.get(
+  "/:courseId/lessons/:lessonId/contents",
+  requireAuth,
+  authorize(ADMIN, INSTRUCTOR),
+  courseIdParamValidator,
+  lessonIdParamValidator,
+  validateResult,
+  courseController.getLessonContents,
+);
+adminCoursesRoute.get(
+  "/:courseId/lessons/:lessonId/questions",
+  requireAuth,
+  authorize(ADMIN, INSTRUCTOR),
+  courseIdParamValidator,
+  lessonIdParamValidator,
+  validateResult,
+  courseController.getLessonQuestions,
 );
 
 export default adminCoursesRoute;

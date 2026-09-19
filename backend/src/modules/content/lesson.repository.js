@@ -98,8 +98,34 @@ class LessonRepository {
     return result.rows[0];
   }
   async findByChapterId(chapter_id) {
-    const query = `SELECT * FROM lessons WHERE chapter_id = $1`;
+    const query = `SELECT * FROM lessons WHERE chapter_id = $1 ORDER BY position ASC`;
     const values = [chapter_id];
+    const result = await this.db.query(query, values);
+    return result.rows;
+  }
+
+  async findByChapterIdWithCounts(chapterId, courseId) {
+    const query = `
+      SELECT
+        ls.*,
+        COALESCE(lc.content_count, 0)::int AS content_count,
+        COALESCE(qz.quiz_count, 0)::int AS quiz_count
+      FROM lessons ls
+      JOIN chapters ch ON ls.chapter_id = ch.id
+      JOIN modules m ON ch.module_id = m.id
+      LEFT JOIN (
+        SELECT lesson_id, COUNT(*) AS content_count
+        FROM lesson_contents
+        GROUP BY lesson_id
+      ) lc ON lc.lesson_id = ls.id
+      LEFT JOIN (
+        SELECT lesson_id, COUNT(*) AS quiz_count
+        FROM quizzes
+        GROUP BY lesson_id
+      ) qz ON qz.lesson_id = ls.id
+      WHERE ls.chapter_id = $1 AND m.course_id = $2
+      ORDER BY ls.position ASC`;
+    const values = [chapterId, courseId];
     const result = await this.db.query(query, values);
     return result.rows;
   }
@@ -169,18 +195,6 @@ class LessonRepository {
     return result.rows;
   }
 
-  async getLessonsByCourseId(id) {
-    const query = `
-    SELECT ls.*
-    FROM lessons ls
-    JOIN chapters ch ON ls.chapter_id = ch.id
-    JOIN modules m ON ch.module_id = m.id
-    WHERE m.course_id = $1
-    `;
-    const value = [id];
-    const result = await this.db.query(query, value);
-    return result.rows;
-  }
   async getInstructor(id) {
     const query = `
     SELECT c.instructor_id FROM courses c

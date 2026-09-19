@@ -1,4 +1,4 @@
-import { Badge } from "./ui/badge";
+import { Badge } from "@/components/ui/badge";
 
 const statusStyles = {
   PUBLISHED: "bg-success/15 text-success border-success/30",
@@ -14,6 +14,12 @@ const statusStyles = {
   COMPLETED: "bg-success/15 text-success border-success/30",
   FAILED: "bg-destructive/15 text-destructive border-destructive/30",
   REFUNDED: "bg-info/15 text-info border-info/30",
+  PARTIALLY_REFUNDED: "bg-warning/15 text-warning border-warning/30",
+  APPROVED: "bg-success/15 text-success border-success/30",
+  REJECTED: "bg-destructive/15 text-destructive border-destructive/30",
+  SUCCEEDED: "bg-success/15 text-success border-success/30",
+  ADMIN_OVERRIDE: "bg-primary/15 text-primary border-primary/30",
+  PAID: "bg-info/15 text-info border-info/30",
 };
 
 export function StatusBadge({ status }) {

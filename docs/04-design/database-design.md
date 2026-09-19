@@ -444,9 +444,12 @@ Plans with subscriptions are deactivated, never hard-deleted.
 | start_date | TIMESTAMPTZ | DEFAULT now |
 | end_date | TIMESTAMPTZ | NOT NULL |
 | status | subscription_status | DEFAULT `ACTIVE` |
+| source | TEXT | NOT NULL, DEFAULT `PAID`, CHECK IN (`PAID`,`ADMIN_OVERRIDE`) |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
-Partial unique `one_active_subscription_per_user` on `(user_id) WHERE status='ACTIVE'`. Indexes `idx_user_subscriptions_user`, `idx_user_subscriptions_status`. Overdue rows are lazily transitioned to `EXPIRED` on read/purchase (no scheduler).
+Partial unique `one_active_subscription_per_user` on `(user_id) WHERE status='ACTIVE'`. Indexes `idx_user_subscriptions_user`, `idx_user_subscriptions_status`. Overdue rows are lazily transitioned to `EXPIRED` on read/purchase (no scheduler). `source='ADMIN_OVERRIDE'` marks an administrative entitlement with no payment record; access still requires `status='ACTIVE'` and `end_date > now`.
+
+**Access rule (centralized):** an ACTIVE, unexpired subscription grants access when it is an `ADMIN_OVERRIDE` or its payment is `COMPLETED`/`PARTIALLY_REFUNDED`. A fully `REFUNDED` payment cancels the subscription (full refund revokes access; partial keeps it until `end_date`).
 
 #### `checkout_orders`
 
@@ -561,11 +564,12 @@ Unique `(coupon_id, user_id)` (one use per user) and unique `(payment_id)`. Inde
 | currency | VARCHAR(3) | NOT NULL, DEFAULT `usd` |
 | refund_status | refund_status | NOT NULL, DEFAULT `PENDING` |
 | stripe_refund_id | TEXT | UNIQUE, nullable |
+| idempotency_key | TEXT | nullable, partial UNIQUE (admin refund retry safety) |
 | reason | TEXT | nullable |
 | refunded_at | TIMESTAMPTZ | nullable |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
-Indexes `idx_payment_refunds_payment`, `idx_payment_refunds_status`.
+Indexes `idx_payment_refunds_payment`, `idx_payment_refunds_status`, and partial unique `unique_payment_refund_idempotency_key (idempotency_key) WHERE idempotency_key IS NOT NULL`. Admin refunds reserve a `PENDING` row keyed by `idempotency_key` before calling Stripe; webhook events reconcile the row by `stripe_refund_id` or `metadata.idempotencyKey`.
 
 #### `refund_requests`
 
@@ -585,6 +589,7 @@ creates a Stripe refund or changes payment/subscription status.
 | status | refund_request_status | NOT NULL, DEFAULT `PENDING` |
 | reviewed_by | UUID | nullable, FK → users(id) SET NULL |
 | admin_note | TEXT | nullable |
+| payment_refund_id | UUID | nullable, FK → payment_refunds(id) SET NULL (fulfilling refund) |
 | requested_at | TIMESTAMPTZ | DEFAULT now |
 | reviewed_at | TIMESTAMPTZ | nullable |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
@@ -592,8 +597,15 @@ creates a Stripe refund or changes payment/subscription status.
 Partial unique `one_pending_refund_request_per_payment (payment_id) WHERE
 status = 'PENDING'` (at most one open request per payment); indexes
 `idx_refund_requests_payment`, `idx_refund_requests_user`,
-`idx_refund_requests_status`. Statuses: `PENDING`, `APPROVED`, `REJECTED`,
-`CANCELLED`. Refundable balance is `amount − SUM(successful refunds)`.
+`idx_refund_requests_status`, `idx_refund_requests_payment_refund`. Statuses:
+`PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`. Refundable balance is
+`amount − SUM(committed refunds: SUCCEEDED + PENDING)`.
+
+**Admin review workflow:** approval/rejection is an atomic `PENDING` transition
+(`UPDATE … WHERE status='PENDING'`) writing `reviewed_by`, `admin_note`,
+`reviewed_at`; it never calls Stripe. The actual Stripe refund is a separate
+`POST /admin/payments/:paymentId/refunds` operation that links
+`payment_refund_id` and applies the centralized refund access rule.
 
 #### `stripe_webhook_events`
 

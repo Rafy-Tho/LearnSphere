@@ -48,25 +48,26 @@ class LessonContentRepository {
     return result.rows[0];
   }
   async findByLessonId(lessonId) {
-    const query = `SELECT * FROM lesson_contents WHERE lesson_id = $1`;
+    const query = `SELECT * FROM lesson_contents WHERE lesson_id = $1 ORDER BY position ASC`;
     const values = [lessonId];
     const result = await this.db.query(query, values);
     return result.rows;
   }
 
-  async getLessonContentsByCourseId(id) {
+  async findByLessonIdInCourse(lessonId, courseId) {
     const query = `
-    SELECT lc.*
-    FROM lesson_contents lc
-    JOIN lessons ls ON lc.lesson_id = ls.id
-    JOIN chapters ch ON ls.chapter_id = ch.id
-    JOIN modules m ON ch.module_id = m.id
-    WHERE m.course_id = $1
-    `;
-    const value = [id];
-    const result = await this.db.query(query, value);
+      SELECT lc.*
+      FROM lesson_contents lc
+      JOIN lessons ls ON lc.lesson_id = ls.id
+      JOIN chapters ch ON ls.chapter_id = ch.id
+      JOIN modules m ON ch.module_id = m.id
+      WHERE lc.lesson_id = $1 AND m.course_id = $2
+      ORDER BY lc.position ASC`;
+    const values = [lessonId, courseId];
+    const result = await this.db.query(query, values);
     return result.rows;
   }
+
   async getInstructor(id) {
     const query = `
     SELECT c.instructor_id FROM courses c

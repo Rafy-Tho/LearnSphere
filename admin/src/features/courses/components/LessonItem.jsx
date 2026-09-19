@@ -1,24 +1,25 @@
+import { memo } from 'react';
 import {
   BookOpen,
   ChevronDown,
   ChevronRight,
   FileText,
   HelpCircle,
+  Loader2,
   Pencil,
   Plus,
   Trash2,
 } from 'lucide-react';
-import { StatusBadge } from '@/components/StatusBadge';
+import { StatusBadge } from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
+import { useLessonContents, useLessonQuestions } from '@/features/courses/hooks';
 import { ContentItem } from './ContentItem';
 import { QuizItem } from './QuizItem';
 
-export function LessonItem({
+export const LessonItem = memo(function LessonItem({
+  courseId,
   lesson,
   isExpanded,
-  lessonContents,
-  lessonQuizzes,
-  quizOptions,
   onToggle,
   onAddContent,
   onAddQuiz,
@@ -29,7 +30,24 @@ export function LessonItem({
   onEditQuiz,
   onDeleteQuiz,
 }) {
-  const hasChildren = lessonContents.length > 0 || lessonQuizzes.length > 0;
+  const {
+    contents,
+    isLoading: contentsLoading,
+    isError: contentsError,
+    refetch: refetchContents,
+  } = useLessonContents(courseId, lesson.id, isExpanded);
+
+  const {
+    questions,
+    isLoading: questionsLoading,
+    isError: questionsError,
+    refetch: refetchQuestions,
+  } = useLessonQuestions(courseId, lesson.id, isExpanded);
+
+  const hasChildren =
+    (lesson.content_count ?? 0) > 0 || (lesson.quiz_count ?? 0) > 0;
+  const isLoading = contentsLoading || questionsLoading;
+  const isError = contentsError || questionsError;
 
   return (
     <div>
@@ -84,7 +102,7 @@ export function LessonItem({
               className="h-7 w-7"
               onClick={(e) => {
                 e.stopPropagation();
-                onAddQuiz(lesson.id);
+                onAddQuiz(lesson.id, (lesson.quiz_count ?? 0) + 1);
               }}
               title="Add Quiz"
             >
@@ -121,34 +139,61 @@ export function LessonItem({
       {/* Expanded children */}
       {isExpanded && (
         <div className="ml-12 space-y-1 py-1">
-          {lessonContents.map((lc) => (
-            <ContentItem
-              key={lc.id}
-              lc={lc}
-              onEdit={onEditContent}
-              onDelete={onDeleteContent}
-            />
-          ))}
-
-          {lessonQuizzes.map((q) => (
-            <QuizItem
-              key={q.id}
-              quiz={q}
-              options={quizOptions
-                .filter((o) => o.quiz_id === q.id)
-                .sort((a, b) => a.position - b.position)}
-              onEdit={onEditQuiz}
-              onDelete={onDeleteQuiz}
-            />
-          ))}
-
-          {lessonContents.length === 0 && lessonQuizzes.length === 0 && (
-            <p className="text-xs text-muted-foreground py-1 px-3">
-              No content yet
-            </p>
+          {isLoading && (
+            <div className="flex items-center gap-2 py-1 px-3 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Loading content…
+            </div>
           )}
+
+          {isError && (
+            <div className="flex items-center gap-3 py-1 px-3 text-xs text-muted-foreground">
+              Failed to load content.
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  refetchContents();
+                  refetchQuestions();
+                }}
+              >
+                Retry
+              </Button>
+            </div>
+          )}
+
+          {!isLoading &&
+            !isError &&
+            contents.map((lc) => (
+              <ContentItem
+                key={lc.id}
+                lc={lc}
+                onEdit={onEditContent}
+                onDelete={onDeleteContent}
+              />
+            ))}
+
+          {!isLoading &&
+            !isError &&
+            questions.map((q) => (
+              <QuizItem
+                key={q.id}
+                quiz={q}
+                options={q.options ?? []}
+                onEdit={onEditQuiz}
+                onDelete={onDeleteQuiz}
+              />
+            ))}
+
+          {!isLoading &&
+            !isError &&
+            contents.length === 0 &&
+            questions.length === 0 && (
+              <p className="text-xs text-muted-foreground py-1 px-3">
+                No content yet
+              </p>
+            )}
         </div>
       )}
     </div>
   );
-}
+});

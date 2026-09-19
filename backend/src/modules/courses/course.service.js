@@ -4,7 +4,6 @@ import assertOwnership from "../../common/auth/ownership.js";
 import chapterRepository from "../content/chapter.repository.js";
 import lessonContentRepository from "../content/lesson-content.repository.js";
 import lessonRepository from "../content/lesson.repository.js";
-import optionRepository from "../content/option.repository.js";
 import moduleRepository from "../content/module.repository.js";
 import questionRepository from "../content/question.repository.js";
 import subscriptionService from "../subscriptions/subscription.service.js";
@@ -21,7 +20,6 @@ class CourseService {
     lessonRepository,
     lessonContentRepository,
     questionRepository,
-    optionRepository,
   }) {
     this.courseRepository = courseRepository;
     this.courseObjectiveRepository = courseObjectiveRepository;
@@ -31,7 +29,6 @@ class CourseService {
     this.lessonRepository = lessonRepository;
     this.lessonContentRepository = lessonContentRepository;
     this.questionRepository = questionRepository;
-    this.optionRepository = optionRepository;
   }
 
   async createCourse({ instructorId, courseData }) {
@@ -131,7 +128,7 @@ class CourseService {
     return this.courseRepository.getAllCoursesDashboard(query);
   }
 
-  async getDashboardDetails(courseId, user) {
+  async assertDashboardAccess(courseId, user) {
     const course = await this.courseRepository.findById(courseId);
     if (!course) throw new ApiError(StatusCode.NOT_FOUND, "Course not found");
 
@@ -141,34 +138,48 @@ class CourseService {
       message: "You are not authorized to view this course dashboard",
     });
 
-    const [
-      objectives,
-      modules,
-      chapters,
-      lessons,
-      lessonContents,
-      quizzes,
-      options,
-    ] = await Promise.all([
+    return course;
+  }
+
+  async getCourseSummary(courseId, user) {
+    const course = await this.assertDashboardAccess(courseId, user);
+
+    const [objectives, modules] = await Promise.all([
       this.courseObjectiveRepository.getObjectivesByCourseId(courseId),
-      this.moduleRepository.getModulesByCourseId(courseId),
-      this.chapterRepository.getChaptersByCourseId(courseId),
-      this.lessonRepository.getLessonsByCourseId(courseId),
-      this.lessonContentRepository.getLessonContentsByCourseId(courseId),
-      this.questionRepository.getQuestionsByCourseId(courseId),
-      this.optionRepository.getOptionsByCourseId(courseId),
+      this.moduleRepository.getModulesWithCountsByCourseId(courseId),
     ]);
 
-    return {
-      course,
-      objectives,
-      modules,
-      chapters,
-      lessons,
-      lessonContents,
-      quizzes,
-      options,
-    };
+    return { course, objectives, modules };
+  }
+
+  async getModuleChapters(courseId, moduleId, user) {
+    await this.assertDashboardAccess(courseId, user);
+
+    return this.chapterRepository.findByModuleIdWithCounts(moduleId, courseId);
+  }
+
+  async getChapterLessons(courseId, chapterId, user) {
+    await this.assertDashboardAccess(courseId, user);
+
+    return this.lessonRepository.findByChapterIdWithCounts(chapterId, courseId);
+  }
+
+  async getLessonContents(courseId, lessonId, user) {
+    await this.assertDashboardAccess(courseId, user);
+
+    return this.lessonContentRepository.findByLessonIdInCourse(
+      lessonId,
+      courseId,
+    );
+  }
+
+  async getLessonQuestions(courseId, lessonId, user) {
+    await this.assertDashboardAccess(courseId, user);
+
+    return this.questionRepository.getQuestionsWithOptionsByLessonId(
+      lessonId,
+      courseId,
+    );
   }
 }
 
@@ -182,5 +193,4 @@ export default new CourseService({
   lessonRepository,
   lessonContentRepository,
   questionRepository,
-  optionRepository,
 });

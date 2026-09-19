@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-label="LearnSphere Admin">
+  <defs>
+    <linearGradient id="ls-admin" x1="6" y1="4" x2="34" y2="36" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA" />
+      <stop offset="1" stop-color="#1D4ED8" />
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="11" fill="url(#ls-admin)" />
+  <path d="M20 7 33 13.5 20 20 7 13.5 20 7Z" fill="#fff" />
+  <path
+    d="M12.5 16.6v5.6c0 2.5 3.36 4.5 7.5 4.5s7.5-2 7.5-4.5v-5.6"
+    fill="none"
+    stroke="#fff"
+    stroke-width="2.4"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path d="M33 13.5v5.8" stroke="#fff" stroke-width="2.4" stroke-linecap="round" />
+  <circle cx="33" cy="21.2" r="1.9" fill="#fff" />
+</svg>

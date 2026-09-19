@@ -20,6 +20,7 @@ const statusStyles = {
   SUCCEEDED: "bg-success/15 text-success border-success/30",
   ADMIN_OVERRIDE: "bg-primary/15 text-primary border-primary/30",
   PAID: "bg-info/15 text-info border-info/30",
+  CONFIRMED: "bg-success/15 text-success border-success/30",
 };
 
 export function StatusBadge({ status }) {

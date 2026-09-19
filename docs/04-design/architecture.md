@@ -144,7 +144,8 @@ Repositories are singleton classes holding raw parameterized SQL. List endpoints
 The admin SPA uses feature-based architecture parallel to the learner frontend:
 
 - **App layer:** `app/` contains providers (QueryClient → AuthProvider → Router), guards (RequireAuth, RedirectIfAuthenticated), and route definitions (`app/router.jsx`). Entry is `app/App.jsx`.
-- **Features:** Each domain lives in `features/<domain>/` (auth, dashboard, categories, users, courses, subscriptions) with subfolders: `pages/`, `components/`, `hooks/`, `services/`.
+- **Features:** Each domain lives in `features/<domain>/` (auth, dashboard, categories, users, courses, subscriptions, instructor, payouts) with subfolders: `pages/`, `components/`, `hooks/`, `services/`.
+- **Role-gated instructor workspace:** `features/instructor/` + course-detail tabs (`students`/`analytics`/`reviews`/`certificates`) reuse the admin app. `RequireRole` guards routes; `constants/navItems.js` filters navigation by `user.role`; the backend scopes every instructor read by `courses.instructor_id`.
 - **Data flow:** Page → Feature Component → Hook (useQuery/useMutation) → Service → `lib/apiClient.js` → Backend (`/api/v1/*`).
 - **Infrastructure:** `lib/` contains `apiClient.js` (fetch wrapper, envelope unwrapping, ApiError, 401 auto-logout), `queryClient.js`, `queryKeys.js` (central factory), and `utils.js` (cn).
 - **UI:** `components/` has `ui/` (shadcn/Radix primitives) and `common/` (reusable composables: DataTable, PaginationTable, FormModal, StatusBadge).

@@ -9,6 +9,7 @@ Single place to track what is done, what is in progress, and what is left. Keep 
 | Backend API | [`backend-progress.md`](./backend-progress.md) | 🟡 | Module structure, DB migrations, API/naming/security work done; a few module gaps left |
 | Learner frontend | [`frontend-user.md`](./frontend-user.md) | ✅ | Feature architecture, UI primitives, performance, API/state, design tokens |
 | Admin dashboard | [`frontend-admin.md`](./frontend-admin.md) | ✅ | Feature architecture, apiClient/query patterns, billing UI aligned with prepaid API |
+| Instructor workspace | [`instructor-dashboard.md`](./instructor-dashboard.md) | 🟡 | Role-gated instructor area in the admin app: scoped dashboard, courses, students, analytics, reviews, certificates, earnings; course review workflow + payouts (migrations `0025`–`0026` need applying to the live DB) |
 
 ## How To Update
 
@@ -40,3 +41,8 @@ Single place to track what is done, what is in progress, and what is left. Keep 
 | D-33 | Provider email policy | Trust Google's verified email — sets `users.email_verified_at` and links/creates without a separate verification round |
 | D-34 | Provider-only accounts | `users.password` nullable; password login rejected cleanly for provider-only users |
 | D-35 | Quiz attempts | Deferred grading (answers hidden until submit); atomic submit persists a completed `quiz_attempts` row + `quiz_answers`, marks the lesson complete; every retake is a new attempt; UI shows best + latest and full history |
+| D-36 | Instructor placement | Instructors share the admin SPA behind `RequireRole` + role-filtered nav; no separate fourth app |
+| D-37 | Course approval | Lifecycle `DRAFT → PENDING → PUBLISHED/REJECTED`; only admins approve/reject; rejection requires a reason |
+| D-38 | Instructor scoping | All instructor reads/actions are scoped to `courses.instructor_id`; `ADMIN` bypasses; `/admin/dashboard` is admin-only |
+| D-39 | Instructor earnings | Estimated: attributed subscription revenue (equal split per enrolled course, refunds deducted) × admin-configurable revenue-share % (`platform_settings`, default 70); actual payouts recorded in `instructor_payouts` |
+| D-40 | Instructor review notifications | Approval/rejection emails the owning instructor; failures never fail the review action |

@@ -40,6 +40,31 @@ export const queryKeys = {
   users: (params) => ['admin-users', params],
   usersRoot: () => ['admin-users'],
 
+  // Instructor workspace
+  instructorDashboard: () => ['instructor-dashboard'],
+  instructorStudents: (courseId, params) => [
+    'instructor-students',
+    courseId,
+    params,
+  ],
+  instructorAnalytics: (courseId) => ['instructor-analytics', courseId],
+  instructorReviews: (courseId, params) => [
+    'instructor-reviews',
+    courseId,
+    params,
+  ],
+  instructorCertificates: (courseId, params) => [
+    'instructor-certificates',
+    courseId,
+    params,
+  ],
+  instructorEarnings: () => ['instructor-earnings'],
+  instructorPayouts: (params) => ['instructor-payouts', params],
+
+  // Admin instructor management
+  platformSettings: () => ['platform-settings'],
+  adminPayouts: (params) => ['admin-payouts', params],
+
   // Subscriptions
   plans: () => ['admin-plans'],
   subscriptions: () => ['admin-user-subscriptions'],
@@ -69,6 +94,15 @@ export const userScopedQueryRoots = new Set([
   queryKeys.lessonContents(null, null)[0],
   queryKeys.lessonQuestions(null, null)[0],
   queryKeys.users(null)[0],
+  queryKeys.instructorDashboard()[0],
+  queryKeys.instructorStudents(null, null)[0],
+  queryKeys.instructorAnalytics(null)[0],
+  queryKeys.instructorReviews(null, null)[0],
+  queryKeys.instructorCertificates(null, null)[0],
+  queryKeys.instructorEarnings()[0],
+  queryKeys.instructorPayouts(null)[0],
+  queryKeys.platformSettings()[0],
+  queryKeys.adminPayouts(null)[0],
   queryKeys.plans()[0],
   queryKeys.subscriptions()[0],
   queryKeys.subscriptionsDetail(null)[0],

@@ -53,7 +53,7 @@ The repository is a monorepo of three independently runnable applications sharin
 ### Out of scope (current)
 - Automated tests, migrations/seeds, CI/CD
 - Social OAuth, video streaming, forums, real-time features
-- Instructor self-service portal, certificate PDFs, multi-tenancy
+- Per-course checkout / accurate instructor revenue accounting, certificate PDFs, multi-tenancy
 
 Full scope: `docs/01-planning/scope.md`.
 
@@ -148,7 +148,13 @@ See `docs/04-design/architecture.md` and `docs/diagrams/`.
 ### 5.6 Administration
 - Dashboard statistics (courses, users, instructors, enrollments).
 - CRUD for categories, courses, all nested content, users/instructors, plans, user subscriptions, payments.
+- Course review queue (approve/reject), instructor revenue-share setting, and payout records.
 - Admin endpoints guarded by `requireAuth` + `authorize(ADMIN)`.
+
+### 5.7 Instructor Workspace
+- Role-gated area of the admin SPA (`RequireRole`) with a scoped dashboard, own courses, students, analytics, reviews, certificates, and estimated earnings.
+- Course lifecycle: `DRAFT` → `PENDING` → `PUBLISHED`/`REJECTED`; only admins publish.
+- Instructor reads are scoped to `courses.instructor_id`; `ADMIN` bypasses.
 
 Full requirements: `docs/02-requirements/requirements.md`. Business rules: `docs/02-requirements/business-rules.md`.
 

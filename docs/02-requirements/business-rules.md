@@ -86,6 +86,23 @@ Business rules define the constraints and policies the system enforces, independ
 | BR-REV-04 | A user may file at most one report per review (`UNIQUE(user_id, review_id)`). |
 | BR-REV-05 | The helpful-vote count derives from `review_helpful_votes`; there is no denormalized `helpful_count` column. |
 
+## 6A. Instructor Workspace & Course Review Rules
+
+| ID | Rule |
+|---|---|
+| BR-INS-01 | Instructor data (courses, students, reviews, certificates, earnings) is scoped to `courses.instructor_id = session user`; `ADMIN` bypasses the scope. |
+| BR-INS-02 | Course status is one of `DRAFT`, `PENDING`, `PUBLISHED`, `REJECTED`. |
+| BR-INS-03 | Only the owning instructor (or an admin) may submit a course; only `DRAFT` or `REJECTED` courses are submittable. |
+| BR-INS-04 | A course must have at least one module before it can be submitted for review. |
+| BR-INS-05 | Only an `ADMIN` may approve a `PENDING` course (→ `PUBLISHED`) or reject it (→ `REJECTED` with a reason). |
+| BR-INS-06 | An instructor cannot set `status = PUBLISHED` through the generic course update; status changes only via submit/approve/reject. |
+| BR-INS-07 | Instructors can only view or manage courses they own; platform-wide aggregates are admin-only. |
+| BR-INS-08 | Estimated instructor earnings = attributed subscription revenue × `instructor_revenue_share_percent`; the value is an estimate. |
+| BR-INS-09 | The revenue-share percent lives in `platform_settings` (default `70`) and is admin-editable. |
+| BR-INS-10 | Succeeded payment refunds reduce attributed revenue. |
+| BR-INS-11 | Actual payouts are admin-recorded rows in `instructor_payouts` with status `PENDING`, `PAID`, or `CANCELLED`. |
+| BR-INS-12 | A `PENDING` course is locked from instructor edits (course, objectives, and nested content) and returns HTTP 409; admins bypass the lock. |
+
 ## 7. Data Integrity Rules
 
 | ID | Rule |

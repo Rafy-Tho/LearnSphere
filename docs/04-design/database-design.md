@@ -70,7 +70,8 @@ erDiagram
 | `user_role` | `LEARNER`, `INSTRUCTOR`, `ADMIN` |
 | `user_status` | `ACTIVE`, `INACTIVE`, `SUSPENDED` |
 | `course_level` | `BEGINNER`, `INTERMEDIATE`, `ADVANCED` |
-| `content_status` | `DRAFT`, `PUBLISHED` |
+| `content_status` | `DRAFT`, `PUBLISHED`, `PENDING`, `REJECTED` |
+| `payout_status` | `PENDING`, `PAID`, `CANCELLED` |
 | `lesson_type` | `TEXT`, `QUIZ` |
 | `subscription_status` | `ACTIVE`, `EXPIRED`, `CANCELLED`, `PENDING` |
 | `payment_status` | `PENDING`, `COMPLETED`, `FAILED`, `REFUNDED`, `PARTIALLY_REFUNDED` |
@@ -186,10 +187,14 @@ for provider-only accounts).
 | name | VARCHAR(255) | NOT NULL |
 | slug | TEXT | UNIQUE, NOT NULL |
 | description | TEXT | NOT NULL |
-| status | content_status | DEFAULT `DRAFT`, NOT NULL |
+| status | content_status | DEFAULT `DRAFT`, NOT NULL (review workflow adds `PENDING`/`REJECTED`) |
 | level | course_level | DEFAULT `BEGINNER`, NOT NULL |
 | access_type | access_course_type | DEFAULT `FREE` |
 | position | INTEGER | nullable |
+| submitted_at | TIMESTAMPTZ | nullable (set on submit for review) |
+| reviewed_at | TIMESTAMPTZ | nullable (set on approve/reject) |
+| reviewed_by | UUID | nullable, FK → users(id) **SET NULL** |
+| rejection_reason | TEXT | nullable |
 | deleted_at | TIMESTAMPTZ | nullable (soft delete) |
 | created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
 
@@ -660,7 +665,36 @@ Unique `(user_id, review_id)`.
 
 Unique `(user_id, review_id)`.
 
-### 4.6 Runtime Table
+### 4.6 Instructor Workspace
+
+#### `platform_settings`
+
+| Column | Type | Constraints |
+|---|---|---|
+| key | TEXT | PK |
+| value | JSONB | NOT NULL |
+| updated_at | TIMESTAMPTZ | DEFAULT now |
+
+Seeded with `instructor_revenue_share_percent = 70`. Admin-editable.
+
+#### `instructor_payouts`
+
+| Column | Type | Constraints |
+|---|---|---|
+| id | UUID | PK |
+| instructor_id | UUID | NOT NULL, FK → users(id) CASCADE |
+| amount | NUMERIC(12,2) | NOT NULL, CHECK `>= 0` |
+| currency | VARCHAR(10) | NOT NULL, DEFAULT `USD` |
+| status | payout_status | NOT NULL, DEFAULT `PENDING` |
+| period_start / period_end | DATE | nullable |
+| note | TEXT | nullable |
+| paid_at | TIMESTAMPTZ | nullable |
+| created_by | UUID | nullable, FK → users(id) **SET NULL** |
+| created_at / updated_at | TIMESTAMPTZ | DEFAULT now |
+
+Indexes `idx_instructor_payouts_instructor`, `idx_instructor_payouts_status`.
+
+### 4.7 Runtime Table
 
 #### `session`
 Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `backend/src/common/middleware/session-middleware.js`. Not in `schema.sql`; a fresh database has 30 tables after the server runs (29 from `schema.sql`).

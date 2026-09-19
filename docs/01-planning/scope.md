@@ -20,7 +20,7 @@ The platform is an end-to-end online course delivery system. It covers user iden
 ### 2.2 Catalog & Authoring
 
 - Categories with name, slug, and description.
-- Courses with status (`DRAFT`/`PUBLISHED`), level, access type (`FREE`/`SUBSCRIPTION`), instructor, and category.
+- Courses with lifecycle status (`DRAFT`/`PENDING`/`PUBLISHED`/`REJECTED`), level, access type (`FREE`/`SUBSCRIPTION`), instructor, and category.
 - Course objectives.
 - Content hierarchy: modules → chapters → lessons.
 - Lesson types: `TEXT` and `QUIZ`.
@@ -55,6 +55,16 @@ The platform is an end-to-end online course delivery system. It covers user iden
 - CRUD for users and instructors.
 - CRUD for plans, user subscriptions, and payments.
 - Admin profile and password management.
+- Course review queue (approve/reject instructor submissions).
+- Instructor revenue-share setting and payout records.
+
+### 2.7 Instructor Workspace
+
+- Role-gated instructor area inside the admin app (no self-publishing).
+- Ownership-scoped dashboard (courses by status, students, enrollments, reviews, rating).
+- Own-course management with submit-for-review workflow.
+- Per-course student roster, completion/quiz analytics, reviews, and certificates.
+- Estimated revenue-share earnings and payout history.
 
 ## 3. Out of Scope (Current State)
 
@@ -68,8 +78,9 @@ The following are **not** implemented:
 | Social OAuth login | Buttons exist in the UI, but no backend OAuth flow. |
 | Video hosting/streaming | Lessons are text/HTML and quizzes; no video pipeline. |
 | Discussion forums / Q&A threads | Not present. |
-| Instructor-facing self-service UI | Instructors share the admin app; no separate instructor portal. |
-| Email templates beyond welcome/reset/payment | Only three transactional emails exist. |
+| Separate instructor app | Instructors use a role-gated area of the admin app; there is no fourth SPA. |
+| Accurate instructor revenue accounting | No per-course pricing; instructor earnings are estimated from subscription revenue-share. |
+| Email templates beyond welcome/reset/payment/course-review | Only a few transactional emails exist. |
 | Multi-tenancy / organizations | Single-tenant platform. |
 | Real-time features | No WebSockets/SSE. |
 | Full-text search engine | Search is SQL `ILIKE`, not a dedicated search service. |
@@ -103,6 +114,6 @@ The following are **not** implemented:
 - Migration tooling and seed data.
 - OAuth social sign-in.
 - Video lessons and richer media.
-- Instructor self-service portal.
+- Per-course checkout and accurate instructor revenue accounting.
 - Certificate PDF export and verification.
 - Notifications and email template management.

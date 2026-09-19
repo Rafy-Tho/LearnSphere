@@ -2,6 +2,7 @@ export { useCourseActions } from './course/use-course-actions';
 export { useCourseDetail } from './course/use-course-detail';
 export { useGetCourses } from './course/use-course-queries';
 export { useCourseSummary } from './course/use-course-summary';
+export { useCourseReviewActions } from './course/use-course-review';
 
 export { useModuleChapters } from './tree/use-module-chapters';
 export { useChapterLessons } from './tree/use-chapter-lessons';

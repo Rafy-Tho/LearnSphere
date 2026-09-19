@@ -12,6 +12,7 @@ class CourseController {
     const course = await this.courseService.createCourse({
       instructorId: req.session.user.id,
       courseData: req.body,
+      user: req.session.user,
     });
 
     return sendSuccess(res, course, {
@@ -124,12 +125,43 @@ class CourseController {
   getCoursesDashboard = asyncHandler(async (req, res) => {
     const { data, pagination } = await this.courseService.getDashboard(
       req.query,
+      req.session.user,
     );
 
     return sendSuccess(res, data, {
       message: "Courses retrieved successfully",
       pagination,
     });
+  });
+
+  submitCourseForReview = asyncHandler(async (req, res) => {
+    const course = await this.courseService.submitForReview(
+      req.params.courseId,
+      req.session.user,
+    );
+
+    return sendSuccess(res, course, {
+      message: "Course submitted for review",
+    });
+  });
+
+  approveCourse = asyncHandler(async (req, res) => {
+    const course = await this.courseService.approveCourse(
+      req.params.courseId,
+      req.session.user,
+    );
+
+    return sendSuccess(res, course, { message: "Course approved" });
+  });
+
+  rejectCourse = asyncHandler(async (req, res) => {
+    const course = await this.courseService.rejectCourse(
+      req.params.courseId,
+      req.body.reason,
+      req.session.user,
+    );
+
+    return sendSuccess(res, course, { message: "Course rejected" });
   });
 
   getCourseSummary = asyncHandler(async (req, res) => {

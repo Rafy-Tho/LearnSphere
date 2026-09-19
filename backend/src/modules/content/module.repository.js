@@ -72,7 +72,7 @@ class ModuleRepository {
   }
   async getInstructor(id) {
     const query = `
-    SELECT c.instructor_id FROM courses c
+    SELECT c.instructor_id, c.status AS course_status FROM courses c
     JOIN modules m ON m.course_id = c.id 
     WHERE m.id = $1
     `;

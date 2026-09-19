@@ -13,6 +13,16 @@ import { QuizModal } from '@/features/courses/components/QuizModal';
 import { ErrorState } from '@/components/common/ErrorState';
 import { Button } from '@/components/ui/button';
 import { CourseDetailPageSkeleton } from '@/components/ui/skeleton';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { AnalyticsTab } from '@/features/instructor/components/AnalyticsTab';
+import { CertificatesTab } from '@/features/instructor/components/CertificatesTab';
+import { ReviewsTab } from '@/features/instructor/components/ReviewsTab';
+import { StudentsTab } from '@/features/instructor/components/StudentsTab';
 import { useCourseDetail, useCourseSummary } from '@/features/courses/hooks';
 
 export default function CourseDetailPage() {
@@ -91,67 +101,95 @@ export default function CourseDetailPage() {
         onAddModule={moduleCrud.openCreate}
       />
 
-      <ObjectivesCard
-        objectives={objectives}
-        editingIdx={objective.editingIdx}
-        objectiveDraft={objective.draft}
-        isUpdating={objective.isUpdating}
-        addingObjective={objective.adding}
-        newObjective={objective.newText}
-        isCreating={objective.isCreating}
-        onStartEdit={objective.startEdit}
-        onSaveEdit={objective.saveEdit}
-        onCancelEdit={objective.cancelEdit}
-        onDraftChange={objective.setDraft}
-        onEditKeyDown={objective.editKeyDown}
-        onDeleteObjective={handleDeleteObjective}
-        onStartAdd={objective.startAdd}
-        onNewObjectiveChange={objective.setNewText}
-        onAddObjective={objective.confirmAdd}
-        onCancelAdd={objective.cancelAdd}
-        onAddKeyDown={objective.addKeyDown}
-      />
+      <Tabs defaultValue="curriculum" className="space-y-6">
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
+          <TabsTrigger value="students">Students</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="reviews">Reviews</TabsTrigger>
+          <TabsTrigger value="certificates">Certificates</TabsTrigger>
+        </TabsList>
 
-      <div className="space-y-3">
-        {modules.map((mod) => (
-          <ModuleCard
-            key={mod.id}
-            courseId={courseId}
-            module={mod}
-            isExpanded={expandedModules.has(mod.id)}
-            expandedChapters={expandedChapters}
-            expandedLessons={expandedLessons}
-            onToggle={toggleModule}
-            onAddChapter={chapterCrud.openCreate}
-            onEdit={moduleCrud.openEdit}
-            onDelete={handleDeleteModule}
-            onToggleChapter={toggleChapter}
-            onAddLesson={lessonCrud.openCreate}
-            onToggleLesson={toggleLesson}
-            onAddContent={contentCrud.openCreate}
-            onAddQuiz={quizCrud.openCreate}
-            onEditChapter={chapterCrud.openEdit}
-            onDeleteChapter={handleDeleteChapter}
-            onEditLesson={lessonCrud.openEdit}
-            onDeleteLesson={handleDeleteLesson}
-            onEditContent={contentCrud.openEdit}
-            onDeleteContent={handleDeleteContent}
-            onEditQuiz={quizCrud.openEdit}
-            onDeleteQuiz={handleDeleteQuiz}
+        <TabsContent value="curriculum" className="space-y-6">
+          <ObjectivesCard
+            objectives={objectives}
+            editingIdx={objective.editingIdx}
+            objectiveDraft={objective.draft}
+            isUpdating={objective.isUpdating}
+            addingObjective={objective.adding}
+            newObjective={objective.newText}
+            isCreating={objective.isCreating}
+            onStartEdit={objective.startEdit}
+            onSaveEdit={objective.saveEdit}
+            onCancelEdit={objective.cancelEdit}
+            onDraftChange={objective.setDraft}
+            onEditKeyDown={objective.editKeyDown}
+            onDeleteObjective={handleDeleteObjective}
+            onStartAdd={objective.startAdd}
+            onNewObjectiveChange={objective.setNewText}
+            onAddObjective={objective.confirmAdd}
+            onCancelAdd={objective.cancelAdd}
+            onAddKeyDown={objective.addKeyDown}
           />
-        ))}
 
-        {modules.length === 0 && (
-          <div className="glass-card rounded-xl p-12 text-center">
-            <p className="text-muted-foreground">
-              No modules yet. Start building your course structure.
-            </p>
-            <Button onClick={moduleCrud.openCreate} className="mt-4 gap-2">
-              <Plus className="h-4 w-4" /> Add First Module
-            </Button>
+          <div className="space-y-3">
+            {modules.map((mod) => (
+              <ModuleCard
+                key={mod.id}
+                courseId={courseId}
+                module={mod}
+                isExpanded={expandedModules.has(mod.id)}
+                expandedChapters={expandedChapters}
+                expandedLessons={expandedLessons}
+                onToggle={toggleModule}
+                onAddChapter={chapterCrud.openCreate}
+                onEdit={moduleCrud.openEdit}
+                onDelete={handleDeleteModule}
+                onToggleChapter={toggleChapter}
+                onAddLesson={lessonCrud.openCreate}
+                onToggleLesson={toggleLesson}
+                onAddContent={contentCrud.openCreate}
+                onAddQuiz={quizCrud.openCreate}
+                onEditChapter={chapterCrud.openEdit}
+                onDeleteChapter={handleDeleteChapter}
+                onEditLesson={lessonCrud.openEdit}
+                onDeleteLesson={handleDeleteLesson}
+                onEditContent={contentCrud.openEdit}
+                onDeleteContent={handleDeleteContent}
+                onEditQuiz={quizCrud.openEdit}
+                onDeleteQuiz={handleDeleteQuiz}
+              />
+            ))}
+
+            {modules.length === 0 && (
+              <div className="glass-card rounded-xl p-12 text-center">
+                <p className="text-muted-foreground">
+                  No modules yet. Start building your course structure.
+                </p>
+                <Button onClick={moduleCrud.openCreate} className="mt-4 gap-2">
+                  <Plus className="h-4 w-4" /> Add First Module
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </TabsContent>
+
+        <TabsContent value="students">
+          <StudentsTab courseId={courseId} />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <AnalyticsTab courseId={courseId} />
+        </TabsContent>
+
+        <TabsContent value="reviews">
+          <ReviewsTab courseId={courseId} />
+        </TabsContent>
+
+        <TabsContent value="certificates">
+          <CertificatesTab courseId={courseId} />
+        </TabsContent>
+      </Tabs>
 
       {/* Modals */}
       <ModuleModal

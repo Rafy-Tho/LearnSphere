@@ -35,6 +35,11 @@ Use cases describe interactions between actors and the system. Actors: **Guest**
 | UC-15 | Author course content | Instructor/Admin | FR-CONT-01..10 |
 | UC-16 | Manage users/instructors | Admin | FR-ADM-02 |
 | UC-17 | Manage subscriptions & payments | Admin | FR-SUB-08 |
+| UC-18 | View instructor dashboard | Instructor | FR-INS-01/02 |
+| UC-19 | Monitor course students & analytics | Instructor | FR-INS-03/04/05 |
+| UC-20 | Submit course for review | Instructor | FR-INS-06 |
+| UC-21 | Review submitted courses | Admin | FR-INS-07/08/09 |
+| UC-22 | View earnings & manage payouts | Instructor/Admin | FR-INS-10/11/12 |
 
 ## 3. Detailed Use Cases
 
@@ -174,6 +179,35 @@ Use cases describe interactions between actors and the system. Actors: **Guest**
 - **Main flow:** Admin manages plans, user subscriptions, and payments via tabs in the dashboard.
 - **Postconditions:** Billing records reflect changes.
 
+### UC-18 — View Instructor Dashboard
+- **Primary actor:** Instructor
+- **Preconditions:** Authenticated instructor.
+- **Main flow:** Instructor opens the console home; system returns ownership-scoped counts (courses by status, students, enrollments, reviews, average rating) and recent enrollments/reviews.
+- **Postconditions:** No state change.
+
+### UC-19 — Monitor Course Students & Analytics
+- **Primary actor:** Instructor
+- **Preconditions:** Instructor owns the course.
+- **Main flow:** Instructor opens a course and switches to Students / Analytics / Reviews / Certificates tabs; system returns the roster with progress, completion and quiz analytics, reviews, and issued certificates.
+- **Postconditions:** No state change; non-owners receive HTTP 403.
+
+### UC-20 — Submit Course for Review
+- **Primary actor:** Instructor
+- **Preconditions:** Course is `DRAFT` or `REJECTED` and has at least one module.
+- **Main flow:** Instructor submits the course; system sets status `PENDING` and `submitted_at`.
+- **Postconditions:** Course awaits admin review; instructors cannot self-publish.
+
+### UC-21 — Review Submitted Courses
+- **Primary actor:** Admin
+- **Preconditions:** A course is `PENDING`.
+- **Main flow:** Admin opens the review queue and approves (→ `PUBLISHED`) or rejects with a reason (→ `REJECTED`); system records reviewer/time and notifies the instructor by email.
+- **Postconditions:** Course status reflects the decision.
+
+### UC-22 — View Earnings & Manage Payouts
+- **Primary actor:** Instructor/Admin
+- **Main flow:** Instructor views estimated revenue-share earnings and payout history; admin edits the revenue-share percent and records/marks payouts.
+- **Postconditions:** Payout records reflect changes; earnings remain estimates.
+
 ## 4. Use Case Relationships
 
 ```mermaid
@@ -192,10 +226,16 @@ graph TD
   Learner --> UC12[Vote/Report]
   Learner --> UC13[Subscribe]
   Instructor --> UC15[Author Content]
+  Instructor --> UC18[Instructor Dashboard]
+  Instructor --> UC19[Students & Analytics]
+  Instructor --> UC20[Submit for Review]
+  Instructor --> UC22[Earnings]
   Admin --> UC14[Manage Catalog]
   Admin --> UC15
   Admin --> UC16[Manage Users]
   Admin --> UC17[Manage Billing]
+  Admin --> UC21[Review Courses]
+  Admin --> UC22
   UC13 --> Stripe
   UC01 --> Brevo
   UC13 --> Brevo

@@ -1,6 +1,7 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
 import assertOwnership from "../../common/auth/ownership.js";
+import assertCourseEditable from "../../common/auth/course-lock.js";
 import courseObjectiveRepository from "./objective.repository.js";
 import courseRepository from "./repository.js";
 
@@ -27,6 +28,8 @@ class CourseObjectiveService {
       message: "You are not authorized to do this",
     });
 
+    assertCourseEditable({ courseStatus: course.status, user });
+
     return this.courseObjectiveRepository.create({
       courseId,
       content: objectiveData.content,
@@ -49,6 +52,8 @@ class CourseObjectiveService {
       message: "You are not authorized to do this",
     });
 
+    assertCourseEditable({ courseStatus: course.status, user });
+
     return this.courseObjectiveRepository.update({
       id: objectiveId,
       content: objectiveData.content,
@@ -70,6 +75,8 @@ class CourseObjectiveService {
       user,
       message: "You are not authorized to do this",
     });
+
+    assertCourseEditable({ courseStatus: course.status, user });
 
     return this.courseObjectiveRepository.delete(objectiveId);
   }

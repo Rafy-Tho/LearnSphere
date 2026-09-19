@@ -1,6 +1,7 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
 import assertOwnership from "../../common/auth/ownership.js";
+import assertCourseEditable from "../../common/auth/course-lock.js";
 import subscriptionRepository from "../subscriptions/subscription.repository.js";
 import lessonContentRepository from "./lesson-content.repository.js";
 import lessonRepository from "./lesson.repository.js";
@@ -29,6 +30,8 @@ class LessonContentService {
       message: OWNER_MESSAGE,
     });
 
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
+
     return this.lessonContentRepository.create({
       lessonId,
       name: lessonContentData.name,
@@ -51,6 +54,8 @@ class LessonContentService {
       message: OWNER_MESSAGE,
     });
 
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
+
     return this.lessonContentRepository.update({
       id: contentId,
       name: lessonContentData.name,
@@ -72,6 +77,8 @@ class LessonContentService {
       user,
       message: OWNER_MESSAGE,
     });
+
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
 
     return this.lessonContentRepository.delete(contentId);
   }

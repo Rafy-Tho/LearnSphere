@@ -217,6 +217,62 @@ Acceptance criteria are written in Given/When/Then form and map to requirement I
 - **When** they call any `/api/v1/admin/*` endpoint
 - **Then** the API returns HTTP 403.
 
+## 9A. Instructor Workspace
+
+### AC-INS-01 — Scoped course list (FR-INS-02, BR-INS-01)
+- **Given** an authenticated instructor with courses
+- **When** they request the course dashboard list
+- **Then** only courses where `instructor_id` equals their user id are returned.
+
+### AC-INS-02 — Scoped dashboard (FR-INS-01)
+- **Given** an authenticated instructor
+- **When** they load their dashboard
+- **Then** counts are computed only from their own courses, students, enrollments, and reviews.
+
+### AC-INS-03 — Student roster (FR-INS-03)
+- **Given** an instructor who owns a course with enrollments
+- **When** they request the course students
+- **Then** a paginated roster with progress and last activity is returned, filtered/searched as requested.
+
+### AC-INS-04 — Ownership on instructor endpoints (BR-INS-07)
+- **Given** an instructor who does not own a course
+- **When** they request that course's students, analytics, reviews, or certificates
+- **Then** the API returns HTTP 403.
+
+### AC-INS-05 — Submit for review (FR-INS-06, BR-INS-03/04)
+- **Given** an instructor's DRAFT course with at least one module
+- **When** they submit it for review
+- **Then** its status becomes `PENDING` and `submitted_at` is set.
+- **And** a course with no modules is rejected (HTTP 400).
+
+### AC-INS-06 — No self-publish (FR-INS-08, BR-INS-06)
+- **Given** an instructor
+- **When** they update a course with `status = PUBLISHED`
+- **Then** the status is not changed and the course remains unpublishable by them.
+
+### AC-INS-07 — Admin approve/reject (FR-INS-07/09, BR-INS-05)
+- **Given** an admin and a `PENDING` course
+- **When** they approve it
+- **Then** the status becomes `PUBLISHED`, `reviewed_by`/`reviewed_at` are set, and the instructor is notified.
+- **When** they reject it with a reason
+- **Then** the status becomes `REJECTED`, `rejection_reason` is stored, and the instructor is notified.
+
+### AC-INS-08 — Earnings estimate (FR-INS-10, BR-INS-08/10)
+- **Given** an instructor whose learners paid for subscriptions
+- **When** they request earnings
+- **Then** attributed revenue and estimated earnings are returned and labelled as an estimate.
+
+### AC-INS-09 — Admin payouts & settings (FR-INS-12, BR-INS-09/11)
+- **Given** an admin
+- **When** they update the revenue-share percent and record a payout
+- **Then** the setting persists and the payout appears in the instructor's history.
+
+### AC-INS-10 — Pending course lock (FR-INS-13, BR-INS-12)
+- **Given** a course in `PENDING`
+- **When** its instructor tries to update the course or any nested content
+- **Then** the API returns HTTP 409.
+- **Given** an admin, **then** the edit succeeds.
+
 ## 10. Cross-Cutting
 
 ### AC-NFR-01 — Response envelope (NFR-01)

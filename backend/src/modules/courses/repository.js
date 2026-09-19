@@ -129,6 +129,33 @@ class CourseRepository {
     return result.rows[0];
   }
 
+  async submitForReview(id) {
+    const result = await this.db.query(
+      `UPDATE courses
+       SET status = 'PENDING',
+           submitted_at = CURRENT_TIMESTAMP,
+           rejection_reason = NULL
+       WHERE id = $1 AND deleted_at IS NULL
+       RETURNING *`,
+      [id],
+    );
+    return result.rows[0];
+  }
+
+  async updateReviewStatus({ id, status, reviewedBy, rejectionReason = null }) {
+    const result = await this.db.query(
+      `UPDATE courses
+       SET status = $2,
+           reviewed_at = CURRENT_TIMESTAMP,
+           reviewed_by = $3,
+           rejection_reason = $4
+       WHERE id = $1 AND deleted_at IS NULL
+       RETURNING *`,
+      [id, status, reviewedBy, rejectionReason],
+    );
+    return result.rows[0];
+  }
+
   async getAllCourses(queryString) {
     const baseQuery = `
     FROM courses c

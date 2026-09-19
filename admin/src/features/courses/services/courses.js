@@ -21,6 +21,9 @@ export const coursesApi = {
     api.get(`/admin/courses/${courseId}/lessons/${lessonId}/contents`),
   getLessonQuestions: (courseId, lessonId) =>
     api.get(`/admin/courses/${courseId}/lessons/${lessonId}/questions`),
+  approveCourse: (id) => api.post(`/admin/courses/${id}/approve`),
+  rejectCourse: (id, reason) =>
+    api.post(`/admin/courses/${id}/reject`, { reason }),
   createObjective: (courseId, data) =>
     api.post(`/courses/${courseId}/objectives`, data),
   createModule: (courseId, data) =>

@@ -1,6 +1,8 @@
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Plus, Send, Trash2 } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '@/app/providers/context';
+import { useSubmitCourse } from '@/features/instructor/hooks';
 import { DataTable } from '@/components/common/DataTable';
 import { FormModal } from '@/components/common/FormModal';
 import PaginatedTable from '@/components/common/PaginationTable';
@@ -33,8 +35,11 @@ import { toast } from '@/hooks/use-toast';
 
 export default function CoursesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuth();
+  const isInstructor = user?.role === 'INSTRUCTOR';
   const { createCourse, updateCourse, deleteCourse, isCreating, isUpdating } =
     useCourseActions();
+  const { submitCourse, isSubmitting } = useSubmitCourse();
   const { data, isLoading, error } = useGetCourses(searchParams);
   const { data: categoriesData } = useGetCategories();
   const navigate = useNavigate();
@@ -104,7 +109,10 @@ export default function CoursesPage() {
       description: form.description,
       position: form.position,
       categoryId: form.category_id,
-      status: form.status,
+      // Instructors cannot change lifecycle status via this form; the backend
+      // ignores the value for non-admins and review states are not accepted by
+      // the generic validator, so send a safe DRAFT.
+      status: isInstructor ? 'DRAFT' : form.status,
       level: form.level,
       accessType: form.access_type,
     };
@@ -169,6 +177,26 @@ export default function CoursesPage() {
       setDeleteTarget(null);
     }
   };
+
+  const handleSubmitReview = useCallback(
+    async (course) => {
+      try {
+        await submitCourse(course.id);
+        toast({
+          title: 'Submitted',
+          description: 'Course submitted for review.',
+        });
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to submit course for review',
+          variant: 'destructive',
+        });
+      }
+    },
+    [submitCourse],
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -220,6 +248,20 @@ export default function CoursesPage() {
           >
             <Eye className="h-4 w-4" />
           </Button>
+          {isInstructor && ['DRAFT', 'REJECTED'].includes(c.status) && (
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Submit for review"
+              disabled={isSubmitting}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSubmitReview(c);
+              }}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -245,7 +287,14 @@ export default function CoursesPage() {
       ),
     },
     ],
-    [handleView, openEdit, handleDelete],
+    [
+      handleView,
+      openEdit,
+      handleDelete,
+      handleSubmitReview,
+      isInstructor,
+      isSubmitting,
+    ],
   );
   if (isLoading) return <CoursesPageSkeleton />;
   if (error) return <ErrorState message={error.message} />;
@@ -253,8 +302,14 @@ export default function CoursesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Courses</h1>
-          <p className="text-muted-foreground mt-1">Manage all courses</p>
+          <h1 className="text-2xl font-bold text-foreground">
+            {isInstructor ? 'My Courses' : 'Courses'}
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            {isInstructor
+              ? 'Create and manage your courses'
+              : 'Manage all courses'}
+          </p>
         </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="h-4 w-4" /> Add Course
@@ -351,23 +406,25 @@ export default function CoursesPage() {
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium text-foreground">
-                Status
-              </label>
-              <Select
-                value={form.status}
-                onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
-                  <SelectItem value="PUBLISHED">Published</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {!isInstructor && (
+              <div>
+                <label className="text-sm font-medium text-foreground">
+                  Status
+                </label>
+                <Select
+                  value={form.status}
+                  onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DRAFT">Draft</SelectItem>
+                    <SelectItem value="PUBLISHED">Published</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div>
               <label className="text-sm font-medium text-foreground">
                 Level

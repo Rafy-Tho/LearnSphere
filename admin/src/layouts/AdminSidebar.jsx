@@ -20,9 +20,14 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { navItems } from "@/constants/navItems";
+import { getNavItems } from "@/constants/navItems";
 import { useTheme } from "@/hooks/use-theme";
 import { cn } from "@/lib/utils";
+
+const ROLE_LABELS = {
+  ADMIN: "Administrator",
+  INSTRUCTOR: "Instructor",
+};
 
 const menuButtonClass =
   "relative h-10 rounded-lg px-3 text-sm font-medium text-sidebar-foreground/80 " +
@@ -35,6 +40,8 @@ export function AdminSidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const navItems = getNavItems(user?.role);
+  const isInstructor = user?.role === "INSTRUCTOR";
 
   const initials =
     user?.name
@@ -69,7 +76,7 @@ export function AdminSidebar() {
                 LearnSphere
               </span>
               <span className="truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-sidebar-foreground/60">
-                Admin Console
+                {isInstructor ? "Instructor Studio" : "Admin Console"}
               </span>
             </div>
           )}
@@ -137,7 +144,7 @@ export function AdminSidebar() {
                     {user?.name || "Profile"}
                   </span>
                   <span className="w-full truncate text-[11px] text-sidebar-foreground/60">
-                    Administrator
+                    {ROLE_LABELS[user?.role] || "Member"}
                   </span>
                 </div>
               )}

@@ -23,13 +23,14 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 - No ORM, no seeds, no tests, no CI.
 - Content hierarchy: `course → module → chapter → lesson → lesson_contents / quizzes → quiz_options`.
 - Roles: `LEARNER`, `INSTRUCTOR`, `ADMIN`. Ownership checked per resource via repository `getInstructor()` joins.
+- Instructor workspace: `backend/src/modules/instructor/` (`/api/v1/instructor/*`) + role-gated area of the `admin/` SPA. Course lifecycle is `DRAFT → PENDING → PUBLISHED/REJECTED` (admin approves); instructor earnings are estimated from a configurable revenue-share (`platform_settings`).
 - Payments: Stripe Checkout + webhook at `/api/v1/webhooks/stripe` (mounted before body parsers for raw-body signature verification).
 
 ## Where Things Live
 
 | Need | Location |
 |---|---|
-| Modules | `backend/src/modules/` — auth, users, categories, courses, content, learning, reviews, saved-courses, certificates, subscriptions, admin |
+| Modules | `backend/src/modules/` — auth, users, categories, courses, content, learning, reviews, saved-courses, certificates, subscriptions, admin, instructor |
 | Route definitions | `backend/src/modules/<module>/routes.js`; mounted in `backend/src/app/routes.js` |
 | Business logic | `backend/src/modules/<module>/service.js` |
 | SQL | `backend/src/modules/<module>/*.repository.js` |
@@ -46,6 +47,7 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 | Admin routes | `admin/src/app/router.jsx` |
 | Admin data hooks | `admin/src/features/*/hooks`, `admin/src/hooks/` |
 | Admin API client | `admin/src/lib/apiClient.js`, feature services in `admin/src/features/*/services/` |
+| Instructor workspace | backend `backend/src/modules/instructor/`; admin `admin/src/features/instructor/` + `admin/src/features/payouts/`; guard `admin/src/app/guards/RequireRole.jsx` |
 
 ## Known Issues & Residuals (do not "fix" silently; confirm first)
 

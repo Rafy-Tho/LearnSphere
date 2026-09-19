@@ -65,14 +65,15 @@ The backend follows a layered, module-based pattern under `backend/src/`:
 - **Config** (`backend/src/config/`): environment, pg pool (+ `withTransaction`), Cloudinary, Stripe.
 - **DB** (`backend/src/db/`): `schema.sql` baseline + `migrations/` and the `migrate.js` runner.
 
-Modules: auth, users, categories, courses, content, learning, reviews, certificates, subscriptions, admin.
+Modules: auth, users, categories, courses, content, learning, reviews, certificates, subscriptions, admin, instructor.
 
 Core API surface under `/api/v1`:
 
 - `/auth/*`, `/users/*`, `/users/me/{courses,certificates,subscription}`
 - `/categories`, `/courses`, `/objectives`, `/plans`, `/subscriptions`, `/certificates`, `/reviews`
 - Content: `/courses/:courseId/modules`, `/modules/:moduleId/chapters`, `/chapters/:chapterId/lessons`, `/lessons/:lessonId/{contents,questions,quiz-submissions}`, `/questions/:questionId/options` (plus top-level item routes)
-- Admin: `/admin/{dashboard,courses,users,plans,subscriptions,payments}`
+- Admin: `/admin/{dashboard,courses,users,plans,subscriptions,payments,settings,instructor-payouts}`
+- Instructor: `/instructor/{dashboard,earnings,payouts,courses/:courseId/{students,analytics,reviews,certificates,submit}}`
 - Webhook: `/webhooks/stripe`
 
 ### Backend Request Lifecycle
@@ -106,12 +107,12 @@ Main user-facing flows include:
 
 ## Admin Dashboard
 
-The `admin/` directory is a separate React SPA (Vite 7, React 19, TanStack Query 5, Tailwind 3, shadcn/Radix) used by platform administrators to manage users, courses, and subscriptions. It uses feature-based architecture identical to the learner frontend.
+The `admin/` directory is a separate React SPA (Vite 7, React 19, TanStack Query 5, Tailwind 3, shadcn/Radix) used by platform administrators **and instructors**. Admins manage users, courses, course reviews, subscriptions, and payouts; instructors get an ownership-scoped workspace for their own courses, students, reviews, and earnings. It uses feature-based architecture identical to the learner frontend.
 
 ### Admin Architecture
 
 - **App layer:** `app/` contains providers (QueryClient → AuthProvider → Router), guards (RequireAuth, RedirectIfAuthenticated), and route definitions. Entry is `app/App.jsx`.
-- **Features:** Each domain lives in `features/<domain>/` (auth, dashboard, categories, users, courses, subscriptions) with `pages/`, `components/`, `hooks/`, `services/` subfolders.
+- **Features:** Each domain lives in `features/<domain>/` (auth, dashboard, categories, users, courses, subscriptions, instructor, payouts) with `pages/`, `components/`, `hooks/`, `services/` subfolders.
 - **Data flow:** Page → Feature Component → Hook → Service → `lib/apiClient.js` → Backend.
 
 ### Admin Auth Flow
@@ -125,14 +126,20 @@ The `admin/` directory is a separate React SPA (Vite 7, React 19, TanStack Query
 ### Layout & Navigation
 
 - `AdminLayout` wraps all protected routes with a collapsible `AdminSidebar`.
-- Sidebar links: Dashboard, Categories, Courses, Subscriptions, Instructors, Users, plus profile, dark/light theme toggle, and logout.
+- Sidebar links are role-filtered: **Admin** — Dashboard, Categories, Courses, Course Reviews, Subscriptions, Instructors, Users, Payouts; **Instructor** — Dashboard, My Courses, Earnings. Plus profile, dark/light theme toggle, and logout.
+- `RequireRole` guards role-specific routes; the home route (`/`) renders the admin dashboard for admins and the instructor dashboard for instructors.
 
 ### Page Flows
 
 - **Dashboard** (`/`) — Shows stat cards (total courses, users, instructors, enrollments) and lists of recent courses and instructors, fetched via `useGetDashboardData`. Cards link to the relevant management pages.
 - **Categories** (`/categories`) — DataTable of categories with create/edit modal (name, auto-generated slug, description) and delete with confirmation.
 - **Courses** (`/courses`) — Paginated list with status/level/access badges and enrollment counts. Supports create/edit via modal (name, slug, description, position, category, status DRAFT/PUBLISHED, level, access type) and delete via confirm dialog. Row click navigates to course detail.
-- **Course Detail** (`/courses/:courseId`) — Full course content builder. Manage objectives and the course -> module -> chapter -> lesson -> content/quiz hierarchy using expandable `ModuleCard` trees and CRUD modals (`ModuleModal`, `ChapterModal`, `LessonModal`, `ContentModal`, `QuizModal`). All deletes go through a shared `DeleteConfirmDialog`.
+- **Course Detail** (`/courses/:courseId`) — Tabbed view. The **Curriculum** tab is the full content builder (objectives + course -> module -> chapter -> lesson -> content/quiz hierarchy via expandable `ModuleCard` trees and CRUD modals). **Students**, **Analytics**, **Reviews**, and **Certificates** tabs are ownership-scoped. All deletes go through a shared `DeleteConfirmDialog`.
+- **Course Reviews** (`/course-reviews`, admin) — Review queue of `PENDING` courses with approve/reject (reject requires a reason).
+- **Payouts** (`/payouts`, admin) — Configure the instructor revenue-share percent and record/track instructor payouts.
+- **Instructor Dashboard** (`/`, instructor) — Ownership-scoped stats, recent enrollments, and recent reviews.
+- **Instructor Earnings** (`/earnings`, instructor) — Estimated revenue-share earnings, per-course breakdown, and payout history.
+- **My Courses** (`/courses`, instructor) — Own courses only; supports submit-for-review (`DRAFT`/`REJECTED` → `PENDING`) and cannot self-publish.
 - **Users / Instructors** (`/users`, `/instructors`) — The same `UsersPage` component filtered by role. Paginated table with create/edit modal (name, email, role, status ACTIVE/INACTIVE/SUSPENDED) and delete.
 - **Subscriptions** (`/subscriptions`) — Three tabs: Plans, User Subscriptions, and Payments, backed by `usePlans`, `useSubscriptions`, and `usePayments` hooks. Header stats show plan count, active subscriptions, and total revenue (sum of completed payments). Each tab supports CRUD modals and delete confirmation.
 - **Profile** (`/profile`) — View account info (avatar, role, status, join date, last login), edit name/email, and change password.

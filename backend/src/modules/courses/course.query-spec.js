@@ -1,6 +1,7 @@
 import {
   ACCESS_COURSE_TYPE,
   COURSE_LEVEL,
+  COURSE_STATUS,
 } from "../../common/constants/constants.js";
 
 /**
@@ -80,6 +81,18 @@ export const courseListQuerySpec = {
 export const adminCourseListQuerySpec = {
   baseAlias: "c",
   filters: {
+    status: {
+      column: "c.status",
+      type: "enum",
+      values: COURSE_STATUS,
+      description: "Course lifecycle status (review queue uses status=PENDING)",
+    },
+    instructorId: {
+      column: "c.instructor_id",
+      type: "uuid",
+      hidden: true,
+      description: "Internal: scope the list to a single instructor",
+    },
     level: {
       column: "c.level",
       type: "enum",

@@ -42,6 +42,10 @@ export const courseIdParamValidator = checkSchema({
   courseId: uuidParamValidator("Course ID"),
 });
 
+export const courseRejectValidator = checkSchema({
+  reason: textValidator("Rejection reason", false, 500),
+});
+
 export const courseObjectiveIdParamValidator = checkSchema({
   objectiveId: uuidParamValidator("Course Objective ID"),
 });

@@ -193,8 +193,28 @@ Mounted under `/api/v1/admin`.
 | PATCH | `/coupons/:couponId/status` | Activate / deactivate coupon |
 | GET | `/coupons/:couponId/redemptions` | List users who redeemed the coupon |
 | GET | `/billing/stats` | Billing statistics (subscriptions, payments, revenue, refunds, coupons) |
+| POST | `/courses/:courseId/approve` | Approve a `PENDING` course → `PUBLISHED` (`roles(ADMIN)`) |
+| POST | `/courses/:courseId/reject` | Reject a `PENDING` course → `REJECTED` + `reason` (`roles(ADMIN)`) |
+| GET/PATCH | `/settings` | Read/update platform settings (instructor revenue-share percent) |
+| GET/POST | `/instructor-payouts` | List / record instructor payouts |
+| PATCH | `/instructor-payouts/:payoutId` | Update a payout (e.g. mark `PAID`) |
 
-`/admin/users`, `/admin/plans`, `/admin/subscriptions`, `/admin/payments`, `/admin/coupons`, and `/admin/billing` require `auth` + `roles(ADMIN)`; `/admin/dashboard` and `/admin/courses` allow `roles(ADMIN, INSTRUCTOR)`. Admin payments are read-only; refunds are issued through Stripe and synchronized by webhook.
+`/admin/users`, `/admin/plans`, `/admin/subscriptions`, `/admin/payments`, `/admin/coupons`, `/admin/billing`, `/admin/settings`, and `/admin/instructor-payouts` require `auth` + `roles(ADMIN)`; `/admin/dashboard` is `roles(ADMIN)`. `/admin/courses` and its branch reads allow `roles(ADMIN, INSTRUCTOR)`; when the caller is an instructor, the list is scoped to owned courses. The course review queue is served by `GET /admin/courses?status=PENDING`. Admin payments are read-only; refunds are issued through Stripe and synchronized by webhook.
+
+### 4.1 Instructor Workspace
+
+Mounted at `/api/v1/instructor` (`auth` + `roles(INSTRUCTOR, ADMIN)`; ownership enforced, `ADMIN` bypasses).
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/dashboard` | Ownership-scoped dashboard stats + recent enrollments/reviews |
+| GET | `/earnings` | Estimated revenue-share earnings + per-course breakdown |
+| GET | `/payouts` | Current instructor's payout history (paginated) |
+| GET | `/courses/:courseId/students` | Student roster with progress (`search`, `completion`, pagination) |
+| GET | `/courses/:courseId/analytics` | Completion, lesson drop-off, quiz stats |
+| GET | `/courses/:courseId/reviews` | Owner-scoped reviews + summary |
+| GET | `/courses/:courseId/certificates` | Certificates issued for the course |
+| POST | `/courses/:courseId/submit` | Submit a `DRAFT`/`REJECTED` course → `PENDING` |
 
 ## 5. Categories
 

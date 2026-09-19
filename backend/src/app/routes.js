@@ -7,6 +7,8 @@ import coursesRoute from "../modules/courses/routes.js";
 import { objectivesItemRoute } from "../modules/courses/objectives.routes.js";
 import adminCoursesRoute from "../modules/courses/admin.routes.js";
 import meCoursesRoute from "../modules/courses/me.routes.js";
+import instructorRoute from "../modules/instructor/instructor.routes.js";
+import adminInstructorRoute from "../modules/instructor/admin.routes.js";
 import { meSavedCoursesRoute } from "../modules/saved-courses/routes.js";
 import { moduleCollectionRoute, moduleItemRoute } from "../modules/content/module.routes.js";
 import { chapterCollectionRoute, chapterItemRoute } from "../modules/content/chapter.routes.js";
@@ -94,7 +96,11 @@ export function registerRoutes(app) {
   app.use("/api/v1/subscriptions", subscriptionsRoute);
   app.use("/api/v1/coupons", couponsRoute);
 
+  // Instructor workspace
+  app.use("/api/v1/instructor", instructorRoute);
+
   // Admin
+  app.use("/api/v1/admin", adminInstructorRoute);
   app.use("/api/v1/admin/users", adminUsersRoute);
   app.use("/api/v1/admin/courses", adminCoursesRoute);
   app.use("/api/v1/admin/plans", adminPlansRoute);

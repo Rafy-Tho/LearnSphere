@@ -1,6 +1,7 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
 import assertOwnership from "../../common/auth/ownership.js";
+import assertCourseEditable from "../../common/auth/course-lock.js";
 import enrollmentRepository from "../learning/enrollment.repository.js";
 import lessonRepository from "./lesson.repository.js";
 import questionRepository from "./question.repository.js";
@@ -25,6 +26,8 @@ class QuestionService {
       message: OWNER_MESSAGE,
     });
 
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
+
     return this.questionRepository.createQuestion({
       lessonId,
       question: questionData.question,
@@ -44,6 +47,8 @@ class QuestionService {
       message: OWNER_MESSAGE,
     });
 
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
+
     return this.questionRepository.updateQuestion({
       questionId,
       question: questionData.question,
@@ -62,6 +67,8 @@ class QuestionService {
       user,
       message: OWNER_MESSAGE,
     });
+
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
 
     return this.questionRepository.deleteQuestion(questionId);
   }

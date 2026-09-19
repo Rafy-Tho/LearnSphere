@@ -1,6 +1,7 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
 import assertOwnership from "../../common/auth/ownership.js";
+import assertCourseEditable from "../../common/auth/course-lock.js";
 import chapterRepository from "./chapter.repository.js";
 import moduleRepository from "./module.repository.js";
 
@@ -26,6 +27,8 @@ class ChapterService {
       user,
       message: OWNER_MESSAGE,
     });
+
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
 
     return this.chapterRepository.create({
       moduleId,
@@ -62,6 +65,8 @@ class ChapterService {
       message: OWNER_MESSAGE,
     });
 
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
+
     return this.chapterRepository.update({
       id: chapterId,
       name: chapterData.name,
@@ -81,6 +86,8 @@ class ChapterService {
       user,
       message: OWNER_MESSAGE,
     });
+
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
 
     await this.chapterRepository.delete(chapterId);
   }

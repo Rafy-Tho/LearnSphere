@@ -12,6 +12,7 @@ import courseController from "./course.controller.js";
 import {
   adminCourseListQueryValidator,
   courseIdParamValidator,
+  courseRejectValidator,
 } from "./validation.js";
 
 // Mounted at /api/v1/admin/courses
@@ -23,6 +24,26 @@ adminCoursesRoute.get(
   authorize(ADMIN, INSTRUCTOR),
   adminCourseListQueryValidator,
   courseController.getCoursesDashboard,
+);
+
+// Review workflow (admin only). The queue itself is served by the list
+// endpoint: GET /admin/courses?status=PENDING. Reject requires a reason.
+adminCoursesRoute.post(
+  "/:courseId/approve",
+  requireAuth,
+  authorize(ADMIN),
+  courseIdParamValidator,
+  validateResult,
+  courseController.approveCourse,
+);
+adminCoursesRoute.post(
+  "/:courseId/reject",
+  requireAuth,
+  authorize(ADMIN),
+  courseIdParamValidator,
+  courseRejectValidator,
+  validateResult,
+  courseController.rejectCourse,
 );
 
 // Lightweight summary: course + objectives + modules with counts.

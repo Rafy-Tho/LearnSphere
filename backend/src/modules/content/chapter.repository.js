@@ -61,7 +61,7 @@ class ChapterRepository {
 
   async getInstructor(id) {
     const query = `
-    SELECT c.instructor_id FROM courses c
+    SELECT c.instructor_id, c.status AS course_status FROM courses c
     JOIN modules m ON m.course_id = c.id 
     JOIN  chapters ch ON ch.module_id = m.id
     WHERE ch.id = $1

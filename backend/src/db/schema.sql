@@ -12,7 +12,9 @@ CREATE TYPE user_status AS ENUM ('ACTIVE','INACTIVE','SUSPENDED');
 
 CREATE TYPE course_level AS ENUM ('BEGINNER','INTERMEDIATE','ADVANCED');
 
-CREATE TYPE content_status AS ENUM ('DRAFT','PUBLISHED');
+CREATE TYPE content_status AS ENUM ('DRAFT','PUBLISHED','PENDING','REJECTED');
+
+CREATE TYPE payout_status AS ENUM ('PENDING','PAID','CANCELLED');
 
 CREATE TYPE lesson_type AS ENUM ('TEXT','QUIZ');
 
@@ -185,10 +187,16 @@ EXECUTE FUNCTION set_updated_at();
     level course_level DEFAULT 'BEGINNER' NOT NULL,
     access_type access_course_type DEFAULT 'FREE',
     position INTEGER,
+    submitted_at TIMESTAMP WITH TIME ZONE,
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    rejection_reason TEXT,
     deleted_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
   );
+
+CREATE INDEX idx_courses_status ON courses(status);
 
 CREATE TRIGGER trg_courses_updated_at
 BEFORE UPDATE ON courses
@@ -672,6 +680,43 @@ CREATE TABLE stripe_webhook_events (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+
+-- =========================
+-- PLATFORM SETTINGS
+-- =========================
+CREATE TABLE platform_settings (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO platform_settings (key, value)
+VALUES ('instructor_revenue_share_percent', '70'::jsonb);
+
+-- =========================
+-- INSTRUCTOR PAYOUTS
+-- =========================
+CREATE TABLE instructor_payouts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  instructor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  amount NUMERIC(12,2) NOT NULL CHECK (amount >= 0),
+  currency VARCHAR(10) NOT NULL DEFAULT 'USD',
+  status payout_status NOT NULL DEFAULT 'PENDING',
+  period_start DATE,
+  period_end DATE,
+  note TEXT,
+  paid_at TIMESTAMP WITH TIME ZONE,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_instructor_payouts_instructor ON instructor_payouts(instructor_id);
+CREATE INDEX idx_instructor_payouts_status ON instructor_payouts(status);
+
+CREATE TRIGGER trg_instructor_payouts_updated_at
+  BEFORE UPDATE ON instructor_payouts
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- =========================
 -- COURSE REVIEWS

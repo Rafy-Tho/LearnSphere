@@ -1,6 +1,7 @@
 import ApiError from "../../common/errors/api-error.js";
 import StatusCode from "../../common/constants/status-code.js";
 import assertOwnership from "../../common/auth/ownership.js";
+import assertCourseEditable from "../../common/auth/course-lock.js";
 import optionRepository from "./option.repository.js";
 import questionRepository from "./question.repository.js";
 
@@ -23,6 +24,8 @@ class OptionService {
       message: OWNER_MESSAGE,
     });
 
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
+
     return this.optionRepository.createOption({
       questionId,
       text: optionData.text,
@@ -44,6 +47,8 @@ class OptionService {
       message: OWNER_MESSAGE,
     });
 
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
+
     return this.optionRepository.updateOption({
       optionId,
       text: optionData.text,
@@ -64,6 +69,8 @@ class OptionService {
       user,
       message: OWNER_MESSAGE,
     });
+
+    assertCourseEditable({ courseStatus: instructor?.course_status, user });
 
     return this.optionRepository.deleteOption(optionId);
   }

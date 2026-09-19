@@ -123,7 +123,25 @@ Requirements are grouped by domain. Each requirement has an ID, a description, a
 | FR-ADM-03 | Admins shall manage all course content through the dashboard. | Must |
 | FR-ADM-04 | Admin-only endpoints shall be guarded by role authorization. | Must |
 
-## 11. Non-Functional Requirements
+## 11. Instructor Workspace
+
+| ID | Requirement | Priority |
+|---|---|---|
+| FR-INS-01 | An instructor shall view an ownership-scoped dashboard (courses by status, students, enrollments, reviews, average rating). | Must |
+| FR-INS-02 | Instructor course listings shall be scoped to courses they own. | Must |
+| FR-INS-03 | An instructor shall view the enrolled-student roster per owned course, including progress and last activity. | Must |
+| FR-INS-04 | An instructor shall view per-course completion and quiz performance analytics. | Should |
+| FR-INS-05 | An instructor shall view reviews and issued certificates for owned courses. | Should |
+| FR-INS-06 | An instructor shall submit a DRAFT or REJECTED course for review. | Must |
+| FR-INS-07 | The system shall enforce a course review workflow: DRAFT → PENDING → PUBLISHED or REJECTED. | Must |
+| FR-INS-08 | An instructor shall not self-publish; only an admin may approve a course. | Must |
+| FR-INS-09 | A rejected course shall return to DRAFT with a rejection reason for re-submission. | Must |
+| FR-INS-10 | An instructor shall view estimated revenue-share earnings and per-course breakdown. | Should |
+| FR-INS-11 | An instructor shall view their payout history. | Should |
+| FR-INS-12 | Admins shall configure the instructor revenue share and record instructor payouts. | Should |
+| FR-INS-13 | A course under review (`PENDING`) shall be locked from instructor edits until reviewed. | Should |
+
+## 12. Non-Functional Requirements
 
 | ID | Requirement | Priority |
 |---|---|---|

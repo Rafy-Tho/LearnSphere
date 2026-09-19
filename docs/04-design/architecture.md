@@ -141,11 +141,15 @@ Repositories are singleton classes holding raw parameterized SQL. List endpoints
 
 ## 4. Admin Architecture
 
-- `admin/src/App.jsx` → Query client → providers → `ProtectedRoutes` → `AdminLayout` (sidebar + outlet).
-- Auth bootstrapped via `useGetMe` (`GET /users/me`) with 10-minute stale time and no retry.
-- Data flow: React Query hooks → service singletons → `/api/v1`.
-- Course detail uses an orchestration hook (`use-course-detail`) composing CRUD hooks and local content-tree state.
-- UI built from shadcn-style Radix primitives under `admin/src/components/ui`.
+The admin SPA uses feature-based architecture parallel to the learner frontend:
+
+- **App layer:** `app/` contains providers (QueryClient → AuthProvider → Router), guards (RequireAuth, RedirectIfAuthenticated), and route definitions (`app/router.jsx`). Entry is `app/App.jsx`.
+- **Features:** Each domain lives in `features/<domain>/` (auth, dashboard, categories, users, courses, subscriptions) with subfolders: `pages/`, `components/`, `hooks/`, `services/`.
+- **Data flow:** Page → Feature Component → Hook (useQuery/useMutation) → Service → `lib/apiClient.js` → Backend (`/api/v1/*`).
+- **Infrastructure:** `lib/` contains `apiClient.js` (fetch wrapper, envelope unwrapping, ApiError, 401 auto-logout), `queryClient.js`, `queryKeys.js` (central factory), and `utils.js` (cn).
+- **UI:** `components/` has `ui/` (shadcn/Radix primitives) and `common/` (reusable composables: DataTable, PaginationTable, FormModal, StatusBadge).
+- **Layouts:** `AdminLayout` (sidebar + outlet) wraps all protected routes.
+- **Rules:** no fetch in components, central query keys, feature-scoped code, 401 auto-redirect to /login.
 
 ## 5. Cross-Cutting Concerns
 

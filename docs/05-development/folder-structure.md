@@ -116,35 +116,39 @@ frontend/
 ```text
 admin/
 ├── index.html                   "LMS Dashboard"
-├── vite.config.js               react()
-├── tailwind.config.js           darkMode class, HSL tokens, tailwindcss-animate
+├── vite.config.js               react() + tailwindcss() + @ alias
+├── tailwind.config.js           darkMode class, HSL tokens
 ├── postcss.config.js
 ├── eslint.config.js
 ├── jsconfig.json
 ├── .env                         VITE_BASE_URL
 └── src/
-    ├── main.jsx
-    ├── App.jsx                  Providers, AppRoutes, ProtectedRoutes, AdminLayout routes
-    ├── index.css                Tailwind + theme tokens + glass-card
-    ├── services/                AuthApi, UserApi, CategoryApi, CourseApi, ModuleApi, ChapterApi,
-    │                            LessonApi, ContentApi, QuestionApi, OptionApi, ObjectiveApi,
-    │                            SubscriptionApi (+ http.js `apiFetch` wrapper)
-    ├── contexts/AuthContext.jsx login/logout, useGetMe bootstrap
-    ├── hooks/                   kebab-case per domain (auth, category, course, course-details,
-    │                            dashboard-data, chapters, modules, lessons, contents, objectives,
-    │                            options, questions, subscription, user) + use-mobile/use-theme/use-toast
-    ├── pages/                   DashboardPage, LoginPage, CategoriesPage, CoursesPage, CourseDetailPage,
-    │                            SubscriptionsPage, UsersPage, ProfilePage, NotFound
+    ├── main.jsx                 Mounts app.jsx
+    ├── app/
+    │   ├── App.jsx              Providers + Router
+    │   ├── router.jsx           Route definitions + lazy loading
+    │   ├── providers/           AuthProvider, context.js
+    │   └── guards/              RequireAuth, RedirectIfAuthenticated
+    ├── features/
+    │   ├── auth/                pages, components, hooks, services
+    │   ├── dashboard/           pages, components, hooks, services
+    │   ├── categories/          pages, components, hooks, services
+    │   ├── users/               pages, components, hooks, services
+    │   ├── courses/             pages, components, hooks, services
+    │   └── subscriptions/       pages, components, hooks, services
     ├── components/
-    │   ├── AdminLayout, AdminSidebar, NavLink, DataTable, PaginationTable, FormModal,
-    │   │   StatsCard, StatusBadge
-    │   ├── courseDetail/        CourseHeader, ObjectivesCard, ModuleCard, ChapterItem, LessonItem,
-    │   │                        ContentItem, QuizItem, *Modal, DeleteConfirmDialog
-    │   ├── subscriptions/       SubscriptionStats, PlansTab, SubscriptionsTab, PaymentsTab, *Modal
-    │   └── ui/                  shadcn-style Radix primitives
-    ├── libs/utils.js            cn() = clsx + tailwind-merge
-    ├── utils/                   formatCapitalize, formatMinutes, formatTimeAgo, parseQuery*, truncateText
-    └── assets/
+    │   ├── ui/                  shadcn-style Radix primitives
+    │   └── common/              DataTable, PaginationTable, FormModal, StatusBadge, NavLink
+    ├── layouts/
+    │   ├── AdminLayout.jsx
+    │   └── AdminSidebar.jsx
+    ├── pages/                   NotFound.jsx
+    ├── lib/                     apiClient.js, queryClient.js, queryKeys.js, utils.js
+    ├── hooks/                   use-mobile, use-theme, use-toast (non-feature)
+    ├── constants/               navItems, status labels
+    ├── css/
+    ├── assets/
+    └── index.css                Tailwind + theme tokens
 ```
 
 ## 4. Documentation (`docs/`)

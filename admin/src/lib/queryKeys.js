@@ -1,20 +1,26 @@
 export const queryKeys = {
-  me: () => ["me"],
+  // Auth & User
+  me: () => ['me'],
 
-  dashboardData: () => ["dashboard-data"],
+  // Dashboard
+  dashboardData: () => ['dashboard-data'],
 
-  categories: () => ["categories"],
+  // Categories
+  categories: () => ['categories'],
 
-  courses: (params) => ["courses", params],
-  courseDetails: (courseId) => ["course-details", courseId],
+  // Courses
+  courses: (params) => ['courses', params],
+  courseDetails: (courseId) => ['course-details', courseId],
 
-  users: (params) => ["admin-users", params],
+  // Users
+  users: (params) => ['admin-users', params],
 
-  plans: () => ["admin-plans"],
-  subscriptions: (params) => ["admin-user-subscriptions", params],
-  payments: (params) => ["admin-payments", params],
-  coupons: () => ["admin-coupons"],
-  billingStats: () => ["admin-billing-stats"],
+  // Subscriptions
+  plans: () => ['admin-plans'],
+  subscriptions: () => ['admin-user-subscriptions'],
+  payments: () => ['admin-payments'],
+  coupons: () => ['admin-coupons'],
+  billingStats: () => ['admin-billing-stats'],
 };
 
 export const userScopedQueryRoots = new Set([
@@ -25,8 +31,8 @@ export const userScopedQueryRoots = new Set([
   queryKeys.courseDetails(null)[0],
   queryKeys.users(null)[0],
   queryKeys.plans()[0],
-  queryKeys.subscriptions(null)[0],
-  queryKeys.payments(null)[0],
+  queryKeys.subscriptions()[0],
+  queryKeys.payments()[0],
   queryKeys.coupons()[0],
   queryKeys.billingStats()[0],
 ]);

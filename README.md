@@ -106,19 +106,25 @@ Main user-facing flows include:
 
 ## Admin Dashboard
 
-The `admin/` directory is a separate React SPA (Vite + Tailwind + shadcn-style UI components) used by platform administrators to manage users, courses, and subscriptions. It talks to the same backend API as the learner frontend.
+The `admin/` directory is a separate React SPA (Vite 7, React 19, TanStack Query 5, Tailwind 3, shadcn/Radix) used by platform administrators to manage users, courses, and subscriptions. It uses feature-based architecture identical to the learner frontend.
+
+### Admin Architecture
+
+- **App layer:** `app/` contains providers (QueryClient → AuthProvider → Router), guards (RequireAuth, RedirectIfAuthenticated), and route definitions. Entry is `app/App.jsx`.
+- **Features:** Each domain lives in `features/<domain>/` (auth, dashboard, categories, users, courses, subscriptions) with `pages/`, `components/`, `hooks/`, `services/` subfolders.
+- **Data flow:** Page → Feature Component → Hook → Service → `lib/apiClient.js` → Backend.
 
 ### Admin Auth Flow
 
-1. Admin opens `/login`; `AuthContext` calls `useGetMe` (`GET /users/me`) to restore any existing session.
-2. Unauthenticated users are redirected to `/login` by `ProtectedRoutes` in `admin/src/App.jsx`.
-3. Login form submits email/password to `POST /auth/login` (via `services/AuthApi.js`, `credentials: include`).
-4. On success, `AuthContext.login()` stores the user and the app redirects to the dashboard.
+1. Admin opens `/login`; `AuthProvider` calls `useGetMe` (`GET /users/me`) to restore any existing session.
+2. Unauthenticated users are redirected to `/login` by guards in `app/`.
+3. Login form submits email/password to `POST /auth/login`.
+4. On success, the app redirects to the dashboard.
 5. Logout posts to `/auth/logout`, clears the query cache, and returns to `/login`.
 
 ### Layout & Navigation
 
-- `AdminLayout` wraps all protected routes with a collapsible sidebar (`AdminSidebar`).
+- `AdminLayout` wraps all protected routes with a collapsible `AdminSidebar`.
 - Sidebar links: Dashboard, Categories, Courses, Subscriptions, Instructors, Users, plus profile, dark/light theme toggle, and logout.
 
 ### Page Flows
@@ -133,7 +139,7 @@ The `admin/` directory is a separate React SPA (Vite + Tailwind + shadcn-style U
 
 ### Data Access Pattern
 
-Every page uses TanStack React Query hooks (`admin/src/hooks`) that wrap centralized API services (`admin/src/services/*Api.js`) through the shared `apiFetch` wrapper (`admin/src/services/http.js`). Forms are validated before submit, and success/error feedback is shown via toast/sonner notifications.
+Every page uses TanStack React Query hooks that wrap centralized API services through the shared `apiClient.js` layer (with envelope unwrapping, 401 auto-logout, and buildQuery). Query keys are defined centrally in `lib/queryKeys.js` and invalidated after mutations. Forms are validated before submit, and success/error feedback is shown via toast notifications.
 
 ## Database Design (Table List)
 

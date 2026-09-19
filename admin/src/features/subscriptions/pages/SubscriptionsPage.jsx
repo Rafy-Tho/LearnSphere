@@ -1,13 +1,5 @@
 import { useState } from "react";
-import { useBillingStats } from "@/features/subscriptions/hooks/use-billing-stats";
-import { useCoupons } from "@/features/subscriptions/hooks/use-coupons";
-import { usePayments } from "@/features/subscriptions/hooks/use-payments";
-import { usePlans } from "@/features/subscriptions/hooks/use-plans";
-import { useRefund } from "@/features/subscriptions/hooks/use-refund";
-import {
-  useSubscriptions,
-} from "@/features/subscriptions/hooks/use-subscriptions";
-import { useSubscriptionOverride } from "@/features/subscriptions/hooks/use-subscription-override";
+import { useBillingStats, usePayments, useSubscriptions, usePlansCrud, useCouponsCrud, useSubscriptionOverride, useRefund } from "@/features/subscriptions/hooks";
 import { CouponModal } from "@/features/subscriptions/components/CouponModal";
 import { CouponsTab } from "@/features/subscriptions/components/CouponsTab";
 import { DeleteConfirmDialog } from "@/features/subscriptions/components/DeleteConfirmDialog";
@@ -29,10 +21,10 @@ import useGetUsers from "@/features/users/hooks/useGetUsers";
 
 export default function SubscriptionsPage() {
   const statsHook = useBillingStats();
-  const planHook = usePlans();
+  const planHook = usePlansCrud();
   const subHook = useSubscriptions();
   const payHook = usePayments();
-  const couponHook = useCoupons();
+  const couponHook = useCouponsCrud();
   const { overrideSubscription, isOverriding } = useSubscriptionOverride();
   const { refundPayment, isRefunding } = useRefund();
   const { data: learnersData, isPending: playersPending } = useGetUsers({

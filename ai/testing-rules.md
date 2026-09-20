@@ -14,7 +14,7 @@ There are **no tests** in this repository and no test tooling. Do not claim test
 
 Recommended stack (see `docs/06-testing/test-strategy.md`):
 
-- Backend: Vitest + Supertest, against a real PostgreSQL test database provisioned from `backend/src/db/schema.sql`.
+- Backend: Vitest + Supertest, against a real PostgreSQL test database provisioned by `npm run db:migrate` (migrations in `backend/src/db/migrations/`).
 - Frontend: Vitest + React Testing Library + MSW.
 - E2E: Playwright.
 

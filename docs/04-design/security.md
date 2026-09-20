@@ -70,7 +70,7 @@ Rate-limit exhaustion returns HTTP 429.
 - Only an HMAC-SHA256 hash (keyed with `SESSION_SECRET`) is stored (`backend/src/common/services/hash-code.js`).
 - Codes expire after 10 minutes and have an attempt counter (max 5).
 - Reset-code requests and attempts are rate-limited.
-- The `password_reset_codes.code` column is `VARCHAR(255)` (migration `0011`).
+- The `password_reset_codes.code` column is `VARCHAR(255)` (baseline `0003_identity.sql`).
 
 ## 7.1 Email Verification Security
 
@@ -155,13 +155,13 @@ The former gaps were implemented in the backend security-hardening pass. See
 | 7 | No security headers | `helmet` (SH-3) |
 | 8 | No account lockout | `users.failed_login_attempts` / `locked_until` (SH-5) |
 | 9 | No audit logging | `logger.audit` for auth/role/payment events (SH-6) |
-| 10 | Reset-code column too small | Widened to `VARCHAR(255)` (migration 0011) |
+| 10 | Reset-code column too small | Widened to `VARCHAR(255)` (baseline `0003_identity.sql`) |
 
 Other improvements: `trust proxy` configurable, generic registration (no enumeration),
 progress/enroll authorization checks, public uploads removed, static 404, idle session
 timeout, certificate lookup restricted to owner/admin, and admin invite instead of a
-hardcoded temporary password. Remaining operational step: apply migration `0012` to the
-live database.
+hardcoded temporary password. The schema is now defined by the CREATE-only baseline
+migrations (`0001`–`0011`).
 
 ## 12. Production Security Requirements
 

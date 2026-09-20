@@ -9,7 +9,7 @@ Single place to track what is done, what is in progress, and what is left. Keep 
 | Backend API | [`backend-progress.md`](./backend-progress.md) | 🟡 | Module structure, DB migrations, API/naming/security work done; a few module gaps left |
 | Learner frontend | [`frontend-user.md`](./frontend-user.md) | ✅ | Feature architecture, UI primitives, performance, API/state, design tokens |
 | Admin dashboard | [`frontend-admin.md`](./frontend-admin.md) | ✅ | Feature architecture, apiClient/query patterns, billing UI aligned with prepaid API |
-| Instructor workspace | [`instructor-dashboard.md`](./instructor-dashboard.md) | 🟡 | Role-gated instructor area in the admin app: scoped dashboard, courses, students, analytics, reviews, certificates, earnings; course review workflow + payouts (migrations `0025`–`0026` need applying to the live DB) |
+| Instructor workspace | [`instructor-dashboard.md`](./instructor-dashboard.md) | 🟡 | Role-gated instructor area in the admin app: scoped dashboard, courses, students, analytics, reviews, certificates, earnings; course review workflow + payouts (schema in the CREATE-only baseline; live DB needs rebuilding) |
 
 ## How To Update
 

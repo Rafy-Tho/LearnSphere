@@ -76,7 +76,7 @@ Both frontends talk to the same backend API and share the same cookie-based sess
 ### Infrastructure / Database
 
 - PostgreSQL with UUID primary keys (`pgcrypto` / `gen_random_uuid()`)
-- SQL schema defined in `backend/src/db/schema.sql`
+- SQL schema defined by the CREATE-only migrations in `backend/src/db/migrations/`
 - Environment-variable configuration via `backend/src/config/environment.js`
 
 ## 5. High-Level Architecture
@@ -152,6 +152,6 @@ See `docs/diagrams/system-context.md` and `docs/diagrams/architecture.md` for de
 ## 10. Related Files
 
 - `README.md` — human-facing project readme
-- `backend/src/db/schema.sql` — authoritative database DDL
+- `backend/src/db/migrations/` — authoritative database DDL (CREATE-only migrations)
 - `database.svg`, `er-diagram.svg` — rendered ERD assets
 - `ai/project-context.md` — condensed context for AI agents

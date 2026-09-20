@@ -1,5 +1,6 @@
 -- 0001_extensions_enums.sql
--- Extensions and enum types. Idempotent.
+-- Extensions and enum types (final values for a fresh database).
+-- CREATE-only baseline; idempotent and safe to re-run.
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
@@ -24,7 +25,13 @@ END $$;
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'content_status') THEN
-    CREATE TYPE content_status AS ENUM ('DRAFT','PUBLISHED');
+    CREATE TYPE content_status AS ENUM ('DRAFT','PUBLISHED','PENDING','REJECTED');
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payout_status') THEN
+    CREATE TYPE payout_status AS ENUM ('PENDING','PAID','CANCELLED');
   END IF;
 END $$;
 
@@ -36,13 +43,43 @@ END $$;
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'subscription_status') THEN
-    CREATE TYPE subscription_status AS ENUM ('ACTIVE','EXPIRED','CANCELLED');
+    CREATE TYPE subscription_status AS ENUM ('ACTIVE','EXPIRED','CANCELLED','PENDING');
   END IF;
 END $$;
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_status') THEN
-    CREATE TYPE payment_status AS ENUM ('PENDING','COMPLETED','FAILED','REFUNDED');
+    CREATE TYPE payment_status AS ENUM (
+      'PENDING','COMPLETED','FAILED','REFUNDED','PARTIALLY_REFUNDED'
+    );
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'discount_type') THEN
+    CREATE TYPE discount_type AS ENUM ('PERCENTAGE','FIXED_AMOUNT');
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'refund_status') THEN
+    CREATE TYPE refund_status AS ENUM ('PENDING','SUCCEEDED','FAILED');
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'checkout_order_status') THEN
+    CREATE TYPE checkout_order_status AS ENUM (
+      'CREATED','CHECKOUT_STARTED','PAID','FAILED','EXPIRED','CANCELLED'
+    );
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'refund_request_status') THEN
+    CREATE TYPE refund_request_status AS ENUM (
+      'PENDING','APPROVED','REJECTED','CANCELLED'
+    );
   END IF;
 END $$;
 
@@ -55,5 +92,18 @@ END $$;
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'gender') THEN
     CREATE TYPE gender AS ENUM ('MALE','FEMALE');
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_activity_type') THEN
+    CREATE TYPE user_activity_type AS ENUM (
+      'ENROLL_COURSE',
+      'START_COURSE',
+      'START_LESSON',
+      'COMPLETE_LESSON',
+      'COMPLETE_COURSE',
+      'EARN_CERTIFICATE'
+    );
   END IF;
 END $$;

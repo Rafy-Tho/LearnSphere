@@ -57,8 +57,8 @@ routes → validators → middlewares → controllers → services / repositorie
 
 ## 6. Schema
 
-- `backend/src/db/schema.sql` is the source of truth for fresh installs.
-- Schema changes also require an idempotent migration in `backend/src/db/migrations/` (plain SQL; runner `db/migrate.js`); keep `schema.sql` in sync.
+- `backend/src/db/migrations/` is the single source of truth for the schema; there is no `schema.sql`.
+- Schema changes require a new idempotent, CREATE-only migration in `backend/src/db/migrations/` (plain SQL; runner `db/migrate.js`).
 - When changing schema, check all repositories for the affected columns/tables.
 - Do not add a migration tool without explicit approval.
 

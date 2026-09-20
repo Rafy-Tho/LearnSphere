@@ -1,9 +1,9 @@
 # Database Design
 
 **Engine:** PostgreSQL
-**Authoritative DDL:** `backend/src/db/schema.sql`
+**Authoritative DDL:** CREATE-only migrations in `backend/src/db/migrations/` (source of truth)
 **Extension:** `pgcrypto` (for `gen_random_uuid()`)
-**Migrations:** plain SQL in `backend/src/db/migrations/` (runner `npm run db:migrate`); no seed data.
+**Migrations:** CREATE-only plain SQL in `backend/src/db/migrations/` (runner `npm run db:migrate`); no seed data.
 
 ## 1. Conventions
 
@@ -146,7 +146,7 @@ One-to-one with `users`.
 
 Separate from `password_reset_codes` (distinct flows). A new code invalidates
 previous ones; codes are single-use, expire after 10 minutes, and cap attempts
-at 5. Added in migration `0013`.
+at 5. Defined in baseline `0003_identity.sql`.
 
 #### `user_auth_providers`
 
@@ -162,8 +162,8 @@ at 5. Added in migration `0013`.
 
 Links external identities to `users`. The unique constraint maps a provider
 identity to exactly one user; a user may have email/password and/or provider
-logins. Added in migration `0014` (which also makes `users.password` nullable
-for provider-only accounts).
+logins. Defined in baseline `0003_identity.sql` (which also makes `users.password`
+nullable for provider-only accounts).
 
 ### 4.2 Catalog & Content
 
@@ -697,12 +697,12 @@ Indexes `idx_instructor_payouts_instructor`, `idx_instructor_payouts_status`.
 ### 4.7 Runtime Table
 
 #### `session`
-Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `backend/src/common/middleware/session-middleware.js`. Not in `schema.sql`; a fresh database has 30 tables after the server runs (29 from `schema.sql`).
+Created automatically by `connect-pg-simple` (`createTableIfMissing: true`) in `backend/src/common/middleware/session-middleware.js`. Not part of the migrations; the server adds it on first start.
 
 ## 5. Triggers & Functions
 
 - `set_updated_at()` — sets `NEW.updated_at = CURRENT_TIMESTAMP`.
-- 21 `BEFORE UPDATE` triggers, one per table with `updated_at`.
+- 25 `BEFORE UPDATE` triggers, one per table with `updated_at`.
 - Tables without triggers: `lesson_completion`, `certificates`, `review_helpful_votes`, `review_reports`, `saved_courses`, `user_activities`, `user_xp_transactions`, `coupon_reservations`.
 
 ## 6. Indexes & Unique Constraints
@@ -768,22 +768,19 @@ Deleting a user cascades to their courses, enrollments, progress, completions, c
 
 | # | Issue | Status | Resolution |
 |---|---|---|---|
-| 1 | `lesson_contents` (code) vs `lesson_content` (schema) | ✅ Resolved | Canonical `lesson_contents`; `schema.sql` + migration `0011` |
+| 1 | `lesson_contents` (code) vs `lesson_content` (schema) | ✅ Resolved | Canonical `lesson_contents`; CREATE-only baseline `0005_content.sql` |
 | 2 | `lessons.access_type` referenced but missing | ✅ Resolved | Column added (`access_course_type DEFAULT 'FREE'`) |
 | 3 | `quizzes.lesson_id` `UNIQUE` | ✅ Resolved | Constraint dropped; `(lesson_id, position)` kept |
 | 4 | `password_reset_codes.code` too small for a hash | ✅ Resolved | Widened to `VARCHAR(255)`; HMAC-SHA256 stored |
 | 5 | `modules.icon_name` used by code but not defined | ✅ Resolved | Never existed; code usage removed |
 | 6 | `course_reviews.helpful_count` not maintained | ✅ Resolved | Column dropped; count derives from votes |
 | 7 | `getPopular` counts `lesson_completion`, not `enrollments` | ✅ Resolved | Counts `enrollments` |
-| 8 | No indexes on `courses.instructor_id/category_id/deleted_at` | ✅ Resolved | Indexes added (migration `0009`) |
+| 8 | No indexes on `courses.instructor_id/category_id/deleted_at` | ✅ Resolved | Indexes added (baseline `0010_indexes.sql`) |
 
 ## 10. Applying the Schema
 
 ```bash
-# Fresh database
-psql "$DATABASE_URL" -f backend/src/db/schema.sql
-
-# Existing database: apply incremental migrations
+# Build the schema from scratch or apply pending changes
 npm run db:migrate      # apply pending
 npm run db:status       # list applied/pending
 ```

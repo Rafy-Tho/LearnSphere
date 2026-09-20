@@ -16,7 +16,7 @@ Use this checklist before and after each production release.
 
 ## 2. Database
 
-- [ ] `schema.sql` applied to the production database.
+- [ ] Migrations applied to the production database (`npm run db:migrate`).
 - [ ] `pgcrypto` extension available.
 - [ ] Backup taken before any schema change.
 - [ ] `session` table present (created on first backend start).

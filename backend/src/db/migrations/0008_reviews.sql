@@ -1,6 +1,6 @@
 -- 0008_reviews.sql
 -- Reviews: course_reviews, review_helpful_votes, review_reports.
--- `helpful_count` was removed (D6): the count derives from review_helpful_votes.
+-- CREATE-only baseline.
 
 CREATE TABLE IF NOT EXISTS course_reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

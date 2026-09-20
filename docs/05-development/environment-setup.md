@@ -92,17 +92,11 @@ Only `VITE_*` variables reach the browser. Never put secrets in frontend env fil
 createdb learning_platform
 ```
 
-2. Apply the schema. For a fresh database:
-
-```bash
-psql "$DATABASE_URL" -f backend/src/db/schema.sql
-```
-
-For an existing database, apply incremental migrations instead:
+2. Apply the schema (an empty database is built from scratch):
 
 ```bash
 cd backend
-npm run db:migrate   # apply pending migrations
+npm run db:migrate   # apply migrations (creates the schema)
 npm run db:status    # list applied/pending
 ```
 

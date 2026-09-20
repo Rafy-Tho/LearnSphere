@@ -83,7 +83,7 @@ Surface these and confirm before changing them:
 2. Live DB only: legacy `lesson_content*` child object names remain alongside the canonical ones (harmless).
 3. Backend cross-module calls still import other modules' repositories (BM-1 in `docs/progress/backend-progress.md`).
 
-Schema drift and the former auth/validation gaps are resolved (migrations `0001`–`0011`, security hardening). Details: `docs/04-design/database-design.md` §9 and `docs/04-design/security.md` §11.
+Schema drift and the former auth/validation gaps are resolved. The schema is a CREATE-only migration baseline (`0001`–`0011`). Details: `docs/04-design/database-design.md` §9 and `docs/04-design/security.md` §11.
 
 ## 7. Escalate Before Doing
 

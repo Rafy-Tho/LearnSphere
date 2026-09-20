@@ -1,5 +1,6 @@
 -- 0005_content.sql
--- Content: modules, chapters, lessons, lesson_contents, quizzes, quiz_options.
+-- Content: modules, chapters, lessons, lesson_contents, quizzes, quiz_options,
+-- quiz_attempts, quiz_answers. CREATE-only baseline.
 
 CREATE TABLE IF NOT EXISTS modules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -41,27 +42,16 @@ CREATE TABLE IF NOT EXISTS lessons (
   CONSTRAINT unique_lessons_chapter_position UNIQUE (chapter_id, position)
 );
 
--- Canonical name is `lesson_contents` (plural). On a legacy database that still
--- has `lesson_content`, skip creation so 0011 can rename it.
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.tables
-    WHERE table_schema = 'public'
-      AND table_name IN ('lesson_content', 'lesson_contents')
-  ) THEN
-    CREATE TABLE lesson_contents (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      lesson_id UUID NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
-      position INTEGER NOT NULL,
-      name VARCHAR(255) NOT NULL,
-      content TEXT NOT NULL,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-      CONSTRAINT unique_lesson_contents_lesson_position UNIQUE (lesson_id, position)
-    );
-  END IF;
-END $$;
+CREATE TABLE IF NOT EXISTS lesson_contents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  lesson_id UUID NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  position INTEGER NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT unique_lesson_contents_lesson_position UNIQUE (lesson_id, position)
+);
 
 CREATE TABLE IF NOT EXISTS quizzes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -83,4 +73,31 @@ CREATE TABLE IF NOT EXISTS quiz_options (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT unique_quiz_options_quiz_position UNIQUE (quiz_id, position)
+);
+
+CREATE TABLE IF NOT EXISTS quiz_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  lesson_id UUID NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+  status VARCHAR(20) NOT NULL DEFAULT 'in_progress',
+  score INTEGER,
+  total_questions INTEGER,
+  started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  completed_at TIMESTAMP WITH TIME ZONE,
+  CONSTRAINT quiz_attempt_status
+    CHECK (status IN ('in_progress', 'completed', 'abandoned')),
+  CONSTRAINT quiz_attempt_score_valid
+    CHECK (score IS NULL OR score >= 0),
+  CONSTRAINT quiz_attempt_total_valid
+    CHECK (total_questions IS NULL OR total_questions > 0)
+);
+
+CREATE TABLE IF NOT EXISTS quiz_answers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  attempt_id UUID NOT NULL REFERENCES quiz_attempts(id) ON DELETE CASCADE,
+  quiz_id UUID NOT NULL REFERENCES quizzes(id) ON DELETE CASCADE,
+  selected_option_id UUID REFERENCES quiz_options(id) ON DELETE SET NULL,
+  is_correct BOOLEAN NOT NULL,
+  answered_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT unique_attempt_quiz UNIQUE (attempt_id, quiz_id)
 );

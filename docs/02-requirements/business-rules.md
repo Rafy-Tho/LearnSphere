@@ -1,6 +1,6 @@
 # Business Rules
 
-Business rules define the constraints and policies the system enforces, independent of implementation. Sources: `backend/src/modules/*` and `backend/src/db/schema.sql`.
+Business rules define the constraints and policies the system enforces, independent of implementation. Sources: `backend/src/modules/*` and the migrations in `backend/src/db/migrations/`.
 
 ## 1. Identity & Access
 

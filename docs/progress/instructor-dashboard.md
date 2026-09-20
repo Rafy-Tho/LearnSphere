@@ -1,7 +1,7 @@
 # Instructor Workspace
 
-**Status:** 🟡 In progress — code complete; migrations `0025`–`0026` still need to
-be applied to the live database and the flows manually QA'd.
+**Status:** 🟡 In progress — code complete; the live database must be rebuilt from the
+CREATE-only baseline, then the flows manually QA'd.
 
 Design + plan: [`../04-design/instructor-dashboard.md`](../04-design/instructor-dashboard.md).
 
@@ -17,14 +17,14 @@ Design + plan: [`../04-design/instructor-dashboard.md`](../04-design/instructor-
 | Earnings | `features/instructor/pages/InstructorEarningsPage.jsx` — estimate + per-course breakdown + payout history. |
 | Admin review queue | `features/courses/pages/CourseReviewsPage.jsx` (approve/reject with reason). |
 | Admin payouts | `features/payouts/` — revenue-share setting + record/track payouts. |
-| Backend | `backend/src/modules/instructor/`; course review workflow + scoping fixes in `modules/courses/`; migrations `0025`–`0026`; `schema.sql` updated. |
+| Backend | `backend/src/modules/instructor/`; course review workflow + scoping fixes in `modules/courses/`; schema in baseline migrations `0004_catalog.sql`/`0009_instructor.sql`. |
 | Docs | requirements/business-rules/acceptance/use-cases/api/database/architecture/scope/spec/README + `ai/project-context.md` updated. |
 
 ## Remaining
 
 | # | Task | Status | Notes |
 |---|---|---|---|
-| Ops | Apply migrations `0025`–`0026` | ⬜ | `npm run db:migrate` (live DB only). |
+| Ops | Rebuild the live DB from the baseline | ⬜ | `npm run db:migrate` on a fresh database (the old `0025`–`0026` files no longer exist). |
 | QA | Verify instructor vs admin flows | ⬜ | Manual: submit → approve/reject, roster filters, analytics, earnings, payouts. |
 | QA | Rejection-reason feedback on the course form | ⬜ | Status shows `REJECTED`; consider surfacing `rejection_reason` inline. |
 

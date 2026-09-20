@@ -350,4 +350,4 @@ erDiagram
 | review_helpful_votes | (user_id, review_id) |
 | review_reports | (user_id, review_id) |
 
-> **Note:** The ERD reflects `schema.sql`. The former drift (`lesson_contents`, `lessons.access_type`, `password_reset_codes.code`) is resolved; see `docs/04-design/database-design.md` §9.
+> **Note:** The ERD reflects the migrations in `backend/src/db/migrations/`. The former drift (`lesson_contents`, `lessons.access_type`, `password_reset_codes.code`) is resolved; see `docs/04-design/database-design.md` §9.

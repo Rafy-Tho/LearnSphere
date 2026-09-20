@@ -47,7 +47,7 @@ Run the checks for every app you touch:
 - Update `ai/` rules when conventions change.
 - **Track everything in [`docs/progress/`](../docs/progress/):** update the matching area file after every completed item.
 - Record durable decisions in [`docs/progress/README.md`](../docs/progress/README.md) before starting dependent work.
-- If you change the DB schema, update `backend/src/db/schema.sql` and add an idempotent migration in `backend/src/db/migrations/`.
+- If you change the DB schema, add an idempotent, CREATE-only migration in `backend/src/db/migrations/` (the schema source of truth).
 - Record new known issues rather than hiding them.
 
 ## 6. Git

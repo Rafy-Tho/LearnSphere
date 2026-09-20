@@ -39,9 +39,9 @@ backend/
     │   ├── cloudinary.js        connectCloudinary()
     │   └── stripe.js            Stripe client
     ├── db/
-    │   ├── schema.sql           Authoritative DDL baseline (fresh installs)
     │   ├── migrate.js           Plain-SQL migration runner
-    │   ├── migrations/          0001…0012 incremental migrations
+    │   ├── migrations/          CREATE-only migrations (schema source of truth)
+    │   ├── seeds/               Optional sample data + seed runner
     │   └── README.md            How to run migrations
     ├── common/                  Shared infrastructure
     │   ├── errors/api-error.js

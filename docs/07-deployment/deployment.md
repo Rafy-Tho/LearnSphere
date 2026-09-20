@@ -54,9 +54,9 @@ Frontends: set `VITE_BASE_URL` to the public API URL **at build time** (Vite inl
 ### 4.1 Database
 
 1. Provision PostgreSQL.
-2. Apply the schema:
+2. Apply the schema (builds the whole schema from scratch):
    ```bash
-   psql "$DATABASE_URL" -f backend/src/db/schema.sql
+   cd backend && npm run db:migrate
    ```
 3. Create an initial `ADMIN` user if needed:
    ```sql

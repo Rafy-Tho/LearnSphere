@@ -73,7 +73,7 @@ The following are **not** implemented:
 | Item | Notes |
 |---|---|
 | Automated tests | No test framework or test files exist in any app. |
-| Database seeds | No seed data; schema changes use `schema.sql` + migrations. |
+| Database seeds | Optional sample data in `backend/src/db/seeds/`; schema defined by CREATE-only migrations. |
 | CI/CD pipelines | No CI config in the repository. |
 | Social OAuth login | Buttons exist in the UI, but no backend OAuth flow. |
 | Video hosting/streaming | Lessons are text/HTML and quizzes; no video pipeline. |
@@ -88,7 +88,7 @@ The following are **not** implemented:
 
 ## 4. Known Constraints
 
-- Schema changes use `schema.sql` for fresh installs and versioned plain-SQL migrations (`npm run db:migrate`) for existing databases.
+- Schema changes use one idempotent, CREATE-only migration per change (`npm run db:migrate`); migrations are the source of truth.
 - The `admin/` `package.json` is named `frontend` (legacy naming) and there is no `lint` script in `backend/`.
 - Backend is ESM-only and pins `engines.node` to `22.22.2`.
 - Session cookies use `sameSite: "none"` in production, which requires HTTPS and `trust proxy`.

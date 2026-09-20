@@ -181,8 +181,8 @@ Migration `0026_instructor_revenue.sql`
 - `payout_status` enum (`PENDING`, `PAID`, `CANCELLED`).
 - `instructor_payouts` table.
 
-No existing column is dropped or mutated destructively. `backend/src/db/schema.sql`
-is updated to mirror the same enums/tables/columns for fresh installs.
+No existing column is dropped or mutated destructively. The CREATE-only
+migrations in `backend/src/db/migrations/` define the same enums/tables/columns.
 
 ## 9. Frontend state & data access
 

@@ -1,5 +1,5 @@
 -- 0004_catalog.sql
--- Catalog: categories, courses, course_objectives.
+-- Catalog: categories, courses, course_objectives. CREATE-only baseline.
 
 CREATE TABLE IF NOT EXISTS categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS categories (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- instructor_id uses RESTRICT so deleting a user cannot silently delete courses.
 CREATE TABLE IF NOT EXISTS courses (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   instructor_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
@@ -21,6 +22,10 @@ CREATE TABLE IF NOT EXISTS courses (
   level course_level DEFAULT 'BEGINNER' NOT NULL,
   access_type access_course_type DEFAULT 'FREE',
   position INTEGER,
+  submitted_at TIMESTAMP WITH TIME ZONE,
+  reviewed_at TIMESTAMP WITH TIME ZONE,
+  reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  rejection_reason TEXT,
   deleted_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

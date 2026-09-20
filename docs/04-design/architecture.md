@@ -48,7 +48,7 @@ The backend uses a strict layered architecture with no ORM:
 | Shared services | `backend/src/common/services/` | Cross-cutting services (session, hashing, email) |
 | Repositories | `backend/src/modules/<module>/*.repository.js` | Parameterized SQL and data access |
 | Config | `backend/src/config/` | Env, DB pool (+ `withTransaction`), Cloudinary, Stripe |
-| DB | `backend/src/db/` | `schema.sql` + `migrations/` |
+| DB | `backend/src/db/` | CREATE-only `migrations/` (schema source of truth) |
 | Utils | `backend/src/common/` | `ApiError`, `asyncHandler`, `AdvancedQuery`, `logger`, 404 |
 | Constants | `backend/src/common/constants/` | Status codes, domain constants |
 
@@ -182,7 +182,7 @@ The admin SPA uses feature-based architecture parallel to the learner frontend:
 
 - Backend: Node process (Render target per README), `trust proxy` enabled.
 - Frontends: static Vite builds served from separate origins.
-- Database: managed PostgreSQL; schema applied from `schema.sql`.
+- Database: managed PostgreSQL; schema applied from the migrations (`npm run db:migrate`).
 - Production cookies: `secure` + `sameSite: "none"`, requiring HTTPS.
 
 ## 8. Architectural Constraints & Known Issues
@@ -190,7 +190,7 @@ The admin SPA uses feature-based architecture parallel to the learner frontend:
 | Item | Detail |
 |---|---|
 | No ORM | All SQL is hand-written in repositories; schema drift is not caught at compile time. |
-| Migrations | Plain SQL migrations in `backend/src/db/migrations/`; keep `schema.sql` in sync. |
+| Migrations | CREATE-only plain SQL migrations in `backend/src/db/migrations/` are the schema source of truth; there is no `schema.sql`. |
 | No tests | No automated verification of architecture boundaries. |
 | Cross-module calls | Some module services still import other modules' repositories (BM-1). |
 | Single-process sessions | Sessions are DB-backed, so horizontal scaling works, but `express-session` memory fallback must not be used in production. |

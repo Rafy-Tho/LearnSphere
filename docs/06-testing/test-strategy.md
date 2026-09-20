@@ -88,7 +88,7 @@ Quality is currently enforced only by ESLint configs in all three apps. This doc
 | Local | Developer runs | Local Postgres test DB |
 | CI | Automated | Ephemeral Postgres service container |
 
-Each test run should apply `backend/src/db/schema.sql` to a fresh database. The schema file is the source of truth for tests (migrations are for existing databases).
+Each test run should provision a fresh database with `npm run db:migrate`. The CREATE-only migrations in `backend/src/db/migrations/` are the source of truth for tests.
 
 ## 7. Coverage Targets
 

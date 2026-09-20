@@ -35,7 +35,7 @@ The repository is a monorepo of three independently runnable applications sharin
 
 ### Infrastructure
 - PostgreSQL with UUID PKs (`pgcrypto`)
-- Schema: `backend/src/db/schema.sql`
+- Schema: CREATE-only migrations in `backend/src/db/migrations/` (source of truth)
 - Config: `backend/src/config/environment.js`
 
 ## 3. Scope
@@ -51,7 +51,7 @@ The repository is a monorepo of three independently runnable applications sharin
 - Admin dashboard CRUD
 
 ### Out of scope (current)
-- Automated tests, migrations/seeds, CI/CD
+- Automated tests, CI/CD
 - Social OAuth, video streaming, forums, real-time features
 - Per-course checkout / accurate instructor revenue accounting, certificate PDFs, multi-tenancy
 
@@ -267,7 +267,7 @@ Setup steps: `docs/05-development/environment-setup.md`.
 2. Live DB only: legacy `lesson_content*` child object names remain alongside the canonical ones (harmless).
 3. Backend cross-module calls still import other modules' repositories (BM-1).
 
-Schema drift and the former auth/validation gaps are resolved (migrations `0001`–`0011`, security hardening). Details: `docs/04-design/database-design.md` §9, `docs/04-design/security.md` §11, `docs/progress/backend-progress.md`.
+Schema drift and the former auth/validation gaps are resolved. The schema is a CREATE-only migration baseline (`0001`–`0011`). Details: `docs/04-design/database-design.md` §9, `docs/04-design/security.md` §11, `docs/progress/backend-progress.md`.
 
 ## 13. Acceptance & Verification
 

@@ -19,7 +19,7 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 - Auth: cookie session (`express-session` + `connect-pg-simple`), 30-day rolling + 24h idle timeout, `sameSite: "none"` in prod.
 - Auth methods: email/password (bcrypt) + email verification, and Google OAuth (`GET /api/v1/auth/google[/callback]`, authorization-code + OIDC via `openid-client`). Provider links in `user_auth_providers`; `users.password` is nullable for provider-only accounts.
 - API base: `/api/v1`. Response envelope: `{ success, statusCode, message, data }` (+ `pagination` on lists).
-- DB: PostgreSQL, UUID PKs via `pgcrypto`. Schema: `backend/src/db/schema.sql` (23 tables, 9 enums); migrations in `backend/src/db/migrations/` (runner `npm run db:migrate`).
+- DB: PostgreSQL, UUID PKs via `pgcrypto`. Schema is defined entirely by the CREATE-only migrations in `backend/src/db/migrations/` (38 tables, 15 enums; runner `npm run db:migrate`). There is no `schema.sql`.
 - No ORM, no seeds, no tests, no CI.
 - Content hierarchy: `course → module → chapter → lesson → lesson_contents / quizzes → quiz_options`.
 - Roles: `LEARNER`, `INSTRUCTOR`, `ADMIN`. Ownership checked per resource via repository `getInstructor()` joins.
@@ -38,7 +38,7 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 | Validation | `backend/src/modules/<module>/validation.js` + builders in `backend/src/common/validation.js` |
 | Middleware | `backend/src/common/middleware/` |
 | App wiring | `backend/src/app/app.js` |
-| DB schema + migrations | `backend/src/db/schema.sql`, `backend/src/db/migrations/` |
+| DB schema + migrations | `backend/src/db/migrations/` (source of truth) |
 | Env config | `backend/src/config/environment.js` |
 | Query builder | `backend/src/common/query/advanced-query.js` |
 | Learner routes | `frontend/src/app/router.jsx` |
@@ -55,7 +55,7 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 2. Live DB only: legacy `lesson_content*` child object names remain alongside the canonical ones (harmless).
 3. Backend cross-module calls still import other modules' repositories (BM-1).
 
-Schema drift and the former auth/validation gaps are resolved (migrations `0001`–`0011`, security hardening). Full detail: `docs/04-design/database-design.md` §9 and `docs/04-design/security.md` §11.
+Schema drift and the former auth/validation gaps are resolved. The schema is now a CREATE-only migration baseline (`0001`–`0011`). Full detail: `docs/04-design/database-design.md` §9 and `docs/04-design/security.md` §11.
 
 ## Commands
 

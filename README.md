@@ -52,7 +52,7 @@ The main goal is to combine a clean learning UI with a scalable backend/domain m
 ### Database / Infrastructure
 
 - PostgreSQL (UUID-based primary keys via `pgcrypto`)
-- SQL schema defined in `backend/src/db/schema.sql`
+- SQL schema defined by the CREATE-only migrations in `backend/src/db/migrations/`
 - Environment-variable based configuration in `backend/src/config/environment.js`
 
 ## Backend Explanation
@@ -63,7 +63,7 @@ The backend follows a layered, module-based pattern under `backend/src/`:
 - **Modules** (`backend/src/modules/<module>/`): each domain owns its `routes.js`, `controller.js`, `service.js`, `repository.js`, and `validation.js`.
 - **Common** (`backend/src/common/`): shared middleware, errors, query builder, services, validation builders, and logger.
 - **Config** (`backend/src/config/`): environment, pg pool (+ `withTransaction`), Cloudinary, Stripe.
-- **DB** (`backend/src/db/`): `schema.sql` baseline + `migrations/` and the `migrate.js` runner.
+- **DB** (`backend/src/db/`): `migrations/` (schema source of truth) and the `migrate.js` runner; optional sample data in `seeds/`.
 
 Modules: auth, users, categories, courses, content, learning, reviews, certificates, subscriptions, admin, instructor.
 
@@ -150,7 +150,7 @@ Every page uses TanStack React Query hooks that wrap centralized API services th
 
 ## Database Design (Table List)
 
-Defined in `backend/src/db/schema.sql`.
+Defined by the CREATE-only migrations in `backend/src/db/migrations/`.
 
 ### Identity & User
 
@@ -286,7 +286,7 @@ Create environment files for backend and frontend.
 
 ### 3. Set up the database
 
-For a fresh database, run `backend/src/db/schema.sql`. For an existing database, apply migrations:
+Run the migrations to create or upgrade the schema (an empty database is built from scratch):
 
 ```bash
 cd backend

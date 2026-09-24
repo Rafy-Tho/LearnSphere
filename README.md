@@ -219,8 +219,6 @@ Defined by the CREATE-only migrations in `backend/src/db/migrations/`.
 - Enum types: `user_role`, `user_status`, `course_level`, `content_status`, `payout_status`, `lesson_type`, `subscription_status`, `payment_status`, `discount_type`, `refund_status`, `checkout_order_status`, `refund_request_status`, `access_course_type`, `gender`, `user_activity_type`
 - Trigger function: `set_updated_at()` used by update triggers on many tables
 
-### ERD Diagram
-
 ## How Things Flow (End-to-End)
 
 ### 1) Authentication Flow
@@ -344,8 +342,6 @@ npm run dev
 ```
 
 ### Project Preview
-
-   <img src="image-1.png" alt="Description" >
 
 - Link: [Visit LearnSphere](https://learnshpere.rafytho.com/)
 

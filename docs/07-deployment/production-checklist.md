@@ -9,7 +9,7 @@ Use this checklist before and after each production release.
 - [ ] `DATABASE_URL` points to the production database with SSL as required.
 - [ ] `CLIENT_URL_1` and `CLIENT_URL_2` are exact HTTPS production origins (no wildcards).
 - [ ] Stripe keys are production/live keys; `STRIPE_WEBHOOK_SECRET` matches the live endpoint.
-- [ ] Cloudinary and Brevo credentials are production credentials.
+- [ ] Cloudinary and Hostinger Mail credentials are production credentials.
 - [ ] Google OAuth (if enabled): production `GOOGLE_CALLBACK_URL` is registered in Google Cloud Console and matches exactly.
 - [ ] No secrets are committed; `.env` files are gitignored.
 - [ ] Frontend builds use the production `VITE_BASE_URL`.
@@ -30,12 +30,12 @@ Use this checklist before and after each production release.
 - [ ] `trust proxy` enabled and the proxy forwards `X-Forwarded-Proto`.
 - [ ] Session cookie is `Secure`, `HttpOnly`, `SameSite=None`.
 - [ ] CORS allowlist verified from a disallowed origin.
-- [ ] Global rate limiting active; consider enabling `loginLimiter`.
+- [ ] Global + login + code-attempt rate limiters active (incl. per-account lockout).
 - [ ] Security headers added (recommend `helmet`).
 - [ ] DOMPurify sanitization active for lesson content.
 - [ ] Upload type/size limits enforced.
 - [ ] Stripe webhook signature verification active.
-- [ ] Known gaps reviewed: option POST authorization, missing option validators, `is_correct` exposure, no CSRF token.
+- [ ] Hardening regression pass: CSRF guard, validators, quiz-option authorization, `is_correct` hidden, session invalidation, helmet headers (see `security.md` §11).
 - [ ] Dependencies audited (`npm audit`) and patched.
 
 ## 4. Build & Deploy
@@ -68,7 +68,7 @@ Use this checklist before and after each production release.
 
 - [ ] Uptime monitoring on an API endpoint.
 - [ ] Error tracking configured (e.g. Sentry) — currently absent.
-- [ ] Structured request logging in production — currently only Morgan in dev.
+- [ ] Structured request logging active in all environments (`request-logger.js`).
 - [ ] Alerts for 5xx spikes and webhook failures.
 - [ ] Database connection/error logs monitored.
 - [ ] Payment webhook delivery monitored in Stripe.
@@ -78,7 +78,7 @@ Use this checklist before and after each production release.
 - [ ] Database indexes reviewed for list/dashboard queries (see `database-design.md` §9).
 - [ ] Static assets compressed and cached.
 - [ ] Query pagination limits enforced.
-- [ ] React Query caching defaults reviewed (client currently has no global defaults).
+- [ ] React Query defaults reviewed (staleTime 5m, gcTime 30m) where set.
 
 ## 8. Compliance & Data
 

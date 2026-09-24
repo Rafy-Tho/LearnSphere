@@ -11,7 +11,7 @@ The platform deploys as three components:
 | Admin dashboard | Static build (`admin/dist`) | Static host / CDN |
 | Database | Managed PostgreSQL | External service |
 
-The README references a live deployment of LearnSphere on Render: `https://learning-online-platform-pern.onrender.com/`.
+The README links to a live deployment of LearnSphere at `https://learnshpere.rafytho.com/`.
 
 ## 2. Build Commands
 

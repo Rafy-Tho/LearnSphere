@@ -22,7 +22,8 @@ flowchart TB
   DB[(PostgreSQL)]
   STRIPE[Stripe]
   CLOUD[Cloudinary]
-  BREVO[Brevo]
+  MAIL[Hostinger Mail]
+  GOOG[Google OAuth]
 
   LF -->|fetch + cookie| APP
   AF -->|fetch + cookie| APP
@@ -34,7 +35,8 @@ flowchart TB
   CFG --> DB
   CTRL --> STRIPE
   CTRL --> CLOUD
-  SVC --> BREVO
+  SVC --> MAIL
+  SVC --> GOOG
   STRIPE -->|webhook| APP
 ```
 
@@ -131,7 +133,7 @@ flowchart TB
     PG[(PostgreSQL)]
     CL[Cloudinary]
     ST[Stripe]
-    BR[Brevo]
+    HM[Hostinger Mail]
   end
   Browser -->|HTTPS| FE
   Browser -->|HTTPS| AD
@@ -140,7 +142,7 @@ flowchart TB
   API --> PG
   API --> CL
   API --> ST
-  API --> BR
+  API --> HM
   ST -->|webhook| API
 ```
 

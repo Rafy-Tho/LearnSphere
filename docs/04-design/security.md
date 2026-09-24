@@ -52,8 +52,8 @@ Rate-limit exhaustion returns HTTP 429.
 
 - All secrets come from environment variables via `backend/src/config/environment.js`.
 - `.env` files are gitignored at the repo root; no env files are tracked.
-- Required variables: `PORT`, `NODE_ENV`, `DATABASE_URL`, `SESSION_SECRET`, `COOKIE_NAME`, `CLIENT_URL_1`, `CLIENT_URL_2`, `BREVO_API_KEY`, `SENDER_EMAIL`, `CLOUDINARY_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_SECRET_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
-- Optional variables: `TRUST_PROXY`, and Google OAuth (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`). When unset, the OAuth routes report not-configured instead of blocking boot.
+- Required variables: `PORT`, `NODE_ENV`, `DATABASE_URL`, `SESSION_SECRET`, `COOKIE_NAME`, `CLIENT_URL_1`, `CLIENT_URL_2`, `HOSTINGER_MAIL_API_KEY`, `HOSTINGER_MAIL_MAILBOX_ID`, `CLOUDINARY_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_SECRET_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+- Optional variables: `TRUST_PROXY`, `HOSTINGER_MAIL_DISPLAY_NAME`, `HOSTINGER_MAIL_API_URL`, `REFUND_WINDOW_DAYS`, and Google OAuth (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL`). When unset, the OAuth routes report not-configured instead of blocking boot.
 - Frontends only receive `VITE_BASE_URL` (public). `GOOGLE_CLIENT_SECRET` is server-only and never sent to the browser.
 
 **Rules:** never commit `.env`, never log secrets, never expose server-only keys to Vite (`VITE_*` is bundled into the client).

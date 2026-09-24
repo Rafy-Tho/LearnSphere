@@ -2,17 +2,17 @@
 
 ## 1. What This Project Is
 
-**Learning Online Platform (PERN)** is a full-stack online learning platform that delivers structured courses end to end. It combines a learner-facing React SPA, an administrator dashboard SPA, and a single Express/PostgreSQL REST API.
+**LearnSphere (PERN)** is a full-stack online learning platform that delivers structured courses end to end. It combines a learner-facing React SPA, an administrator dashboard SPA, and a single Express/PostgreSQL REST API.
 
 The platform supports:
 
-- Session-based authentication (cookie sessions persisted in PostgreSQL).
+- Session-based authentication (cookie sessions persisted in PostgreSQL), email verification, and Google OAuth.
 - Course discovery, filtering, and enrollment.
 - A content hierarchy of **course → module → chapter → lesson → content / quiz → option**.
-- Lesson progress tracking, XP, lesson completion, and certificates.
+- Lesson progress tracking, XP, lesson completion, certificates, saved courses, and an activity feed.
 - Course reviews with helpful votes and reporting.
-- Subscription plans with Stripe-powered checkout and webhook confirmation.
-- An admin dashboard for managing users, courses, subscriptions, and payments.
+- Subscription plans with coupons, Stripe-powered checkout, webhook confirmation, and refund requests.
+- An admin dashboard for managing users, courses, subscriptions, payments, and instructor payouts.
 
 ## 2. Goals
 
@@ -49,7 +49,7 @@ Both frontends talk to the same backend API and share the same cookie-based sess
 - `bcrypt` (password hashing)
 - `multer` (file upload) + Cloudinary (media storage)
 - Stripe SDK (payments)
-- Brevo REST API (transactional email)
+- Hostinger Mail API (transactional email); `openid-client` (Google OAuth)
 - `isomorphic-dompurify` (HTML sanitization)
 
 ### Learner Frontend
@@ -94,12 +94,12 @@ Both frontends talk to the same backend API and share the same cookie-based sess
                                   |   Express 5      |
                                   +--------+---------+
                                            |
-             +-----------------+-----------+-----------+-----------------+
-             |                 |                       |                 |
-       +-----v-----+    +------v------+        +-------v------+   +------v------+
-       | PostgreSQL|    |  Cloudinary |        |    Stripe    |   |    Brevo    |
-       |  (data +  |    |  (images)   |        |  (payments)  |   |   (email)   |
-       | sessions) |    +-------------+        +--------------+   +-------------+
+             +-----------------+-----------+-----------+-----------------+-----------------+
+             |                 |                       |                 |                 |
+       +-----v-----+    +------v------+        +-------v------+   +------v------+   +-------v-------+
+       | PostgreSQL|    |  Cloudinary |        |    Stripe    |   |   Hostinger |   |  Google OAuth |
+       |  (data +  |    |  (images)   |        |  (payments)  |   |  Mail (email)|  |  (openid)     |
+       | sessions) |    +-------------+        +--------------+   +-------------+   +---------------+
        +-----------+
 ```
 

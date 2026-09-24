@@ -4,7 +4,7 @@
 
 ## 1. Overview
 
-The platform is a three-tier application: two React SPAs (learner + admin) communicating over HTTP with a single stateless-in-process, session-backed Express API that owns a PostgreSQL database and integrates with three external services.
+The platform is a three-tier application: two React SPAs (learner + admin) communicating over HTTP with a single stateless-in-process, session-backed Express API that owns a PostgreSQL database and integrates with external services (Cloudinary, Stripe, Hostinger Mail API, and optional Google OAuth).
 
 ```text
 +-------------------+        +-------------------+
@@ -26,11 +26,13 @@ The platform is a three-tier application: two React SPAs (learner + admin) commu
    |Postgres |    |Cloudinary |   |  Stripe   |
    | +session|    |  images   |   | payments  |
    +---------+    +-----------+   +-----------+
-                        |
-                   +----v----+
-                   |  Brevo  |
-                   |  email  |
-                   +---------+
+        |                          
+        |        +---------------+----------------+
+        |        |               |                |
+   +----v----+   +-----v-----+   +-----v------+
+   |Hostinger|   |   Google  |...
+   |  email  |   |  OAuth    |
+   +---------+   +-----------+
 ```
 
 ## 2. Backend Architecture
@@ -80,13 +82,13 @@ flowchart LR
 2. `app.set("trust proxy", ...)` (configurable via `TRUST_PROXY`).
 3. Helmet security headers.
 4. CORS (credentials + allowed origins).
-5. **Stripe webhook router** — mounted before body parsers so it can read the raw body.
-6. CSRF guard (JSON-only + `X-Requested-With`).
+5. **Stripe webhook router** — mounted before body parsers so it can read the raw body (also exempt from the global rate limiter).
+6. CSRF guard (JSON/multipart + `X-Requested-With`).
 7. `express.json()` (JSON only; `urlencoded` intentionally unsupported).
-8. Morgan logging (development only).
-9. `globalLimiter`.
-10. `sessionMiddleware` (`session-middleware.js`).
-11. Session idle timeout.
+8. `globalLimiter`.
+9. `sessionMiddleware` (`session-middleware.js`).
+10. Session idle timeout.
+11. Request logger (`request-logger.js`; after session so the authenticated user id is available).
 12. Feature routers (mounted in `backend/src/app/routes.js`).
 13. `notFoundUrl` (404).
 14. `errorHandler`.
@@ -117,7 +119,8 @@ Repositories are singleton classes holding raw parameterized SQL. List endpoints
 
 ### 3.1 Composition
 
-- `frontend/src/main.jsx` → `app/providers.jsx` (`QueryClientProvider` → `ThemeProvider` → `AuthProvider`) → `app/App.jsx`.
+- `frontend/src/main.jsx` mounts `app/App.jsx` inside `QueryClientProvider` (devtools in dev).
+- `app/App.jsx` renders `app/providers.jsx` (`ThemeProvider` → `AuthProvider`) then `BrowserRouter`.
 - `app/router.jsx` defines public routes, protected routes (`app/guards/`), and a separate learning layout.
 
 ### 3.2 State Management
@@ -143,7 +146,7 @@ Repositories are singleton classes holding raw parameterized SQL. List endpoints
 
 The admin SPA uses feature-based architecture parallel to the learner frontend:
 
-- **App layer:** `app/` contains providers (QueryClient → AuthProvider → Router), guards (RequireAuth, RedirectIfAuthenticated), and route definitions (`app/router.jsx`). Entry is `app/App.jsx`.
+- **App layer:** `app/` contains providers (QueryClient → Tooltip → Toaster → AuthProvider → Router), guards (RequireAuth, RedirectIfAuthenticated, RequireRole), and route definitions (`app/router.jsx`). Entry is `app/App.jsx`.
 - **Features:** Each domain lives in `features/<domain>/` (auth, dashboard, categories, users, courses, subscriptions, instructor, payouts) with subfolders: `pages/`, `components/`, `hooks/`, `services/`.
 - **Role-gated instructor workspace:** `features/instructor/` + course-detail tabs (`students`/`analytics`/`reviews`/`certificates`) reuse the admin app. `RequireRole` guards routes; `constants/navItems.js` filters navigation by `user.role`; the backend scopes every instructor read by `courses.instructor_id`.
 - **Data flow:** Page → Feature Component → Hook (useQuery/useMutation) → Service → `lib/apiClient.js` → Backend (`/api/v1/*`).
@@ -159,11 +162,11 @@ The admin SPA uses feature-based architecture parallel to the learner frontend:
 | Authentication | Cookie session (`express-session` + `connect-pg-simple`) |
 | Authorization | `requireAuth` + `authorize(...roles)` + per-resource ownership joins |
 | Validation | `express-validator` schemas + `validateResult` (422) |
-| Rate limiting | Global + password-reset + code-attempt limiters + per-account lockout |
+| Rate limiting | Global + login + password-reset + code-attempt + email-verification limiters + per-account lockout |
 | File upload | `multer` disk storage → Cloudinary → local cleanup |
 | Sanitization | `isomorphic-dompurify` on input; DOMPurify on render |
 | Error handling | Central `errorHandler` with pg SQLSTATE mapping |
-| Logging | Morgan (development) + structured `logger` / `logger.audit` |
+| Logging | Request logger + structured `logger` / `logger.audit` |
 | CORS | Allowlist of two client origins with credentials |
 | Pagination | `AdvancedQuery` + `pagination` metadata |
 
@@ -174,9 +177,8 @@ The admin SPA uses feature-based architecture parallel to the learner frontend:
 | PostgreSQL | Primary data + sessions | `DATABASE_URL` | `config/database.js` |
 | Stripe | Checkout + webhook | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | `modules/subscriptions/*` |
 | Cloudinary | Image hosting | `CLOUDINARY_*` | `config/cloudinary.js`, `modules/users/*` |
-| Brevo | Transactional email | `BREVO_API_KEY`, `SENDER_EMAIL` | `common/services/email-service.js` |
-
-> Note: `nodemailer` and `resend` are listed as dependencies but are not used; email is sent via the Brevo REST API.
+| Hostinger Mail API | Transactional email | `HOSTINGER_MAIL_API_KEY`, `HOSTINGER_MAIL_MAILBOX_ID`, `HOSTINGER_MAIL_DISPLAY_NAME`, `HOSTINGER_MAIL_API_URL` | `common/services/email-service.js` |
+| Google OAuth | Social sign-in (optional) | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_CALLBACK_URL` | `modules/auth/*`, `config/google-oauth.js` |
 
 ## 7. Deployment Topology
 

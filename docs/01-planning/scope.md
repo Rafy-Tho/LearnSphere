@@ -1,6 +1,6 @@
 # Scope
 
-This document defines what the Learning Online Platform does and does not cover in its current implementation.
+This document defines what LearnSphere does and does not cover in its current implementation.
 
 ## 1. Scope Summary
 
@@ -10,8 +10,8 @@ The platform is an end-to-end online course delivery system. It covers user iden
 
 ### 2.1 Identity & Access
 
-- Email/password registration and login.
-- Cookie-based sessions stored in PostgreSQL (30-day rolling).
+- Email/password registration and login, plus email verification (6-digit OTP) and Google OAuth.
+- Cookie-based sessions stored in PostgreSQL (30-day rolling + 24h idle timeout).
 - Roles: `LEARNER`, `INSTRUCTOR`, `ADMIN`.
 - User statuses: `ACTIVE`, `INACTIVE`, `SUSPENDED`.
 - Profile management (bio, location, phone, birth date, gender, avatar).
@@ -30,10 +30,12 @@ The platform is an end-to-end online course delivery system. It covers user iden
 ### 2.3 Learning Experience
 
 - Course browsing, search, and filtering (level, category/skill, rating, duration, free/paid).
-- Enrollment (free or subscription-gated).
+- Enrollment (free or subscription-gated) and saved courses.
 - Learning player with sidebar navigation and next/previous progression.
 - Learning progress tracking (current lesson per course).
 - Lesson completion with XP and time spent.
+- Server-graded quiz attempts with history/best lookup.
+- Activity feed and XP transactions.
 - Certificates: eligibility check, claim, list, and view.
 
 ### 2.4 Feedback
@@ -43,9 +45,11 @@ The platform is an end-to-end online course delivery system. It covers user iden
 
 ### 2.5 Monetization
 
-- Subscription plans (name, duration in days, price).
-- Stripe Checkout session creation.
-- Stripe webhook handling (`checkout.session.completed`) to activate subscriptions and record payments.
+- Subscription plans (name, duration in days, price, features).
+- Coupons (`PERCENTAGE`/`FIXED_AMOUNT`) with one-time codes and usage limits.
+- Prepaid checkout orders (30-min expiry) → Stripe Checkout session creation.
+- Stripe webhook handling (`checkout.session.completed`), with event idempotency, to activate subscriptions and record payments.
+- Learner refund requests (within `REFUND_WINDOW_DAYS`, default 14) and admin-issued Stripe refunds.
 - One active subscription per user (enforced by a partial unique index).
 
 ### 2.6 Administration
@@ -75,7 +79,7 @@ The following are **not** implemented:
 | Automated tests | No test framework or test files exist in any app. |
 | Database seeds | Optional sample data in `backend/src/db/seeds/`; schema defined by CREATE-only migrations. |
 | CI/CD pipelines | No CI config in the repository. |
-| Social OAuth login | Buttons exist in the UI, but no backend OAuth flow. |
+| Social OAuth beyond Google | Only Google OAuth (via `openid-client`) is implemented. |
 | Video hosting/streaming | Lessons are text/HTML and quizzes; no video pipeline. |
 | Discussion forums / Q&A threads | Not present. |
 | Separate instructor app | Instructors use a role-gated area of the admin app; there is no fourth SPA. |
@@ -97,7 +101,7 @@ The following are **not** implemented:
 ## 5. Assumptions
 
 - A single PostgreSQL database backs the API and session store.
-- Stripe, Cloudinary, and Brevo credentials are provisioned by the operator.
+- Stripe, Cloudinary, and Hostinger Mail API credentials (and optionally Google OAuth) are provisioned by the operator.
 - Both frontends are served from origins allowed by CORS.
 - Learners have modern browsers with cookie support.
 
@@ -111,8 +115,7 @@ The following are **not** implemented:
 ## 7. Future / Candidate Scope
 
 - Automated test suites and CI.
-- Migration tooling and seed data.
-- OAuth social sign-in.
+- Additional social login providers.
 - Video lessons and richer media.
 - Per-course checkout and accurate instructor revenue accounting.
 - Certificate PDF export and verification.

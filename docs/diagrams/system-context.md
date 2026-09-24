@@ -4,7 +4,7 @@ The system context shows the platform, its actors, and external services.
 
 ```mermaid
 C4Context
-  title System Context - Learning Online Platform
+  title System Context - LearnSphere
 
   Person(guest, "Guest", "Unauthenticated visitor")
   Person(learner, "Learner", "Registered student")
@@ -18,7 +18,8 @@ C4Context
 
   System_Ext(stripe, "Stripe", "Checkout and payment webhooks")
   System_Ext(cloudinary, "Cloudinary", "Profile image storage")
-  System_Ext(brevo, "Brevo", "Transactional email")
+  System_Ext(mail, "Hostinger Mail API", "Transactional email")
+  System_Ext(google, "Google OAuth", "Social sign-in (openid-client)")
 
   Rel(guest, learnerApp, "Browses, registers, logs in", "HTTPS")
   Rel(learner, learnerApp, "Learns, quizzes, reviews, subscribes", "HTTPS")
@@ -32,7 +33,8 @@ C4Context
   Rel(api, stripe, "Create Checkout Session", "HTTPS")
   Rel(stripe, api, "Webhook events", "HTTPS")
   Rel(api, cloudinary, "Upload images", "HTTPS")
-  Rel(api, brevo, "Send email", "HTTPS")
+  Rel(api, mail, "Send email", "HTTPS")
+  Rel(api, google, "OAuth authorization + token/certs", "HTTPS")
 ```
 
 ## Actors
@@ -51,7 +53,8 @@ C4Context
 | PostgreSQL | Bidirectional | Data persistence and session storage |
 | Stripe | Outbound (checkout) + inbound (webhook) | Payment processing |
 | Cloudinary | Outbound | Profile image storage |
-| Brevo | Outbound | Welcome, reset-code, and payment emails |
+| Hostinger Mail API | Outbound | Welcome, verification, reset-code, and payment emails |
+| Google OAuth | Inbound (redirect callback) | Social sign-in |
 
 ## Trust Boundaries
 
@@ -72,7 +75,7 @@ flowchart TB
   FE -->|HTTPS + cookie| API
   S -->|signed webhook| API
   API -->|TLS SQL| DB
-  API -->|HTTPS| EXT[Cloudinary / Brevo]
+  API -->|HTTPS| EXT[Cloudinary / Hostinger Mail]
 ```
 
 Notes:

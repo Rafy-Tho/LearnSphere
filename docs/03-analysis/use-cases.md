@@ -1,6 +1,6 @@
 # Use Cases
 
-Use cases describe interactions between actors and the system. Actors: **Guest**, **Learner**, **Instructor**, **Admin**, and external systems (**Stripe**, **Cloudinary**, **Brevo**).
+Use cases describe interactions between actors and the system. Actors: **Guest**, **Learner**, **Instructor**, **Admin**, and external systems (**Stripe**, **Cloudinary**, **Hostinger Mail**).
 
 ## 1. Actor Overview
 
@@ -12,7 +12,7 @@ Use cases describe interactions between actors and the system. Actors: **Guest**
 | Admin | Platform administrator | Session cookie |
 | Stripe | Payment processor (checkout + webhook) | Signature |
 | Cloudinary | Image storage | API credentials |
-| Brevo | Transactional email | API key |
+| Hostinger Mail | Transactional email | API key |
 
 ## 2. Use Case Catalog
 
@@ -237,7 +237,7 @@ graph TD
   Admin --> UC21[Review Courses]
   Admin --> UC22
   UC13 --> Stripe
-  UC01 --> Brevo
-  UC13 --> Brevo
+  UC01 --> Hostinger
+  UC13 --> Hostinger
   UC05 --> Cloudinary
 ```

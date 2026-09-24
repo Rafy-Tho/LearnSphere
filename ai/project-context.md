@@ -10,7 +10,7 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 
 | App | Path | Stack |
 |---|---|---|
-| Backend API | `backend/` | Node 22 (ESM), Express 5, `pg` (raw SQL), express-session, Stripe, Cloudinary, Brevo |
+| Backend API | `backend/` | Node 22 (ESM), Express 5, `pg` (raw SQL), express-session, Stripe, Cloudinary, Hostinger Mail API, `openid-client` (Google OAuth) |
 | Learner frontend | `frontend/` | React 19, Vite 7, React Router 7, TanStack Query 5, Tailwind 4, RHF+Zod |
 | Admin dashboard | `admin/` | React 19, Vite 7, TanStack Query 5, Tailwind 3, shadcn/Radix |
 
@@ -21,16 +21,16 @@ A PERN-stack e-learning platform monorepo with three apps sharing one Express/Po
 - API base: `/api/v1`. Response envelope: `{ success, statusCode, message, data }` (+ `pagination` on lists).
 - DB: PostgreSQL, UUID PKs via `pgcrypto`. Schema is defined entirely by the CREATE-only migrations in `backend/src/db/migrations/` (38 tables, 15 enums; runner `npm run db:migrate`). There is no `schema.sql`.
 - No ORM, no seeds, no tests, no CI.
-- Content hierarchy: `course → module → chapter → lesson → lesson_contents / quizzes → quiz_options`.
+- Content hierarchy: `course → module → chapter → lesson → lesson_contents / quizzes → quiz_options`; plus server-graded quiz attempts, saved courses, and an activity + XP feed.
 - Roles: `LEARNER`, `INSTRUCTOR`, `ADMIN`. Ownership checked per resource via repository `getInstructor()` joins.
 - Instructor workspace: `backend/src/modules/instructor/` (`/api/v1/instructor/*`) + role-gated area of the `admin/` SPA. Course lifecycle is `DRAFT → PENDING → PUBLISHED/REJECTED` (admin approves); instructor earnings are estimated from a configurable revenue-share (`platform_settings`).
-- Payments: Stripe Checkout + webhook at `/api/v1/webhooks/stripe` (mounted before body parsers for raw-body signature verification).
+- Payments: prepaid billing via `checkout_orders` (30-min expiry) → Stripe Checkout; webhook at `/api/v1/webhooks/stripe` (mounted before body parsers for raw-body signature verification) with event idempotency (`stripe_webhook_events`) and a reconciliation script (`npm run billing:reconcile`). Coupons (`coupon_reservations`) and refund requests (`REFUND_WINDOW_DAYS`, default 14) supported.
 
 ## Where Things Live
 
 | Need | Location |
 |---|---|
-| Modules | `backend/src/modules/` — auth, users, categories, courses, content, learning, reviews, saved-courses, certificates, subscriptions, admin, instructor |
+| Modules | `backend/src/modules/` — auth, users, categories, courses, content, learning, quiz, reviews, saved-courses, certificates, subscriptions, admin, instructor |
 | Route definitions | `backend/src/modules/<module>/routes.js`; mounted in `backend/src/app/routes.js` |
 | Business logic | `backend/src/modules/<module>/service.js` |
 | SQL | `backend/src/modules/<module>/*.repository.js` |

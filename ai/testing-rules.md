@@ -22,7 +22,7 @@ Rules:
 
 - Add a `test` script to the relevant `package.json`.
 - Keep tests hermetic: no production services, no shared state between tests.
-- Use test-mode/sandbox credentials for Stripe, Cloudinary, and Brevo, or mock them.
+- Use test-mode/sandbox credentials for Stripe, Cloudinary, and Hostinger Mail, or mock them.
 - Clean up created rows.
 
 ## 4. What Must Be Tested

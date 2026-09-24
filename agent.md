@@ -6,11 +6,11 @@ Entry point for AI coding agents working in this repository. Read this first, th
 
 ## 1. What This Project Is
 
-**Learning Online Platform (PERN)** — a full-stack e-learning platform with three apps sharing one Express/PostgreSQL API:
+**LearnSphere (PERN)** — a full-stack e-learning platform with three apps sharing one Express/PostgreSQL API:
 
 | App | Path | Stack |
 |---|---|---|
-| Backend API | `backend/` | Node 22 (ESM), Express 5, `pg` (raw SQL), express-session, Stripe, Cloudinary, Brevo |
+| Backend API | `backend/` | Node 22 (ESM), Express 5, `pg` (raw SQL), express-session, express-validator/helmet, Stripe, Cloudinary, Hostinger Mail API, `openid-client` (Google OAuth) |
 | Learner frontend | `frontend/` | React 19, Vite 7, React Router 7, TanStack Query 5, Tailwind 4, RHF + Zod |
 | Admin dashboard | `admin/` | React 19, Vite 7, TanStack Query 5, Tailwind 3, shadcn/Radix |
 

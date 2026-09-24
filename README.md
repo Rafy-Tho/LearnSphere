@@ -1,6 +1,6 @@
-# Learning Online Platform (PERN)
+# LearnSphere
 
-Learning Online Platform is a full-stack web application for delivering structured online courses with authentication, enrollment, progress tracking, quizzes, reviews, and subscription payments.
+LearnSphere is a full-stack web application for delivering structured online courses with authentication, enrollment, progress tracking, quizzes, reviews, and subscription payments.
 
 > **Progress:** the backend is module-based (`app/`, `config/`, `db/`, `common/`, `modules/`) and hardened; the learner frontend and admin refactors are complete. See [`docs/progress/`](./docs/progress/).
 
@@ -20,21 +20,23 @@ The main goal is to combine a clean learning UI with a scalable backend/domain m
 - **Frontend:** React SPA (Vite) that handles UI, routing, user interaction, and API calls.
 - **Backend:** Express API server with modular routes/controllers/repositories.
 - **Database:** PostgreSQL with a relational schema for users, courses, lessons, enrollments, progress, subscriptions, and reviews.
-- **Auth Session:** Cookie-based session auth using `express-session` + PostgreSQL session store.
-- **Third-party services:** Stripe (payments), Cloudinary (media upload), Brevo (email flows).
+- **Auth Session:** Cookie-based session auth using `express-session` + PostgreSQL session store, plus email verification and Google OAuth.
+- **Third-party services:** Stripe (payments), Cloudinary (media upload), Hostinger Mail API (email flows).
 
 ## Tech Stack
 
 ### Frontend
 
 - React 19
-- React Router DOM
-- TanStack React Query
+- React Router DOM 7
+- TanStack React Query 5
 - React Hook Form + Zod
 - Tailwind CSS 4
 - Vite
 - React Toastify
 - Swiper
+- Lucide React
+- DOMPurify
 
 ### Backend
 
@@ -43,11 +45,14 @@ The main goal is to combine a clean learning UI with a scalable backend/domain m
 - `express-session` + `connect-pg-simple`
 - `express-validator`
 - `express-rate-limit`
+- `helmet`
 - `bcrypt`
 - `multer`
 - Cloudinary SDK
 - Stripe SDK
-- Brevo REST API
+- Hostinger Mail API (transactional email)
+- `openid-client` (Google OAuth)
+- `isomorphic-dompurify` (sanitization)
 
 ### Database / Infrastructure
 
@@ -65,21 +70,21 @@ The backend follows a layered, module-based pattern under `backend/src/`:
 - **Config** (`backend/src/config/`): environment, pg pool (+ `withTransaction`), Cloudinary, Stripe.
 - **DB** (`backend/src/db/`): `migrations/` (schema source of truth) and the `migrate.js` runner; optional sample data in `seeds/`.
 
-Modules: auth, users, categories, courses, content, learning, reviews, certificates, subscriptions, admin, instructor.
+Modules: auth, users, categories, courses, content, learning, reviews, saved-courses, certificates, quiz, subscriptions, admin, instructor.
 
 Core API surface under `/api/v1`:
 
-- `/auth/*`, `/users/*`, `/users/me/{courses,certificates,subscription}`
-- `/categories`, `/courses`, `/objectives`, `/plans`, `/subscriptions`, `/certificates`, `/reviews`
-- Content: `/courses/:courseId/modules`, `/modules/:moduleId/chapters`, `/chapters/:chapterId/lessons`, `/lessons/:lessonId/{contents,questions,quiz-submissions}`, `/questions/:questionId/options` (plus top-level item routes)
-- Admin: `/admin/{dashboard,courses,users,plans,subscriptions,payments,settings,instructor-payouts}`
+- `/auth/*`, `/users/*`, `/users/me/{courses,saved-courses,certificates,activities,xp,subscription,payments,refund-requests}`
+- `/categories`, `/courses`, `/objectives`, `/plans`, `/subscriptions`, `/coupons`, `/certificates`, `/reviews`
+- Content: `/courses/:courseId/modules`, `/modules/:moduleId/chapters`, `/chapters/:chapterId/lessons`, `/lessons/:lessonId/{contents,questions,quiz-submissions,quiz-attempts,completions,start}`, `/questions/:questionId/options` (plus top-level item routes)
+- Admin: `/admin/{dashboard,users,courses,plans,subscriptions,payments,refund-requests,refunds,coupons,billing,settings,instructor-payouts}`
 - Instructor: `/instructor/{dashboard,earnings,payouts,courses/:courseId/{students,analytics,reviews,certificates,submit}}`
 - Webhook: `/webhooks/stripe`
 
 ### Backend Request Lifecycle
 
 1. Request enters the Express app (`backend/src/app/app.js`).
-2. Middleware runs in order: helmet, CORS, **Stripe webhook (raw body)**, CSRF guard, JSON parser, logging, rate limiter, session (+ idle timeout).
+2. Middleware runs in order: trust proxy, helmet, CORS, **Stripe webhook (raw body)**, CSRF guard, JSON parser, rate limiter, session (+ idle timeout), request logger.
 3. Route validators and auth middleware run.
 4. Controller executes business logic via the module service.
 5. Repository performs parameterized SQL via the pg pool.
@@ -98,12 +103,13 @@ The learner frontend is a React single-page app with a feature-based structure u
 
 Main user-facing flows include:
 
-- auth flow (signup/login/logout/password reset),
+- auth flow (signup/login/logout/email verification/Google login/password reset),
 - browsing courses and viewing details,
-- enrollment and learning route navigation,
-- lesson/quiz progression,
+- enrollment, saved courses, and learning route navigation,
+- lesson/quiz progression (server-graded quiz attempts with history),
+- activity & XP feed on the dashboard,
 - review creation and summary display,
-- subscription checkout success/cancel states.
+- subscription checkout with coupons, success/cancel states, billing tab, and refund requests.
 
 ## Admin Dashboard
 
@@ -140,8 +146,8 @@ The `admin/` directory is a separate React SPA (Vite 7, React 19, TanStack Query
 - **Instructor Dashboard** (`/`, instructor) — Ownership-scoped stats, recent enrollments, and recent reviews.
 - **Instructor Earnings** (`/earnings`, instructor) — Estimated revenue-share earnings, per-course breakdown, and payout history.
 - **My Courses** (`/courses`, instructor) — Own courses only; supports submit-for-review (`DRAFT`/`REJECTED` → `PENDING`) and cannot self-publish.
-- **Users / Instructors** (`/users`, `/instructors`) — The same `UsersPage` component filtered by role. Paginated table with create/edit modal (name, email, role, status ACTIVE/INACTIVE/SUSPENDED) and delete.
-- **Subscriptions** (`/subscriptions`) — Three tabs: Plans, User Subscriptions, and Payments, backed by `usePlans`, `useSubscriptions`, and `usePayments` hooks. Header stats show plan count, active subscriptions, and total revenue (sum of completed payments). Each tab supports CRUD modals and delete confirmation.
+- **Users / Instructors** (`/users`, `/instructors`) — The same `UsersPage` component filtered by role. Paginated table with create/edit modal (name, email, role, status ACTIVE/INACTIVE/SUSPENDED), set password, and delete.
+- **Subscriptions** (`/subscriptions`) — Six tabs: Plans, User Subscriptions, Payments, Refund Requests, Refunds, and Coupons, backed by `usePlans`, `useSubscriptions`, `usePayments`, `useRefunds`, and `useCouponsCrud` hooks. Header stats show plan count, active subscriptions, and total revenue (sum of completed payments). Each tab supports CRUD modals and delete confirmation.
 - **Profile** (`/profile`) — View account info (avatar, role, status, join date, last login), edit name/email, and change password.
 
 ### Data Access Pattern
@@ -157,6 +163,8 @@ Defined by the CREATE-only migrations in `backend/src/db/migrations/`.
 - `users`
 - `user_profiles`
 - `password_reset_codes`
+- `email_verification_codes`
+- `user_auth_providers`
 
 ### Catalog & Course Content
 
@@ -169,6 +177,8 @@ Defined by the CREATE-only migrations in `backend/src/db/migrations/`.
 - `lesson_contents`
 - `quizzes`
 - `quiz_options`
+- `quiz_attempts`
+- `quiz_answers`
 
 ### Enrollment & Learning Progress
 
@@ -176,12 +186,22 @@ Defined by the CREATE-only migrations in `backend/src/db/migrations/`.
 - `learn_progress`
 - `lesson_completion`
 - `certificates`
+- `saved_courses`
+- `user_activities`
+- `user_xp_transactions`
 
 ### Subscriptions & Payments
 
 - `subscription_plans`
 - `user_subscriptions`
+- `coupons`
+- `checkout_orders`
+- `coupon_reservations`
+- `coupon_redemptions`
 - `subscription_payments`
+- `payment_refunds`
+- `refund_requests`
+- `stripe_webhook_events`
 
 ### Reviews & Moderation
 
@@ -189,19 +209,18 @@ Defined by the CREATE-only migrations in `backend/src/db/migrations/`.
 - `review_helpful_votes`
 - `review_reports`
 
+### Instructor
+
+- `platform_settings`
+- `instructor_payouts`
+
 ### Supporting Types / Utilities
 
-- Enum types: `user_role`, `user_status`, `course_level`, `content_status`, `lesson_type`, `subscription_status`, `payment_status`, `access_course_type`, `gender`
+- Enum types: `user_role`, `user_status`, `course_level`, `content_status`, `payout_status`, `lesson_type`, `subscription_status`, `payment_status`, `discount_type`, `refund_status`, `checkout_order_status`, `refund_request_status`, `access_course_type`, `gender`, `user_activity_type`
 - Trigger function: `set_updated_at()` used by update triggers on many tables
 
 ### ERD Diagram
 
-  <img src="database.svg" alt="Description" >
-
-### ER Diagram
-
-  <img src="er-diagram.svg" alt="Description" >
-  
 ## How Things Flow (End-to-End)
 
 ### 1) Authentication Flow
@@ -258,40 +277,47 @@ git clone <your-repository-url>
 cd LEARNING_ONLINE_PLATFORM
 cd backend && npm install
 cd ../frontend && npm install
+cd ../admin && npm install
 ```
 
 ### 2. Configure environment variables
 
-Create environment files for backend and frontend.
+Create environment files for the backend, learner frontend, and admin. See `backend/.env.example` for the full reference.
 
 ### Backend variables (example names)
 
 - `PORT`
 - `NODE_ENV`
+- `TRUST_PROXY` (optional; default 1 trusted hop)
 - `DATABASE_URL`
 - `SESSION_SECRET`
 - `COOKIE_NAME`
-- `CLIENT_URL`
-- `BREVO_API_KEY`
-- `SENDER_EMAIL`
+- `CLIENT_URL_1` / `CLIENT_URL_2` (learner + admin origins)
+- `HOSTINGER_MAIL_API_KEY`
+- `HOSTINGER_MAIL_MAILBOX_ID`
+- `HOSTINGER_MAIL_DISPLAY_NAME` (optional)
+- `HOSTINGER_MAIL_API_URL` (optional)
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_CALLBACK_URL` (optional; enables Google login)
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
+- `REFUND_WINDOW_DAYS` (optional; default 14)
 - `CLOUDINARY_NAME`
 - `CLOUDINARY_API_KEY`
 - `CLOUDINARY_SECRET_KEY`
 
-### Frontend variables (example names)
+### Frontend / Admin variables (example names)
 
 - `VITE_BASE_URL` (example: `http://localhost:5000/api/v1`)
 
 ### 3. Set up the database
 
-Run the migrations to create or upgrade the schema (an empty database is built from scratch):
+Run the migrations to create the schema from scratch (CREATE-only baseline):
 
 ```bash
 cd backend
 npm run db:migrate   # apply pending migrations
 npm run db:status    # show applied migrations
+npm run db:seed      # optional sample data
 ```
 
 ### 4. Start development servers
@@ -303,10 +329,17 @@ cd backend
 npm run dev
 ```
 
-Frontend:
+Learner frontend:
 
 ```bash
 cd frontend
+npm run dev
+```
+
+Admin dashboard:
+
+```bash
+cd admin
 npm run dev
 ```
 
@@ -314,15 +347,18 @@ npm run dev
 
    <img src="image-1.png" alt="Description" >
 
-- Link: [Visit App](https://learning-online-platform-pern.onrender.com/)
+- Link: [Visit LearnSphere](https://learnshpere.rafytho.com/)
 
 ## Current Core Features
 
-- Session-based authentication
+- Session-based authentication with email verification and Google OAuth
 - Role-ready user model (`LEARNER`, `INSTRUCTOR`, `ADMIN`)
 - Course content hierarchy (course -> module -> chapter -> lesson)
-- Lesson and quiz support
-- Enrollment and learning progress tracking
+- Lesson and quiz support with server-graded quiz attempts and history
+- Enrollment, saved courses, and learning progress tracking
+- Activity & XP feed, certificates
 - Course reviews with moderation helpers
-- Subscription plans + Stripe payment integration
+- Subscription plans + coupons + Stripe payment integration
+- Refund requests and payout management
 - Dashboard views for recent, in-progress, and completed courses
+- Instructor workspace and admin billing/payouts console

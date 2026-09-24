@@ -17,7 +17,7 @@ PERN-stack e-learning platform with three apps sharing one Express/PostgreSQL AP
 
 | App | Path | Stack |
 |---|---|---|
-| Backend API | `backend/` | Node 22 (ESM), Express 5, `pg` (raw SQL), express-session, Stripe, Cloudinary, Brevo |
+| Backend API | `backend/` | Node 22 (ESM), Express 5, `pg` (raw SQL), express-session, Stripe, Cloudinary, Hostinger Mail API |
 | Learner frontend | `frontend/` | React 19, Vite 7, React Router 7, TanStack Query 5, Tailwind 4 |
 | Admin dashboard | `admin/` | React 19, Vite 7, TanStack Query 5, Tailwind 3, shadcn/Radix |
 

@@ -73,9 +73,9 @@ routes → validators → middlewares → controllers → services / repositorie
 
 ## 8. Integrations
 
-- Stripe, Cloudinary, and Brevo are accessed only from the backend.
+- Stripe, Cloudinary, and Hostinger Mail are accessed only from the backend.
 - Never expose server keys to the frontend. Only `VITE_*` variables are client-visible.
-- Email is sent via the Brevo REST API (`EmailService`); `nodemailer`/`resend` are unused.
+- Email is sent via the Hostinger Mail API (`EmailService`).
 
 ## 9. Do Not
 

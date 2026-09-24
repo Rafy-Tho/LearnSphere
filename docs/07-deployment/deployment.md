@@ -11,7 +11,7 @@ The platform deploys as three components:
 | Admin dashboard | Static build (`admin/dist`) | Static host / CDN |
 | Database | Managed PostgreSQL | External service |
 
-The README references a live deployment on Render: `https://learning-online-platform-pern.onrender.com/`.
+The README references a live deployment of LearnSphere on Render: `https://learning-online-platform-pern.onrender.com/`.
 
 ## 2. Build Commands
 
@@ -34,16 +34,20 @@ Set these on the backend host:
 |---|---|
 | `NODE_ENV` | `production` |
 | `PORT` | Usually provided by the host |
+| `TRUST_PROXY` | Trusted hop count/CIDRs (default 1) |
 | `DATABASE_URL` | Managed Postgres connection string (SSL as required) |
 | `SESSION_SECRET` | Long random secret |
 | `COOKIE_NAME` | Session cookie name |
 | `CLIENT_URL_1` | Learner frontend origin (https) |
 | `CLIENT_URL_2` | Admin dashboard origin (https) |
-| `BREVO_API_KEY` | Email |
-| `SENDER_EMAIL` | Verified sender |
+| `HOSTINGER_MAIL_API_KEY` | Hostinger Mail API token |
+| `HOSTINGER_MAIL_MAILBOX_ID` | Mailbox resource ID to send from |
+| `HOSTINGER_MAIL_DISPLAY_NAME` | Sender display name (optional) |
+| `HOSTINGER_MAIL_API_URL` | API base override (optional) |
 | `CLOUDINARY_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_SECRET_KEY` | Image hosting |
 | `STRIPE_SECRET_KEY` | Live or test secret key |
 | `STRIPE_WEBHOOK_SECRET` | Endpoint signing secret |
+| `REFUND_WINDOW_DAYS` | Learner refund window from payment date (default 14) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth client (optional; enables Google login) |
 | `GOOGLE_CALLBACK_URL` | Public `https://<api-host>/api/v1/auth/google/callback`; register it as an authorized redirect URI in Google Cloud Console |
 
@@ -88,10 +92,10 @@ Frontends: set `VITE_BASE_URL` to the public API URL **at build time** (Vite inl
 3. Copy the signing secret to `STRIPE_WEBHOOK_SECRET`.
 4. Test with the Stripe CLI before going live.
 
-### 4.5 Cloudinary & Brevo
+### 4.5 Cloudinary & Hostinger Mail
 
 1. Verify Cloudinary credentials and upload preset (if any).
-2. Verify the Brevo sender domain and API key.
+2. Verify the Hostinger Mail API token and mailbox (scoped to the sending mailbox).
 
 ## 5. Post-Deploy Verification
 

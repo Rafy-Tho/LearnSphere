@@ -9,7 +9,7 @@
 | PostgreSQL | 14+ (UUID via `pgcrypto`) |
 | Git | Any recent version |
 
-Optional accounts: Stripe, Cloudinary, Brevo (for payment, image, and email features).
+Optional accounts: Stripe, Cloudinary, Hostinger Mail (for payment, image, and email features).
 
 ## 2. Clone & Install
 
@@ -37,13 +37,17 @@ Create a `.env` in each app. All `.env` files are gitignored. **Do not commit th
 | `COOKIE_NAME` | Session cookie name |
 | `CLIENT_URL_1` | Allowed origin (learner frontend) |
 | `CLIENT_URL_2` | Allowed origin (admin dashboard) |
-| `BREVO_API_KEY` | Brevo transactional email key |
-| `SENDER_EMAIL` | From address for emails |
+| `TRUST_PROXY` | Trusted reverse-proxy hops or CIDRs (optional, default 1) |
+| `HOSTINGER_MAIL_API_KEY` | Hostinger Mail API token |
+| `HOSTINGER_MAIL_MAILBOX_ID` | Mailbox resource ID the token sends from |
+| `HOSTINGER_MAIL_DISPLAY_NAME` | Sender display name (optional, default `LearnSphere`) |
+| `HOSTINGER_MAIL_API_URL` | API base override (optional) |
 | `CLOUDINARY_NAME` | Cloudinary cloud name |
 | `CLOUDINARY_API_KEY` | Cloudinary API key |
 | `CLOUDINARY_SECRET_KEY` | Cloudinary API secret |
 | `STRIPE_SECRET_KEY` | Stripe secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `REFUND_WINDOW_DAYS` | Learner refund window from payment date (optional, default 14) |
 | `GOOGLE_CLIENT_ID` | Google OAuth client ID (optional; enables Google login) |
 | `GOOGLE_CLIENT_SECRET` | Google OAuth client secret (optional, server-only) |
 | `GOOGLE_CALLBACK_URL` | Google redirect URI; must match the Google Cloud Console entry |
@@ -58,8 +62,9 @@ SESSION_SECRET=change-me-to-a-long-random-string
 COOKIE_NAME=lms_session
 CLIENT_URL_1=http://localhost:5173
 CLIENT_URL_2=http://localhost:5174
-BREVO_API_KEY=
-SENDER_EMAIL=no-reply@example.com
+HOSTINGER_MAIL_API_KEY=
+HOSTINGER_MAIL_MAILBOX_ID=
+HOSTINGER_MAIL_DISPLAY_NAME=LearnSphere
 CLOUDINARY_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_SECRET_KEY=
@@ -151,6 +156,8 @@ Copy the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET`.
 | backend | `npm run pro` | Production start (`NODE_ENV=production`) |
 | backend | `npm run db:migrate` | Apply pending DB migrations |
 | backend | `npm run db:status` | List applied/pending DB migrations |
+| backend | `npm run db:seed` | Apply optional sample data |
+| backend | `npm run billing:reconcile` | Reconcile Stripe webhook/order state |
 | backend | `npx eslint .` | Lint (no npm script) |
 | frontend | `npm run dev` | Vite dev server |
 | frontend | `npm run build` | Production build |
@@ -170,7 +177,7 @@ Copy the printed `whsec_...` into `STRIPE_WEBHOOK_SECRET`.
 | `relation "lesson_contents" does not exist` | Database missing migrations — run `npm run db:migrate` |
 | `column "access_type" does not exist` | Database missing migrations — run `npm run db:migrate` |
 | Session lost on restart | Confirm `connect-pg-simple` store and DB connectivity |
-| Emails not sent | Verify `BREVO_API_KEY` and `SENDER_EMAIL` |
+| Emails not sent | Verify `HOSTINGER_MAIL_API_KEY` and `HOSTINGER_MAIL_MAILBOX_ID` |
 | Image upload fails | Check Cloudinary credentials and 5 MB/type limits |
 | Google login redirects back with `GOOGLE_AUTH_FAILED` | Set `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`; check `GOOGLE_CALLBACK_URL` matches the Google Console redirect URI exactly |
 | Google callback returns `OAUTH_STATE_INVALID` | The session cookie was missing/expired between start and callback; retry from the login page |

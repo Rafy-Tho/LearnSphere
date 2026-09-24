@@ -1,16 +1,42 @@
-# React + Vite
+# LearnSphere — Learner Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The learner-facing React single-page application for [LearnSphere](../../README.md). It consumes the shared Express/PostgreSQL API (`/api/v1`) via cookie sessions.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- React 19, Vite 7, React Router 7
+- TanStack React Query 5 (server state)
+- React Hook Form + Zod (forms/validation)
+- Tailwind CSS 4 (CSS-first, `@theme` tokens, class-based dark mode)
+- React Toastify, Swiper, Lucide React, DOMPurify
 
-## React Compiler
+## Structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `src/app/` — App composition (`App.jsx`, `providers.jsx`, `router.jsx`), providers (`AuthProvider`, `ThemeProvider`), guards (`RequireAuth`, `RedirectIfAuthenticated`, `RedirectToFirstLesson`).
+- `src/features/<domain>/` — feature domains (`auth`, `catalog`, `learning`, `reviews`, `subscriptions`, `dashboard`, `settings`, `activity`, `saved`) with `pages/`, `components/`, `hooks/`, `services/`.
+- `src/components/` — `ui/` primitives and `common/` composables.
+- `src/lib/` — `apiClient.js` (envelope unwrapping, 401 auto-logout), `queryClient.js`, `queryKeys.js` (central key factory).
+- `src/hooks/`, `src/constants/`, `src/utils/`, `src/layouts/` — cross-cutting infrastructure.
 
-## Expanding the ESLint configuration
+Data flow: components → hooks → feature services → `lib/apiClient.js` → backend. Components never call `fetch` directly; query keys are centralised in `lib/queryKeys.js` and invalidated after mutations.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Commands
+
+| Command | Description |
+|---|---|
+| `npm run dev` | Start Vite dev server |
+| `npm run build` | Production build to `dist/` |
+| `npm run lint` | ESLint (flat config) |
+| `npm run preview` | Preview the production build |
+
+## Environment
+
+| Variable | Purpose |
+|---|---|
+| `VITE_BASE_URL` | Backend API base, e.g. `http://localhost:5000/api/v1` |
+
+## Docs
+
+- Root [`README.md`](../../README.md)
+- [`docs/05-development/folder-structure.md`](../docs/05-development/folder-structure.md) §2
+- [`docs/progress/frontend-user.md`](../docs/progress/frontend-user.md)
